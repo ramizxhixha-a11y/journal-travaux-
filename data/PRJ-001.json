@@ -1,35 +1,11 @@
 {
   "version": "1.0",
-  "exported_at": "2026-05-14T08:24:38.074Z",
+  "exported_at": "2026-05-14T09:19:29.722Z",
   "projet": {
     "id": "main",
     "projet_id": "PRJ-001",
     "statut": "Actif"
   },
-  "folios": [
-    {
-      "folio_no": 1,
-      "date": "2026-05-14",
-      "h_debut": "07:30",
-      "h_fin": "16:30",
-      "meteo": "",
-      "t_8h": null,
-      "t_16h": null,
-      "b_travaux": "Teste",
-      "c_materiel": "",
-      "d_hs": "",
-      "e_materiaux": "",
-      "f_essais": "",
-      "g_echant": "",
-      "h_imprevus": "",
-      "j_decisions": "",
-      "k_visites": "",
-      "statut": "Signé",
-      "signe_prep": "Non",
-      "signe_ent": "Non",
-      "ouvriers": [],
-      "id": 1
-    }
-  ],
+  "folios": [],
   "complements": []
 }
