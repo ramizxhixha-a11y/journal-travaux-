@@ -1,0 +1,173 @@
+{
+  "version": "1.0",
+  "exported_at": "2026-05-13T00:00:00Z",
+  "projet": {
+    "projet_id": "PRJ-001",
+    "nom": "Construction école communale de Naninne",
+    "statut": "Actif",
+    "pouvoir_adjudicateur": "Région wallonne",
+    "administration": "SPW Mobilité et Infrastructures",
+    "service": "DGO1 — Direction des Bâtiments",
+    "no_dossier": "2025/EEG/0089",
+    "description": "Construction d'une école communale à Naninne — gros œuvre fermé, parachèvement et abords. Programme : 3 classes maternelles, 6 classes primaires, salle polyvalente, sanitaires, abords paysagés.",
+    "csc_no": "CSC-2025-089",
+    "csc_ref": "SPW/DGO1/BAT/2025-089 du 12/03/2025",
+    "entrepreneur": "EEG Techniques spéciales SPRL",
+    "adresse": "Z.I., 6 rue des Gerboises — 5100 Naninne",
+    "telephone": "081/21 27 02",
+    "agreation": "Catégorie D — Classe 5",
+    "onss": "42-1234567-89",
+    "no_entreprise": "BE 0442.891.013",
+    "journal_no": "1",
+    "folios_std": "1 à 30",
+    "folios_compl": "31 à 40",
+    "remis_a": "Dupont Jean",
+    "role": "Conducteur",
+    "lieu_remise": "Naninne",
+    "date_remise": "2026-05-05",
+    "fonct_dirigeant": "Lemaire Philippe — ir. SPW DGO1",
+    "prepose": "Henry Marc",
+    "date_debut": "2026-05-05",
+    "date_fin": "2026-12-31",
+    "notes": "Marché public de travaux — procédure ouverte",
+    "montant_entreprise": "1.250.000,00 EUR HTVA",
+    "date_adjudication": "2025-03-12",
+    "date_approbation": "2025-04-15",
+    "date_contract_debut": "2026-05-05",
+    "date_contract_fin": "2026-12-31",
+    "lieu_contrat": "Naninne",
+    "delai_achevement_jo": 180,
+    "interruptions_autorisees": "Période d'hiver 22/12/2026 → 04/01/2027",
+    "prolongations_delai": "Néant",
+    "jours_feries": 8,
+    "jours_conges_legaux": 12,
+    "jours_intemperies": 5,
+    "jours_divers": 2,
+    "date_reportee": null,
+    "date_reelle_achevement": null,
+    "jours_retard": 0
+  },
+  "folios": [
+    {
+      "folio_no": 1,
+      "date": "2026-05-05",
+      "h_debut": "07:30",
+      "h_fin": "16:30",
+      "meteo": "Ensoleillé",
+      "t_8h": 12,
+      "t_16h": 18,
+      "b_travaux": "Implantation du chantier — piquetage des axes principaux et secondaires par le géomètre. Installation du baraquement de chantier (vestiaire, sanitaires, réfectoire). Pose de la clôture périphérique en grillage 2 m. Décapage de la terre végétale sur l'emprise de la zone bâtiment (épaisseur 20 cm) et mise en cordon sur stock.",
+      "c_materiel": "1 pelle mécanique 20 t\n1 mini-pelle 5 t\n1 camion benne\n1 niveau laser\n1 théodolite",
+      "d_hs": "Néant",
+      "e_materiaux": "Clôture chantier (Heras) — 35 modules\nContainer bureau (Algeco) — 1\nContainer vestiaire — 1",
+      "f_essais": "Néant",
+      "g_echant": "Néant",
+      "h_imprevus": "Découverte d'une canalisation d'eau non répertoriée à proximité de l'entrée nord — voir complément folio n° 31.",
+      "j_decisions": "Arrêt provisoire des terrassements zone nord en attente de l'intervention Resa. Demande d'investigations complémentaires auprès du maître d'œuvre.",
+      "k_visites": "M. Lemaire (fonct. dirigeant) — 10h00, réception du chantier\nM. Vandenberghe (architecte) — 14h00-15h30, vérification implantation",
+      "statut": "Signé",
+      "signe_prep": "Oui",
+      "signe_ent": "Oui",
+      "ouvriers": [
+        {
+          "classe": "I",
+          "metier": "Chef d'équipe",
+          "nombre": 1,
+          "notes": ""
+        },
+        {
+          "classe": "I",
+          "metier": "Géomètre",
+          "nombre": 1,
+          "notes": ""
+        },
+        {
+          "classe": "II",
+          "metier": "Conducteur d'engins",
+          "nombre": 1,
+          "notes": ""
+        },
+        {
+          "classe": "III",
+          "metier": "Terrassier",
+          "nombre": 2,
+          "notes": ""
+        },
+        {
+          "classe": "IV",
+          "metier": "Manœuvre",
+          "nombre": 2,
+          "notes": ""
+        }
+      ]
+    },
+    {
+      "folio_no": 2,
+      "date": "2026-05-06",
+      "h_debut": "07:30",
+      "h_fin": "16:30",
+      "meteo": "Nuageux",
+      "t_8h": 14,
+      "t_16h": 20,
+      "b_travaux": "Terrassement général de la zone bâtiment — déblais à -1,20 m sous niveau fini. Mise en remblai compacté de la zone parking. Préparation du fond de fouille pour les fondations isolées (axes A à E). Coulage du béton de propreté C12/15 sur fondations zone sud.",
+      "c_materiel": "1 pelle mécanique 20 t\n1 mini-pelle 5 t\n1 camion benne\n1 compacteur\n1 niveau laser\n1 bétonnière",
+      "d_hs": "Néant",
+      "e_materiaux": "Béton C12/15 (Holcim) — 8 m³ pour béton de propreté\nTreillis soudé Ø8 mm — 500 kg",
+      "f_essais": "Test cône d'Abrams sur béton de propreté — affaissement 12 cm, conforme.",
+      "g_echant": "Échantillon béton C12/15 expédié au laboratoire Vinçotte — 3 éprouvettes.",
+      "h_imprevus": "Néant",
+      "j_decisions": "Validation par l'architecte des semelles isolées zone sud. Démarrage coffrage demain.",
+      "k_visites": "M. Henry (préposé surveillance) — journée complète\nLivreur Holcim — 9h30",
+      "statut": "Signé",
+      "signe_prep": "Oui",
+      "signe_ent": "Oui",
+      "ouvriers": [
+        {
+          "classe": "I",
+          "metier": "Chef d'équipe",
+          "nombre": 1,
+          "notes": ""
+        },
+        {
+          "classe": "II",
+          "metier": "Conducteur d'engins",
+          "nombre": 1,
+          "notes": ""
+        },
+        {
+          "classe": "III",
+          "metier": "Maçon",
+          "nombre": 2,
+          "notes": ""
+        },
+        {
+          "classe": "III",
+          "metier": "Ferrailleur",
+          "nombre": 1,
+          "notes": ""
+        },
+        {
+          "classe": "III",
+          "metier": "Terrassier",
+          "nombre": 2,
+          "notes": ""
+        },
+        {
+          "classe": "IV",
+          "metier": "Manœuvre",
+          "nombre": 2,
+          "notes": ""
+        }
+      ]
+    }
+  ],
+  "complements": [
+    {
+      "folio_compl_no": 31,
+      "folio_no_ref": 1,
+      "date_ref": "2026-05-05",
+      "case": "H",
+      "texte": "Découverte d'une canalisation d'eau non répertoriée — détail.\n\nÀ 10h45, lors du décapage de la terre végétale dans la zone nord-est (≈ 8 m de l'angle nord-ouest du futur bâtiment), le conducteur d'engins a heurté une canalisation en PE-HD Ø 110 mm. Légère fuite constatée, sans dégâts majeurs.\n\nMesures immédiates :\n  • Arrêt des travaux dans un rayon de 5 m\n  • Sécurisation de la zone par balisage\n  • Appel Resa (impétrants) à 11h00 — intervention 2026-INT-04578\n  • Information maître d'œuvre (M. Vandenberghe) et fonctionnaire dirigeant (M. Lemaire) à 11h15\n\nIntervention Resa :\n  • Équipe sur place à 13h30\n  • Identification : alimentation eau de l'ancienne ferme démolie (non démantelée à la démolition)\n  • Coupure et obturation définitive à 15h00\n  • Bon d'intervention BI-2026-04578 signé par M. Verstraete (chef équipe Resa) et M. Henry (préposé)\n\nConséquences :\n  • Retard estimé : 0,5 jour ouvrable\n  • Coût éventuel à charge du maître d'ouvrage (canalisation non signalée sur plans cadastraux)\n  • Procès-verbal de constatation à établir avec l'architecte demain."
+    }
+  ]
+}
