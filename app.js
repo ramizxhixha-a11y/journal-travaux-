@@ -1,5 +1,5 @@
 /* ═════════════════════════════════════════════════════════════════════════
-   JOURNAL DES TRAVAUX — App logic
+   JOURNAL DES TRAVAUX — App logic v2
    Stockage : IndexedDB (offline-first)
    Sync     : GitHub API (manuel, sur demande)
    ═════════════════════════════════════════════════════════════════════════ */
@@ -12,10 +12,28 @@
 const DB_NAME = 'journal_travaux';
 const DB_VERSION = 1;
 const STORES = {
-  projet:      'projet',       // 1 row : page de garde + synthèse
-  folios:      'folios',       // n rows : un folio par jour
-  complements: 'complements',  // n rows : un complément par cas qui déborde
-  settings:    'settings',     // GitHub token, owner, repo, etc.
+  projet:      'projet',
+  folios:      'folios',
+  complements: 'complements',
+  settings:    'settings',
+};
+
+// Coords Uccle (chantier CHIREC Cavell)
+const METEO_LAT = 50.7949;
+const METEO_LON = 4.3520;
+
+// WMO weather code → français
+const WMO_FR = {
+  0: 'Ensoleillé', 1: 'Beau', 2: 'Nuageux', 3: 'Couvert',
+  45: 'Brouillard', 48: 'Brouillard',
+  51: 'Pluie légère', 53: 'Pluie légère', 55: 'Pluie légère',
+  56: 'Pluie légère', 57: 'Pluie légère',
+  61: 'Pluie légère', 63: 'Pluie forte', 65: 'Pluie forte',
+  66: 'Pluie légère', 67: 'Pluie forte',
+  71: 'Neige', 73: 'Neige', 75: 'Neige', 77: 'Neige',
+  80: 'Pluie légère', 81: 'Pluie forte', 82: 'Pluie forte',
+  85: 'Neige', 86: 'Neige',
+  95: 'Orage', 96: 'Orage', 99: 'Orage',
 };
 
 let db = null;
@@ -57,7 +75,6 @@ function dbGet(store, key) {
     req.onerror   = () => reject(req.error);
   });
 }
-
 function dbGetAll(store) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readonly');
@@ -66,7 +83,6 @@ function dbGetAll(store) {
     req.onerror   = () => reject(req.error);
   });
 }
-
 function dbPut(store, value) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readwrite');
@@ -75,7 +91,6 @@ function dbPut(store, value) {
     req.onerror   = () => reject(req.error);
   });
 }
-
 function dbDelete(store, key) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readwrite');
@@ -84,7 +99,6 @@ function dbDelete(store, key) {
     req.onerror   = () => reject(req.error);
   });
 }
-
 function dbClear(store) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(store, 'readwrite');
@@ -95,7 +109,7 @@ function dbClear(store) {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// LOAD / REFRESH STATE
+// LOAD STATE
 // ──────────────────────────────────────────────────────────────────────────
 async function loadState() {
   state.projet = (await dbGet(STORES.projet, 'main')) || {
@@ -114,20 +128,16 @@ async function loadState() {
 // ──────────────────────────────────────────────────────────────────────────
 function $(sel)  { return document.querySelector(sel); }
 function $$(sel) { return Array.from(document.querySelectorAll(sel)); }
-
 function pad(n, len = 4) { return String(n).padStart(len, '0'); }
-
 function todayISO() {
   const d = new Date();
-  return `${d.getFullYear()}-${pad(d.getMonth()+1, 2)}-${pad(d.getDate(), 2)}`;
+  return `${d.getFullYear()}-${pad(d.getMonth()+1,2)}-${pad(d.getDate(),2)}`;
 }
-
 function fmtDate(iso) {
   if (!iso) return '—';
   const [y, m, d] = iso.split('-');
   return `${d}/${m}/${y}`;
 }
-
 function toast(msg, type = '') {
   const t = document.createElement('div');
   t.className = `toast ${type}`;
@@ -135,24 +145,29 @@ function toast(msg, type = '') {
   $('#toast-container').appendChild(t);
   setTimeout(() => t.remove(), 3000);
 }
-
 function setSyncDot(status) {
-  // status: 'idle' | 'dirty' | 'synced' | 'error'
   const d = $('#sync-indicator');
   d.className = 'sync-dot ' + status;
   d.title = {
-    idle:   'Pas de modification non sauvegardée',
-    dirty:  'Modifications non synchronisées',
-    synced: 'Synchronisé avec GitHub',
-    error:  'Erreur de synchronisation',
+    idle: 'Pas de modification', dirty: 'Modifications non sync',
+    synced: 'Synchronisé GitHub', error: 'Erreur sync',
   }[status] || '';
 }
 
-// Lecture / écriture des champs d'un formulaire
+// Bulle "Enregistré"
+let saveIndicatorTimer = null;
+function showSaveIndicator() {
+  const el = $('#save-indicator');
+  if (!el) return;
+  el.classList.add('show');
+  clearTimeout(saveIndicatorTimer);
+  saveIndicatorTimer = setTimeout(() => el.classList.remove('show'), 1500);
+}
+
+// formToObject / objectToForm
 function formToObject(formEl) {
   const obj = {};
-  const els = formEl.querySelectorAll('input, select, textarea');
-  els.forEach(el => {
+  formEl.querySelectorAll('input, select, textarea').forEach(el => {
     if (!el.name) return;
     let v = el.value;
     if (el.type === 'number') v = v === '' ? null : Number(v);
@@ -160,42 +175,42 @@ function formToObject(formEl) {
   });
   return obj;
 }
-
 function objectToForm(formEl, obj) {
   if (!obj) return;
-  const els = formEl.querySelectorAll('input, select, textarea');
-  els.forEach(el => {
+  formEl.querySelectorAll('input, select, textarea').forEach(el => {
     if (!el.name) return;
-    if (obj[el.name] === undefined || obj[el.name] === null) {
-      el.value = '';
-    } else {
-      el.value = obj[el.name];
-    }
+    if (obj[el.name] === undefined || obj[el.name] === null) el.value = '';
+    else el.value = obj[el.name];
+  });
+}
+
+// Spellcheck FR sur tous les inputs/textareas
+function enableSpellcheck(root = document) {
+  root.querySelectorAll('input[type="text"], input[type="tel"], textarea').forEach(el => {
+    el.setAttribute('spellcheck', 'true');
+    el.setAttribute('lang', 'fr');
+    el.setAttribute('autocorrect', 'on');
+    el.setAttribute('autocapitalize', 'sentences');
   });
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// NAVIGATION (between screens)
+// NAVIGATION
 // ──────────────────────────────────────────────────────────────────────────
 function showScreen(name) {
   $$('.screen').forEach(s => s.classList.toggle('active', s.dataset.screen === name));
   $$('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.nav === name));
-  // Hooks
   if (name === 'accueil')  renderAccueil();
   if (name === 'projet')   renderProjet();
   if (name === 'folios')   renderFoliosList();
   window.scrollTo(0, 0);
 }
+$$('.nav-btn').forEach(b => b.addEventListener('click', () => showScreen(b.dataset.nav)));
 
-$$('.nav-btn').forEach(b => {
-  b.addEventListener('click', () => showScreen(b.dataset.nav));
-});
-
-// Generic action handlers (data-action attributes)
+// Action handlers
 document.addEventListener('click', (e) => {
   const btn = e.target.closest('[data-action]');
   if (!btn) return;
-  const action = btn.dataset.action;
   const map = {
     'new-folio':            handleNewFolio,
     'open-current-folio':   handleOpenTodayFolio,
@@ -204,11 +219,13 @@ document.addEventListener('click', (e) => {
     'delete-folio':         handleDeleteFolio,
     'delete-complement':    handleDeleteComplement,
     'generate-pdf':         handleGeneratePdf,
+    'download-pdf':         handleDownloadPdf,
+    'share-pdf':            handleSharePdf,
     'export-json':          handleExportJson,
     'import-json':          handleImportJson,
     'publish-github':       handlePublishGitHub,
   };
-  if (map[action]) map[action]();
+  if (map[btn.dataset.action]) map[btn.dataset.action]();
 });
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -218,20 +235,16 @@ function renderAccueil() {
   $('#today-date').textContent = new Date().toLocaleDateString('fr-BE', {
     weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
   });
-
   $('#stat-folios').textContent = state.folios.length;
-  const cumulOuvriers = state.folios.reduce((acc, f) => {
-    return acc + (f.ouvriers || []).reduce((a, o) => a + (Number(o.nombre) || 0), 0);
-  }, 0);
+  const cumulOuvriers = state.folios.reduce((acc, f) =>
+    acc + (f.ouvriers || []).reduce((a, o) => a + (Number(o.nombre) || 0), 0), 0);
   $('#stat-ouvriers').textContent = cumulOuvriers;
   $('#stat-complements').textContent = state.complements.length;
   $('#stat-jo').textContent = state.folios.length || '—';
 
-  // Header
   $('#header-projet-id').textContent  = state.projet?.projet_id || 'PRJ-???';
   $('#header-projet-nom').textContent = state.projet?.nom || 'Sans nom';
 
-  // Liste des 5 derniers folios
   const recent = state.folios.slice().reverse().slice(0, 5);
   const ul = $('#recent-folios');
   if (recent.length === 0) {
@@ -242,8 +255,13 @@ function renderAccueil() {
       li.addEventListener('click', () => openFolio(recent[i].id));
     });
   }
-}
 
+  // Cache "Partager" si pas supporté
+  if (!navigator.canShare) {
+    const btn = $('#btn-share-pdf');
+    if (btn) btn.style.display = 'none';
+  }
+}
 function folioListHtml(f) {
   const statut = (f.statut || 'Brouillon').toLowerCase();
   const cls = statut.includes('sign') ? 'signe' : 'brouillon';
@@ -256,19 +274,63 @@ function folioListHtml(f) {
         <div class="folio-summary">${summary || '<span style="opacity:.5">— vide —</span>'}</div>
       </div>
       <span class="folio-status ${cls}">${f.statut || 'Brouillon'}</span>
-    </li>
-  `;
+    </li>`;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// RENDER : PROJET (form)
+// RENDER : PROJET — avec champs intervenants
 // ──────────────────────────────────────────────────────────────────────────
 function renderProjet() {
-  objectToForm($('#form-projet'), state.projet);
+  const p = state.projet || {};
+  // Champs plats
+  objectToForm($('#form-projet'), p);
+  // Champs structurés → flatten dans les inputs
+  const mo = p.maitre_oeuvre || {};
+  const be = p.bureau_etude || {};
+  $('#p-mo-nom').value = mo.nom || '';
+  $('#p-mo-adr').value = mo.adresse || '';
+  $('#p-mo-ct').value  = mo.contact || '';
+  $('#p-be-nom').value = be.nom || '';
+  $('#p-be-adr').value = be.adresse || '';
+  $('#p-be-ct').value  = be.contact || '';
+  $('#p-adr-ch').value = p.adresse_chantier || '';
+  // Contacts → texte multilignes
+  const contacts = p.contacts || [];
+  $('#p-contacts').value = contacts.map(c =>
+    [c.role, c.nom, c.tel, c.email].filter(x => x).join(' — ')
+  ).join('\n');
+  // Spellcheck (après que les contenus soient chargés)
+  enableSpellcheck($('#form-projet'));
+}
+
+function parseContactsText(text) {
+  if (!text) return [];
+  return text.split('\n').map(line => {
+    const parts = line.split('—').map(s => s.trim());
+    if (parts.length < 2 || !parts.some(p => p)) return null;
+    return {
+      role:  parts[0] || '',
+      nom:   parts[1] || '',
+      tel:   parts[2] || '',
+      email: parts[3] || '',
+    };
+  }).filter(c => c && (c.role || c.nom));
 }
 
 $('#save-projet').addEventListener('click', async () => {
   const data = formToObject($('#form-projet'));
+  // Reconstruire les champs structurés
+  data.maitre_oeuvre = {
+    nom: data.mo_nom || '', adresse: data.mo_adresse || '', contact: data.mo_contact || ''
+  };
+  data.bureau_etude = {
+    nom: data.be_nom || '', adresse: data.be_adresse || '', contact: data.be_contact || ''
+  };
+  data.contacts = parseContactsText(data.contacts_raw || '');
+  // On supprime les clés _raw / mo_* / be_* du JSON final
+  delete data.mo_nom; delete data.mo_adresse; delete data.mo_contact;
+  delete data.be_nom; delete data.be_adresse; delete data.be_contact;
+  delete data.contacts_raw;
   data.id = 'main';
   await dbPut(STORES.projet, data);
   state.projet = data;
@@ -303,8 +365,7 @@ function renderFoliosList() {
           <div class="folio-date">Case ${c.case || '?'} · Folio ${pad(c.folio_no_ref || 0, 4)}</div>
           <div class="folio-summary">${(c.texte || '').substring(0, 60)}</div>
         </div>
-      </li>
-    `).join('');
+      </li>`).join('');
     const items = cul.querySelectorAll('.folio-item');
     state.complements.forEach((c, i) => {
       items[i].addEventListener('click', () => openComplement(c.id));
@@ -313,7 +374,7 @@ function renderFoliosList() {
 }
 
 // ──────────────────────────────────────────────────────────────────────────
-// FOLIO : nouveau, ouvrir, sauver, supprimer
+// FOLIO : nouveau, ouvrir, sauver
 // ──────────────────────────────────────────────────────────────────────────
 function nextFolioNo() {
   if (state.folios.length === 0) return 1;
@@ -324,30 +385,20 @@ function nextFolioNo() {
 async function handleNewFolio() {
   state.currentFolioId = null;
   const folio = {
-    folio_no: nextFolioNo(),
-    date: todayISO(),
-    h_debut: '07:30',
-    h_fin: '16:30',
-    meteo: '',
-    statut: 'Brouillon',
-    signe_prep: 'Non',
-    signe_ent:  'Non',
-    ouvriers: [],
+    folio_no: nextFolioNo(), date: todayISO(),
+    h_debut: '07:30', h_fin: '16:30',
+    meteo: '', statut: 'Brouillon',
+    signe_prep: 'Non', signe_ent: 'Non', ouvriers: [],
   };
   populateFolioForm(folio);
   showScreen('folio');
 }
-
 async function handleOpenTodayFolio() {
   const today = todayISO();
   const existing = state.folios.find(f => f.date === today);
-  if (existing) {
-    openFolio(existing.id);
-  } else {
-    handleNewFolio();
-  }
+  if (existing) openFolio(existing.id);
+  else handleNewFolio();
 }
-
 function openFolio(id) {
   const f = state.folios.find(x => x.id === id);
   if (!f) return;
@@ -355,26 +406,21 @@ function openFolio(id) {
   populateFolioForm(f);
   showScreen('folio');
 }
-
 function populateFolioForm(folio) {
   $('#folio-title').textContent = `Folio N° ${pad(folio.folio_no || 1, 4)}`;
   objectToForm($('#form-folio'), folio);
   renderOuvriersRows(folio.ouvriers || []);
+  enableSpellcheck($('#form-folio'));
 }
 
 $('#save-folio').addEventListener('click', () => saveFolio('Signé'));
 $('#save-folio-draft').addEventListener('click', () => saveFolio('Brouillon'));
 
 async function saveFolio(forceStatut = null) {
-  const form = $('#form-folio');
-  const data = formToObject(form);
+  const data = formToObject($('#form-folio'));
   data.ouvriers = collectOuvriersRows();
-  if (forceStatut && !$('#f-statut').value.match(/Signé|Validé/)) {
-    data.statut = forceStatut;
-  }
-  if (state.currentFolioId) {
-    data.id = state.currentFolioId;
-  }
+  if (forceStatut && !$('#f-statut').value.match(/Signé|Validé/)) data.statut = forceStatut;
+  if (state.currentFolioId) data.id = state.currentFolioId;
   const id = await dbPut(STORES.folios, data);
   state.currentFolioId = id;
   await loadState();
@@ -404,7 +450,6 @@ function renderOuvriersRows(rows = []) {
   else rows.forEach(o => addOuvrierRow(o));
   updateTotalOuvriers();
 }
-
 function addOuvrierRow(data = {}) {
   const wrap = $('#ouvriers-rows');
   const div = document.createElement('div');
@@ -413,18 +458,15 @@ function addOuvrierRow(data = {}) {
     <div class="row-classe"><input type="text" placeholder="Classe" value="${data.classe || ''}"></div>
     <div class="row-metier"><input type="text" placeholder="Métier" value="${data.metier || ''}"></div>
     <div class="row-nb"><input type="number" min="0" placeholder="0" value="${data.nombre ?? ''}"></div>
-    <button type="button" class="row-delete" title="Supprimer">×</button>
-  `;
+    <button type="button" class="row-delete" title="Supprimer">×</button>`;
   wrap.appendChild(div);
   div.querySelector('.row-delete').addEventListener('click', () => {
-    div.remove();
-    updateTotalOuvriers();
+    div.remove(); updateTotalOuvriers(); autoSaveFolio();
   });
   div.querySelectorAll('input').forEach(i => {
-    i.addEventListener('input', updateTotalOuvriers);
+    i.addEventListener('input', () => { updateTotalOuvriers(); autoSaveFolio(); });
   });
 }
-
 function collectOuvriersRows() {
   return Array.from(document.querySelectorAll('.ouvriers-row')).map(row => ({
     classe: row.querySelector('.row-classe input').value.trim(),
@@ -432,16 +474,14 @@ function collectOuvriersRows() {
     nombre: Number(row.querySelector('.row-nb input').value) || 0,
   })).filter(r => r.classe || r.metier || r.nombre);
 }
-
 function updateTotalOuvriers() {
   const total = collectOuvriersRows().reduce((a, o) => a + o.nombre, 0);
   $('#total-ouvriers').textContent = total;
 }
-
 $('#add-ouvrier-row').addEventListener('click', () => addOuvrierRow());
 
 // ──────────────────────────────────────────────────────────────────────────
-// COMPLEMENT : nouveau, ouvrir, sauver, supprimer
+// COMPLEMENT
 // ──────────────────────────────────────────────────────────────────────────
 async function handleNewComplement() {
   state.currentComplementId = null;
@@ -450,12 +490,12 @@ async function handleNewComplement() {
   while (used.includes(next) && next <= 40) next++;
   const cpl = {
     folio_compl_no: next > 40 ? 40 : next,
+    folio_no_ref: state.folios.length > 0 ? state.folios[state.folios.length - 1].folio_no : 1,
     case: 'H',
   };
   populateComplementForm(cpl);
   showScreen('complement');
 }
-
 function openComplement(id) {
   const c = state.complements.find(x => x.id === id);
   if (!c) return;
@@ -463,12 +503,11 @@ function openComplement(id) {
   populateComplementForm(c);
   showScreen('complement');
 }
-
 function populateComplementForm(cpl) {
   $('#complement-title').textContent = `Complément N° ${pad(cpl.folio_compl_no || 31, 4)}`;
   objectToForm($('#form-complement'), cpl);
+  enableSpellcheck($('#form-complement'));
 }
-
 $('#save-complement').addEventListener('click', async () => {
   const data = formToObject($('#form-complement'));
   if (state.currentComplementId) data.id = state.currentComplementId;
@@ -479,7 +518,6 @@ $('#save-complement').addEventListener('click', async () => {
   toast('Complément sauvegardé ✓', 'success');
   showScreen('folios');
 });
-
 async function handleDeleteComplement() {
   if (!state.currentComplementId) return;
   if (!confirm('Supprimer ce complément ? Action irréversible.')) return;
@@ -489,6 +527,140 @@ async function handleDeleteComplement() {
   setSyncDot('dirty');
   toast('Complément supprimé', '');
   showScreen('folios');
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// SAUVEGARDE AUTOMATIQUE (debounce 600ms + beforeunload + visibilitychange)
+// ──────────────────────────────────────────────────────────────────────────
+let autoSaveTimer = null;
+async function autoSaveFolio() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(async () => {
+    const folioScreen = $('section[data-screen="folio"]');
+    if (!folioScreen || !folioScreen.classList.contains('active')) return;
+    const data = formToObject($('#form-folio'));
+    if (!data.folio_no) return; // pas encore valide
+    data.ouvriers = collectOuvriersRows();
+    if (state.currentFolioId) data.id = state.currentFolioId;
+    try {
+      const id = await dbPut(STORES.folios, data);
+      state.currentFolioId = id;
+      showSaveIndicator();
+    } catch (e) { console.error('autosave folio', e); }
+  }, 600);
+}
+async function autoSaveComplement() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(async () => {
+    const screen = $('section[data-screen="complement"]');
+    if (!screen || !screen.classList.contains('active')) return;
+    const data = formToObject($('#form-complement'));
+    if (!data.folio_compl_no) return;
+    if (state.currentComplementId) data.id = state.currentComplementId;
+    try {
+      const id = await dbPut(STORES.complements, data);
+      state.currentComplementId = id;
+      showSaveIndicator();
+    } catch (e) { console.error('autosave compl', e); }
+  }, 600);
+}
+async function autoSaveProjet() {
+  clearTimeout(autoSaveTimer);
+  autoSaveTimer = setTimeout(async () => {
+    const screen = $('section[data-screen="projet"]');
+    if (!screen || !screen.classList.contains('active')) return;
+    const data = formToObject($('#form-projet'));
+    data.maitre_oeuvre = {
+      nom: data.mo_nom || '', adresse: data.mo_adresse || '', contact: data.mo_contact || ''
+    };
+    data.bureau_etude = {
+      nom: data.be_nom || '', adresse: data.be_adresse || '', contact: data.be_contact || ''
+    };
+    data.contacts = parseContactsText(data.contacts_raw || '');
+    delete data.mo_nom; delete data.mo_adresse; delete data.mo_contact;
+    delete data.be_nom; delete data.be_adresse; delete data.be_contact;
+    delete data.contacts_raw;
+    data.id = 'main';
+    try {
+      await dbPut(STORES.projet, data);
+      state.projet = data;
+      showSaveIndicator();
+    } catch (e) { console.error('autosave projet', e); }
+  }, 600);
+}
+
+// Wire l'auto-save sur tous les forms
+function wireAutoSave() {
+  $('#form-folio').addEventListener('input', autoSaveFolio);
+  $('#form-complement').addEventListener('input', autoSaveComplement);
+  $('#form-projet').addEventListener('input', autoSaveProjet);
+
+  window.addEventListener('beforeunload', () => {
+    if (autoSaveTimer) clearTimeout(autoSaveTimer);
+    // Sauve immédiatement le contenu visible
+    const folioScreen = $('section[data-screen="folio"]');
+    if (folioScreen?.classList.contains('active')) autoSaveFolio();
+    const cplScreen = $('section[data-screen="complement"]');
+    if (cplScreen?.classList.contains('active')) autoSaveComplement();
+    const prjScreen = $('section[data-screen="projet"]');
+    if (prjScreen?.classList.contains('active')) autoSaveProjet();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      const folioScreen = $('section[data-screen="folio"]');
+      if (folioScreen?.classList.contains('active')) autoSaveFolio();
+      const cplScreen = $('section[data-screen="complement"]');
+      if (cplScreen?.classList.contains('active')) autoSaveComplement();
+      const prjScreen = $('section[data-screen="projet"]');
+      if (prjScreen?.classList.contains('active')) autoSaveProjet();
+    }
+  });
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// MÉTÉO — Open-Meteo (coords Uccle, gratuit, sans clé)
+// ──────────────────────────────────────────────────────────────────────────
+async function fetchWeather() {
+  const btn = $('#btn-fetch-meteo');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Récupération...'; }
+  try {
+    const dateISO = $('#f-date').value || todayISO();
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${METEO_LAT}&longitude=${METEO_LON}` +
+                `&hourly=temperature_2m,weather_code` +
+                `&start_date=${dateISO}&end_date=${dateISO}` +
+                `&timezone=Europe%2FBrussels`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Open-Meteo HTTP ' + res.status);
+    const data = await res.json();
+    const times = data.hourly?.time || [];
+    const temps = data.hourly?.temperature_2m || [];
+    const codes = data.hourly?.weather_code || [];
+
+    let t8 = null, t16 = null, codeMidi = null;
+    times.forEach((t, i) => {
+      if (t.endsWith('T08:00')) t8 = Math.round(temps[i]);
+      if (t.endsWith('T16:00')) t16 = Math.round(temps[i]);
+      if (t.endsWith('T12:00')) codeMidi = codes[i];
+    });
+
+    if (t8 !== null) $('#f-t8').value = t8;
+    if (t16 !== null) $('#f-t16').value = t16;
+    if (codeMidi !== null) {
+      const label = WMO_FR[codeMidi] || 'Variable';
+      const sel = $('#f-meteo');
+      const opt = Array.from(sel.options).find(o => o.value === label);
+      if (opt) sel.value = label;
+      else sel.value = '';
+    }
+    autoSaveFolio();
+    toast('Météo récupérée ✓', 'success');
+  } catch (err) {
+    console.error(err);
+    toast('Erreur météo : ' + err.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🌤️ Récupérer la météo du jour'; }
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -503,26 +675,19 @@ function buildExportObject() {
     complements: state.complements,
   };
 }
-
 async function handleExportJson() {
   const obj = buildExportObject();
-  const json = JSON.stringify(obj, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url  = URL.createObjectURL(blob);
+  const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   const pid = state.projet?.projet_id || 'PRJ-XXX';
   a.href = url;
   a.download = `journal-travaux_${pid}_${todayISO()}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
+  document.body.appendChild(a); a.click(); a.remove();
   URL.revokeObjectURL(url);
   toast('JSON exporté ✓', 'success');
 }
-
-function handleImportJson() {
-  $('#import-file').click();
-}
+function handleImportJson() { $('#import-file').click(); }
 
 $('#import-file').addEventListener('change', async (e) => {
   const file = e.target.files[0];
@@ -531,45 +696,31 @@ $('#import-file').addEventListener('change', async (e) => {
     const text = await file.text();
     const data = JSON.parse(text);
     if (!data.projet) throw new Error('JSON invalide : "projet" manquant');
-
     if (!confirm("Importer ce JSON va REMPLACER toutes vos données locales.\nContinuer ?")) {
-      e.target.value = '';
-      return;
+      e.target.value = ''; return;
     }
-    // Reset stores et réinjecter
     await dbClear(STORES.projet);
     await dbClear(STORES.folios);
     await dbClear(STORES.complements);
-
-    if (data.projet) {
-      const p = { ...data.projet, id: 'main' };
-      await dbPut(STORES.projet, p);
-    }
+    if (data.projet) await dbPut(STORES.projet, { ...data.projet, id: 'main' });
     if (Array.isArray(data.folios)) {
-      for (const f of data.folios) {
-        delete f.id; // auto-increment va lui en réassigner un
-        await dbPut(STORES.folios, f);
-      }
+      for (const f of data.folios) { delete f.id; await dbPut(STORES.folios, f); }
     }
     if (Array.isArray(data.complements)) {
-      for (const c of data.complements) {
-        delete c.id;
-        await dbPut(STORES.complements, c);
-      }
+      for (const c of data.complements) { delete c.id; await dbPut(STORES.complements, c); }
     }
-
     await loadState();
     renderAccueil();
     toast('Import réussi ✓', 'success');
   } catch (err) {
     console.error(err);
-    toast('Erreur d\'import : ' + err.message, 'error');
+    toast("Erreur d'import : " + err.message, 'error');
   }
   e.target.value = '';
 });
 
 // ──────────────────────────────────────────────────────────────────────────
-// GITHUB SYNC : publier le JSON dans le repo
+// GITHUB
 // ──────────────────────────────────────────────────────────────────────────
 async function getGitHubConfig() {
   const r = await Promise.all([
@@ -583,51 +734,37 @@ async function getGitHubConfig() {
 async function handlePublishGitHub() {
   const cfg = await getGitHubConfig();
   if (!cfg.owner || !cfg.repo || !cfg.token) {
-    toast('Configurez GitHub dans Réglages d\'abord', 'error');
-    showScreen('reglages');
-    return;
+    toast("Configurez GitHub dans Réglages d'abord", 'error');
+    showScreen('reglages'); return;
   }
-
   const pid = state.projet?.projet_id || 'PRJ-XXX';
   const path = `data/${pid}.json`;
   const content = btoa(unescape(encodeURIComponent(
     JSON.stringify(buildExportObject(), null, 2)
   )));
-
   toast('Publication en cours…');
-
   try {
-    // 1. Get current SHA (si fichier existe déjà)
     const apiBase = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`;
     const getRes = await fetch(`${apiBase}/contents/${path}`, {
       headers: { Authorization: `Bearer ${cfg.token}` }
     });
     let sha = null;
-    if (getRes.ok) {
-      const existing = await getRes.json();
-      sha = existing.sha;
-    }
-
-    // 2. PUT le fichier
+    if (getRes.ok) sha = (await getRes.json()).sha;
     const body = {
-      message: `Mise à jour journal ${pid} — ${new Date().toISOString().slice(0, 10)}`,
-      content: content,
-      ...(sha && { sha })
+      message: `Mise à jour journal ${pid} — ${todayISO()}`,
+      content, ...(sha && { sha })
     };
     const putRes = await fetch(`${apiBase}/contents/${path}`, {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${cfg.token}`,
-        'Content-Type': 'application/json',
+        Authorization: `Bearer ${cfg.token}`, 'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
     });
-
     if (!putRes.ok) {
       const err = await putRes.json();
-      throw new Error(err.message || `HTTP ${putRes.status}`);
+      throw new Error(err.message || 'HTTP ' + putRes.status);
     }
-
     setSyncDot('synced');
     toast('Publié sur GitHub ✓', 'success');
   } catch (err) {
@@ -637,48 +774,104 @@ async function handlePublishGitHub() {
   }
 }
 
-// ──────────────────────────────────────────────────────────────────────────
-// GÉNÉRATION PDF : déclenche la GitHub Action
-// ──────────────────────────────────────────────────────────────────────────
 async function handleGeneratePdf() {
   const cfg = await getGitHubConfig();
   if (!cfg.owner || !cfg.repo || !cfg.token) {
-    toast('Configurez GitHub dans Réglages d\'abord', 'error');
-    showScreen('reglages');
-    return;
+    toast("Configurez GitHub dans Réglages d'abord", 'error');
+    showScreen('reglages'); return;
   }
-  if (!confirm("On va d'abord publier vos données actuelles sur GitHub,\npuis lancer la génération du PDF (≈ 1 minute).\n\nContinuer ?")) return;
-
-  // 1. Publier
+  if (!confirm("On va d'abord publier vos données sur GitHub,\npuis lancer la génération du PDF (≈ 30 sec).\n\nContinuer ?")) return;
   await handlePublishGitHub();
-
-  // 2. Déclencher l'Action
   try {
     const apiBase = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}`;
     const res = await fetch(`${apiBase}/actions/workflows/generate-pdf.yml/dispatches`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${cfg.token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ref: 'main',
-        inputs: { projet_id: state.projet?.projet_id || 'PRJ-001' },
-      }),
+      headers: { Authorization: `Bearer ${cfg.token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ref: 'main', inputs: { projet_id: state.projet?.projet_id || 'PRJ-001' } }),
     });
     if (!res.ok && res.status !== 204) {
       const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `HTTP ${res.status}`);
+      throw new Error(err.message || 'HTTP ' + res.status);
     }
-    toast('PDF en cours de génération ! Vérifiez l\'onglet Actions de votre repo.', 'success');
+    toast('PDF en cours de génération (~30 sec)', 'success');
   } catch (err) {
     console.error(err);
     toast('Erreur déclenchement PDF : ' + err.message, 'error');
   }
 }
 
+// Télécharger le PDF déjà committé dans le repo (par le bot)
+async function fetchPdfBlob() {
+  const cfg = await getGitHubConfig();
+  if (!cfg.owner || !cfg.repo || !cfg.token) {
+    toast("Configurez GitHub dans Réglages d'abord", 'error');
+    showScreen('reglages'); return null;
+  }
+  const pid = state.projet?.projet_id || 'PRJ-001';
+  const path = `pdfs/Journal_Travaux_${pid}.pdf`;
+  const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${path}`;
+  const res = await fetch(apiUrl, {
+    headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github.raw' }
+  });
+  if (!res.ok) {
+    if (res.status === 404) {
+      toast("Aucun PDF trouvé. Lance d'abord 'Générer le PDF'.", 'error');
+    } else {
+      toast('Erreur téléchargement : HTTP ' + res.status, 'error');
+    }
+    return null;
+  }
+  const blob = await res.blob();
+  return { blob, filename: `Journal_Travaux_${pid}.pdf` };
+}
+
+async function handleDownloadPdf() {
+  toast('Téléchargement du PDF…');
+  const got = await fetchPdfBlob();
+  if (!got) return;
+  const url = URL.createObjectURL(got.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = got.filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  toast('PDF téléchargé ✓', 'success');
+}
+
+async function handleSharePdf() {
+  if (!navigator.canShare) {
+    toast('Partage non supporté sur ce navigateur', 'error'); return;
+  }
+  toast('Préparation du partage…');
+  const got = await fetchPdfBlob();
+  if (!got) return;
+  const file = new File([got.blob], got.filename, { type: 'application/pdf' });
+  if (!navigator.canShare({ files: [file] })) {
+    toast('Partage de fichiers non supporté', 'error'); return;
+  }
+  try {
+    await navigator.share({
+      title: 'Journal des Travaux',
+      text: `Journal des Travaux ${state.projet?.projet_id || ''} du ${todayISO()}`,
+      files: [file],
+    });
+  } catch (err) {
+    if (err.name !== 'AbortError') {
+      console.error(err);
+      toast('Erreur partage : ' + err.message, 'error');
+    }
+  }
+}
+
 // ──────────────────────────────────────────────────────────────────────────
-// SETTINGS — GitHub config
+// MÉTÉO BUTTON
+// ──────────────────────────────────────────────────────────────────────────
+function wireMeteoButton() {
+  const btn = $('#btn-fetch-meteo');
+  if (btn) btn.addEventListener('click', fetchWeather);
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// SETTINGS
 // ──────────────────────────────────────────────────────────────────────────
 async function loadGitHubConfig() {
   const cfg = await getGitHubConfig();
@@ -686,16 +879,14 @@ async function loadGitHubConfig() {
   $('#g-repo').value  = cfg.repo  || '';
   $('#g-token').value = cfg.token || '';
 }
-
 $('#save-github-config').addEventListener('click', async () => {
   await dbPut(STORES.settings, { key: 'gh_owner', value: $('#g-owner').value.trim() });
   await dbPut(STORES.settings, { key: 'gh_repo',  value: $('#g-repo').value.trim()  });
   await dbPut(STORES.settings, { key: 'gh_token', value: $('#g-token').value.trim() });
   toast('Configuration GitHub enregistrée ✓', 'success');
 });
-
 $('#reset-data').addEventListener('click', async () => {
-  if (!confirm("⚠ Cela va EFFACER toutes vos données locales (projet, folios, compléments). Pensez à exporter avant si nécessaire. Continuer ?")) return;
+  if (!confirm("⚠ Cela va EFFACER toutes vos données locales. Continuer ?")) return;
   await dbClear(STORES.projet);
   await dbClear(STORES.folios);
   await dbClear(STORES.complements);
@@ -714,8 +905,11 @@ $('#reset-data').addEventListener('click', async () => {
     await loadGitHubConfig();
     renderAccueil();
     setSyncDot('idle');
+    enableSpellcheck(document);
+    wireAutoSave();
+    wireMeteoButton();
   } catch (err) {
     console.error(err);
-    alert('Erreur d\'initialisation : ' + err.message);
+    alert("Erreur d'initialisation : " + err.message);
   }
 })();

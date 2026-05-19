@@ -14,6 +14,50 @@
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css">
+
+<style>
+  /* Bulle "Enregistré" */
+  #save-indicator {
+    position: fixed;
+    bottom: 80px;
+    right: 16px;
+    background: #1F4E5F;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .2s ease, transform .2s ease;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  #save-indicator.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* Bouton météo dans le folio */
+  .meteo-btn-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 8px 0 12px;
+  }
+  .btn-meteo {
+    background: #E8F1F3;
+    color: #1F4E5F;
+    border: 1px solid #B5D3DA;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-meteo:active { background: #D0E2E6; }
+  .btn-meteo:disabled { opacity: .6; cursor: not-allowed; }
+</style>
 </head>
 <body>
 
@@ -32,9 +76,6 @@
   </div>
 </header>
 
-<!-- ╔════════════════════════════════════════════════════════════════════╗ -->
-<!-- ║ MAIN — un écran par "page"                                         ║ -->
-<!-- ╚════════════════════════════════════════════════════════════════════╝ -->
 <main id="main-content">
 
   <!-- ─── SCREEN: ACCUEIL ──────────────────────────────────────────── -->
@@ -76,10 +117,12 @@
 
     <h3 class="section-title">Actions rapides</h3>
     <div class="quick-actions">
-      <button class="btn btn-secondary" data-action="generate-pdf">📄 Générer le PDF</button>
+      <button class="btn btn-secondary" data-action="publish-github">🔄 Publier sur GitHub</button>
+      <button class="btn btn-secondary" data-action="generate-pdf">⚙ Générer le PDF</button>
+      <button class="btn btn-secondary" data-action="download-pdf">📄 Télécharger le PDF</button>
+      <button class="btn btn-secondary" data-action="share-pdf" id="btn-share-pdf">🔗 Partager le PDF</button>
       <button class="btn btn-secondary" data-action="export-json">⬇ Exporter JSON</button>
       <button class="btn btn-secondary" data-action="import-json">⬆ Importer JSON</button>
-      <button class="btn btn-secondary" data-action="publish-github">🔄 Publier sur GitHub</button>
     </div>
   </section>
 
@@ -154,8 +197,51 @@
         </div>
       </details>
 
+      <!-- NOUVEAU : Intervenants -->
       <details class="fieldset">
-        <summary><span class="num">④</span> Remise du journal</summary>
+        <summary><span class="num">④</span> Intervenants (Maître d'œuvre, Bureau d'étude, Chantier)</summary>
+        <p class="subgroup-title">Maître d'œuvre (Architecte)</p>
+        <div class="field">
+          <label for="p-mo-nom">Nom</label>
+          <input id="p-mo-nom" name="mo_nom" type="text" placeholder="Ex. ASSAR Architects">
+        </div>
+        <div class="field">
+          <label for="p-mo-adr">Adresse</label>
+          <input id="p-mo-adr" name="mo_adresse" type="text">
+        </div>
+        <div class="field">
+          <label for="p-mo-ct">Contact</label>
+          <input id="p-mo-ct" name="mo_contact" type="text" placeholder="Nom + téléphone + email">
+        </div>
+
+        <p class="subgroup-title">Bureau d'étude</p>
+        <div class="field">
+          <label for="p-be-nom">Nom</label>
+          <input id="p-be-nom" name="be_nom" type="text" placeholder="Ex. Sweco Belgium">
+        </div>
+        <div class="field">
+          <label for="p-be-adr">Adresse</label>
+          <input id="p-be-adr" name="be_adresse" type="text">
+        </div>
+        <div class="field">
+          <label for="p-be-ct">Contact</label>
+          <input id="p-be-ct" name="be_contact" type="text">
+        </div>
+
+        <p class="subgroup-title">Chantier</p>
+        <div class="field">
+          <label for="p-adr-ch">Adresse du chantier</label>
+          <input id="p-adr-ch" name="adresse_chantier" type="text" placeholder="Ex. 37 rue Général Lotz, 1180 Uccle">
+        </div>
+
+        <p class="subgroup-title">Contacts du marché (un par ligne, format : Rôle — Nom — Tél — Email)</p>
+        <div class="field">
+          <textarea id="p-contacts" name="contacts_raw" rows="4" placeholder="Suivi infrastructures — Julie Guardia — +32 2 434 67 96 — mp@chirec.be&#10;Suivi infrastructures — Jean-Marie Herbots — +32 2 434 44 69 — jean-marie.herbots@chirec.be"></textarea>
+        </div>
+      </details>
+
+      <details class="fieldset">
+        <summary><span class="num">⑤</span> Remise du journal</summary>
         <div class="field">
           <label for="p-jno">Journal N°</label>
           <input id="p-jno" name="journal_no" type="number" min="1">
@@ -195,7 +281,7 @@
       </details>
 
       <details class="fieldset">
-        <summary><span class="num">⑤</span> Infos complémentaires</summary>
+        <summary><span class="num">⑥</span> Infos complémentaires</summary>
         <div class="grid-2">
           <div class="field">
             <label for="p-pid">ProjetID</label>
@@ -231,7 +317,7 @@
       </details>
 
       <details class="fieldset">
-        <summary><span class="num">⑥</span> Synthèse contrat (page 2 du PDF)</summary>
+        <summary><span class="num">⑦</span> Synthèse contrat (page 2 du PDF)</summary>
         <div class="field">
           <label for="p-mont">Montant de l'entreprise</label>
           <input id="p-mont" name="montant_entreprise" type="text" placeholder="Ex. 1.250.000,00 EUR HTVA">
@@ -306,7 +392,7 @@
     </form>
   </section>
 
-  <!-- ─── SCREEN: FOLIO (saisie ou édition) ────────────────────────── -->
+  <!-- ─── SCREEN: FOLIO ────────────────────────── -->
   <section class="screen" data-screen="folio">
     <div class="folio-toolbar">
       <button class="btn-icon" data-action="back-to-list" title="Retour à la liste">←</button>
@@ -316,7 +402,6 @@
 
     <form id="form-folio" autocomplete="off">
 
-      <!-- Infos générales -->
       <details class="fieldset" open>
         <summary><span class="num">①</span> Informations générales</summary>
         <div class="grid-2">
@@ -339,6 +424,12 @@
             <input id="f-hfin" name="h_fin" type="time" value="16:30">
           </div>
         </div>
+
+        <!-- NOUVEAU : bouton météo -->
+        <div class="meteo-btn-row">
+          <button type="button" class="btn-meteo" id="btn-fetch-meteo">🌤️ Récupérer la météo du jour</button>
+        </div>
+
         <div class="field">
           <label for="f-meteo">État atmosphérique</label>
           <select id="f-meteo" name="meteo">
@@ -361,20 +452,13 @@
         </div>
       </details>
 
-      <!-- Case A : Ouvriers -->
       <details class="fieldset case-fieldset" open>
         <summary><span class="case-tag">A</span> Ouvriers</summary>
-
-        <div class="ouvriers-table" id="ouvriers-rows">
-          <!-- rows injectés par JS -->
-        </div>
-
+        <div class="ouvriers-table" id="ouvriers-rows"></div>
         <button type="button" class="btn-add-row" id="add-ouvrier-row">+ Ajouter une ligne</button>
-
         <p class="ouvriers-total">Total ouvriers : <strong id="total-ouvriers">0</strong></p>
       </details>
 
-      <!-- Case B : Travaux exécutés -->
       <details class="fieldset case-fieldset">
         <summary><span class="case-tag">B</span> Travaux exécutés</summary>
         <div class="field"><textarea name="b_travaux" rows="4"></textarea></div>
@@ -468,7 +552,7 @@
     </ul>
   </section>
 
-  <!-- ─── SCREEN: COMPLEMENT (édition) ─────────────────────────────── -->
+  <!-- ─── SCREEN: COMPLEMENT ─────────────────────────────── -->
   <section class="screen" data-screen="complement">
     <div class="folio-toolbar">
       <button class="btn-icon" data-action="back-to-list" title="Retour">←</button>
@@ -522,14 +606,14 @@
 
     <details class="fieldset" open>
       <summary>🔄 Synchronisation GitHub</summary>
-      <p class="screen-sub">Configurez ces 3 champs pour pouvoir publier vos données vers votre repo privé GitHub. Token créé via <code>github.com/settings/tokens</code> (scope <code>repo</code>).</p>
+      <p class="screen-sub">Configurez ces 3 champs pour pouvoir publier vos données vers votre repo GitHub. Token créé via <code>github.com/settings/tokens</code> (scope <code>repo</code>).</p>
       <div class="field">
         <label for="g-owner">Owner (votre pseudo GitHub)</label>
         <input id="g-owner" type="text" placeholder="ramizxhixha-a11y">
       </div>
       <div class="field">
         <label for="g-repo">Nom du repo</label>
-        <input id="g-repo" type="text" placeholder="journal-travaux">
+        <input id="g-repo" type="text" placeholder="journal-travaux-">
       </div>
       <div class="field">
         <label for="g-token">Personal Access Token</label>
@@ -549,17 +633,14 @@
 
     <details class="fieldset">
       <summary>ℹ À propos</summary>
-      <p>Journal des Travaux v1.0 — Modèle Embuild 9545 F</p>
-      <p>App locale + GitHub, conçue pour le chantier École Naninne.</p>
+      <p>Journal des Travaux v2.0 — Modèle Embuild 9545 F</p>
+      <p>App locale + GitHub. Chantier CHIREC Cavell / EEG Techniques Spéciales.</p>
       <p class="screen-sub">Conçue pour fonctionner hors-ligne. Vos données ne quittent l'appareil que si vous publiez vers GitHub explicitement.</p>
     </details>
   </section>
 
 </main>
 
-<!-- ╔════════════════════════════════════════════════════════════════════╗ -->
-<!-- ║ BOTTOM NAV                                                          ║ -->
-<!-- ╚════════════════════════════════════════════════════════════════════╝ -->
 <nav class="bottom-nav">
   <button class="nav-btn active" data-nav="accueil">
     <span class="nav-icon">⌂</span>
@@ -578,6 +659,9 @@
     <span class="nav-label">Réglages</span>
   </button>
 </nav>
+
+<!-- Indicateur d'enregistrement -->
+<div id="save-indicator">💾 Enregistré</div>
 
 <!-- Toast notifications -->
 <div id="toast-container"></div>
