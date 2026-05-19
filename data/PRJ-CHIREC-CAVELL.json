@@ -1,10 +1,7 @@
 {
   "version": "1.0",
-  "exported_at": "2026-05-19T06:51:35.246Z",
+  "exported_at": "2026-05-19T09:49:03.939Z",
   "projet": {
-    "projet_id": "PRJ-CHIREC-CAVELL",
-    "nom": "CHIREC Cavell — Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire)",
-    "statut": "Actif",
     "pouvoir_adjudicateur": "CHIREC asbl",
     "administration": "Département Opérationnel — Cellule Achats et Marchés publics",
     "service": "Boulevard du Triomphe 201, 1160 Bruxelles — Contact : Julie Guardia Miralles, +32 2 434 67 96, mp@chirec.be",
@@ -18,15 +15,16 @@
     "agreation": "Classe 5 requise (jusqu'à 1.810.000 EUR) — à compléter avec n° agréation EEG",
     "onss": "",
     "no_entreprise": "BE 0442.891.013",
-    "journal_no": "1",
-    "folios_std": "1 à 30",
-    "folios_compl": "31 à 40",
+    "journal_no": 1,
     "remis_a": "",
     "role": "Conducteur",
     "lieu_remise": "Uccle",
     "date_remise": "",
     "fonct_dirigeant": "",
     "prepose": "",
+    "projet_id": "PRJ-CHIREC-CAVELL",
+    "statut": "Actif",
+    "nom": "CHIREC Cavell — Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire)",
     "date_debut": "2024-05-03",
     "date_fin": "2025-05-30",
     "notes": "Marché public de travaux — procédure ouverte avec publication européenne. Valeur globale estimée du marché (tous lots) : 9.030.000 € TVAC. Délai d'engagement soumissionnaire : 180 jours (au lieu de 90). Article 83 du CSC : la tenue du journal des travaux appartient à l'adjudicataire du lot 1 — version EEG tenue à titre interne pour le lot 3.",
@@ -43,11 +41,105 @@
     "jours_conges_legaux": 0,
     "jours_intemperies": 0,
     "jours_divers": 0,
-    "date_reportee": null,
-    "date_reelle_achevement": null,
+    "date_reelle_achevement": "",
+    "date_reportee": "",
     "jours_retard": 0,
     "id": "main"
   },
-  "folios": [],
-  "complements": []
+  "folios": [
+    {
+      "folio_no": 1,
+      "date": "2026-05-19",
+      "h_debut": "06:30",
+      "h_fin": "15:00",
+      "meteo": "Nuageux",
+      "t_8h": null,
+      "t_16h": null,
+      "b_travaux": "Reunion de coordinations interne EEG\nDécharges condensat baterie QOP\nDemontages 2 lavabo COMPLET  Endo , pour remplacement des ecochoc par WYCOR. Reinstallation des lavabo complet apres Wycor.\nRéglages des debits Hydraulique Endo. \nCommande QOP\nListe de metrée decompte QOP\nLevée des remarque Aproplan\nTest de pressions HVAC E5\nSoudages Acier LT+1 \nInstallation Aeraulyques QOP\nRégulation Aeraulyque CCF reperages rez \n\n\n\n\n",
+      "c_materiel": "Machine geberit PEHD\nForeuses\nViseuses\nEchafaudages\nPermis feux\nPompe de surpresion \nOutillages ELE\nOutillages Soudure\nOutillages Regulation\n",
+      "d_hs": "Monte charges defaut",
+      "e_materiaux": "",
+      "f_essais": "Test de pression de pression E5 EG ECH ",
+      "g_echant": "",
+      "h_imprevus": "Incident Beny TAS Bltherme coupure à l'index,contunuité du travail",
+      "j_decisions": "Deviation circuit EG du GP7 a travers la tremie dite arr9ndie aile C du +5 au -1.\nPiccages a realiser au plus favorable poue EEG. En dn 75\nFichzs technique mannesmann a sertir Acier\nIntrodure, ndc trainnantes existant avec l’ajout du groupe GP7 et GP4.\nVanne Existante dn 50 a conserver pour future GP4.\nEtat des lieu du calorifuge des trainantes a introduire reparation necessaires a faire decompte a introduire.\nIntroduire un devis pour intercaler 2 vanne sur reseau existant devis a introduire 2 vanne dn 100 travail a realiseer en weekend. O coordoner avant mi juin servises technique pas disponible si non.\nPrendre en compte location clim potable pour gama et data en services\nUne fois intercaller les vanne suplaimentaire seulment aprew on peux intercaller leq vanne pour GP7.\nA bpir si pas possible de le fair d’un coup.?.\n\n\n\n",
+      "k_visites": "",
+      "statut": "Signé",
+      "signe_prep": "Non",
+      "signe_ent": "Oui",
+      "ouvriers": [
+        {
+          "classe": "CONTREMAITRE",
+          "metier": "HVAC",
+          "nombre": 1
+        },
+        {
+          "classe": "III",
+          "metier": "HVAC",
+          "nombre": 1
+        },
+        {
+          "classe": "IIA",
+          "metier": "HVAC",
+          "nombre": 1
+        },
+        {
+          "classe": "IIIA",
+          "metier": "AERAULYQUE",
+          "nombre": 1
+        },
+        {
+          "classe": "IIA",
+          "metier": "AERAULYQUE",
+          "nombre": 1
+        },
+        {
+          "classe": "IIIA",
+          "metier": "Electricité",
+          "nombre": 1
+        },
+        {
+          "classe": "III",
+          "metier": "Eleccctricite",
+          "nombre": 1
+        },
+        {
+          "classe": "IIA",
+          "metier": "Electricite",
+          "nombre": 1
+        },
+        {
+          "classe": "IIIA",
+          "metier": "SOUDEUR",
+          "nombre": 1
+        },
+        {
+          "classe": "III",
+          "metier": "SOUDEUR",
+          "nombre": 1
+        },
+        {
+          "classe": "IIA",
+          "metier": "SOUDEUR",
+          "nombre": 1
+        },
+        {
+          "classe": "IIIA",
+          "metier": "REGULATION",
+          "nombre": 1
+        }
+      ],
+      "id": 1
+    }
+  ],
+  "complements": [
+    {
+      "folio_compl_no": 31,
+      "folio_no_ref": null,
+      "date_ref": "",
+      "case": "H",
+      "texte": "Incident , Benny Tas coupure a l'index droit avec gaine tranchant , desinfecté et proteger.\nVisite => decompte pour deux vanne suplaimentaire du 100 sue reseau existant EG.",
+      "id": 1
+    }
+  ]
 }
