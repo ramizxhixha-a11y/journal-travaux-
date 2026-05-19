@@ -1,0 +1,80 @@
+name: Générer PDF Journal des Travaux
+
+on:
+  workflow_dispatch:
+    inputs:
+      projet_id:
+        description: 'ID du projet (laisse vide pour auto-detect)'
+        required: false
+        default: ''
+  push:
+    paths:
+      - 'data/**.json'
+      - 'pdf/**'
+      - 'cachet.*'
+
+jobs:
+  build-pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r pdf/requirements.txt
+
+      - name: Determine projet_id
+        id: pid
+        run: |
+          INPUT="${{ github.event.inputs.projet_id }}"
+          if [ -n "$INPUT" ]; then
+            echo "value=$INPUT" >> $GITHUB_OUTPUT
+            echo "Using input projet_id: $INPUT"
+          else
+            FIRST=$(ls data/*.json 2>/dev/null | head -n1)
+            if [ -z "$FIRST" ]; then
+              echo "Aucun JSON trouve dans data/. Annulation."
+              exit 1
+            fi
+            PID=$(basename "$FIRST" .json)
+            echo "value=$PID" >> $GITHUB_OUTPUT
+            echo "Auto-detected projet_id: $PID"
+          fi
+
+      - name: Build PDF
+        run: |
+          mkdir -p output
+          python pdf/build_pdf.py "data/${{ steps.pid.outputs.value }}.json" \
+                                  "output/Journal_Travaux_${{ steps.pid.outputs.value }}.pdf"
+
+      - name: Upload PDF artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Journal_Travaux_${{ steps.pid.outputs.value }}
+          path: output/Journal_Travaux_${{ steps.pid.outputs.value }}.pdf
+          retention-days: 90
+
+      - name: Commit PDF to repo
+        run: |
+          mkdir -p pdfs
+          cp output/Journal_Travaux_${{ steps.pid.outputs.value }}.pdf pdfs/
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pdfs/
+          if git diff --cached --quiet; then
+            echo "Pas de changement a committer"
+          else
+            git commit -m "PDF genere: ${{ steps.pid.outputs.value }} [skip ci]"
+            git push
+          fi
