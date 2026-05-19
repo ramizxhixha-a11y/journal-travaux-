@@ -1,18 +1,18 @@
 {
   "version": "1.0",
-  "exported_at": "2026-05-19T12:15:14.214Z",
+  "exported_at": "2026-05-19T19:30:00.000Z",
   "projet": {
     "pouvoir_adjudicateur": "CHIREC asbl",
     "administration": "Département Opérationnel — Cellule Achats et Marchés publics",
-    "service": "Boulevard du Triomphe 201, 1160 Bruxelles — Contact : Julie Guardia Miralles, +32 2 434 67 96, mp@chirec.be",
+    "service": "Boulevard du Triomphe 201, 1160 Bruxelles",
     "no_dossier": "Chirec-2024-004 / Dossier Sweco 55820002",
-    "description": "Marché de travaux d'aménagement pour l'extension d'un hôpital de jour chirurgical pour le site du Centre Médical Edith Cavell du CHIREC. Lot 3 — Techniques Spéciales : Partie 1 HVAC (Chauffage central, installations thermiques, Ventilation, conditionnement d'air) + Partie 2 Sanitaire. Chantier : 37 rue Général Lotz à 1180 Uccle. Maître d'œuvre : ASSAR Architects (Chaussée de la Hulpe 181/2, 1170 Bruxelles). Bureau d'étude : Sweco Belgium (Arenbergstraat 13 bus 1, 1000 Bruxelles). Suivi infrastructures CHIREC : Jean-Marie Herbots, +32 2 434 44 69, jean-marie.herbots@chirec.be.",
+    "description": "Marché de travaux d'aménagement pour l'extension d'un hôpital de jour chirurgical pour le site du Centre Médical Edith Cavell du CHIREC. Lot 3 — Techniques Spéciales : Partie 1 HVAC (Chauffage central, installations thermiques, Ventilation, conditionnement d'air) + Partie 2 Sanitaire.",
     "csc_no": "Chirec-2024-004",
     "csc_ref": "Cahier spécial des charges du 27/02/2024 — Lot 3 HVAC + Sanitaire — Réf. Sweco 55820002",
     "entrepreneur": "EEG Techniques Spéciales",
     "adresse": "Z.I., 6 rue des Gerboises — 5100 Naninne",
     "telephone": "081/21 27 02",
-    "agreation": "Classe 5 requise (jusqu'à 1.810.000 EUR) — à compléter avec n° agréation EEG",
+    "agreation": "Classe 5 requise (jusqu'à 1.810.000 EUR)",
     "onss": "",
     "no_entreprise": "BE 0442.891.013",
     "journal_no": 1,
@@ -44,6 +44,31 @@
     "date_reelle_achevement": "",
     "date_reportee": "",
     "jours_retard": 0,
+    "maitre_oeuvre": {
+      "nom": "ASSAR Architects",
+      "adresse": "Chaussée de la Hulpe 181/2, 1170 Bruxelles",
+      "contact": ""
+    },
+    "bureau_etude": {
+      "nom": "Sweco Belgium",
+      "adresse": "Arenbergstraat 13 bus 1, 1000 Bruxelles",
+      "contact": ""
+    },
+    "adresse_chantier": "37 rue Général Lotz, 1180 Uccle",
+    "contacts": [
+      {
+        "role": "Suivi infrastructures CHIREC",
+        "nom": "Julie Guardia Miralles",
+        "tel": "+32 2 434 67 96",
+        "email": "mp@chirec.be"
+      },
+      {
+        "role": "Suivi infrastructures CHIREC",
+        "nom": "Jean-Marie Herbots",
+        "tel": "+32 2 434 44 69",
+        "email": "jean-marie.herbots@chirec.be"
+      }
+    ],
     "id": "main"
   },
   "folios": [
@@ -55,79 +80,31 @@
       "meteo": "Nuageux",
       "t_8h": null,
       "t_16h": null,
-      "b_travaux": "Reunion de coordinations interne EEG\nDécharges condensat baterie QOP\nDemontages 2 lavabo COMPLET  Endo , pour remplacement des ecochoc par WYCOR. Reinstallation des lavabo complet apres Wycor.\nRéglages des debits Hydraulique Endo. \nCommande QOP\nListe de metrée decompte QOP\nLevée des remarque Aproplan\nTest de pressions HVAC E5\nSoudages Acier LT+1 \nInstallation Aeraulyques QOP\nRégulation Aeraulyque CCF reperages rez \n\n\n\n\n",
-      "c_materiel": "Machine geberit PEHD\nForeuses\nViseuses\nEchafaudages\nPermis feux\nPompe de surpresion \nOutillages ELE\nOutillages Soudure\nOutillages Regulation\n",
+      "b_travaux": "Reunion de coordinations interne EEG\nDécharges condensat baterie QOP\nDemontages 2 lavabo COMPLET Endo, pour remplacement des ecochoc par WYCOR. Reinstallation des lavabo complet apres Wycor.\nRéglages des debits Hydraulique Endo.\nCommande QOP\nListe de metrée decompte QOP\nLevée des remarque Aproplan\nTest de pressions HVAC E5\nSoudages Acier LT+1\nInstallation Aeraulyques QOP\nRégulation Aeraulyque CCF reperages rez",
+      "c_materiel": "Machine geberit PEHD\nForeuses\nViseuses\nEchafaudages\nPermis feux\nPompe de surpresion\nOutillages ELE\nOutillages Soudure\nOutillages Regulation",
       "d_hs": "Monte charges defaut",
       "e_materiaux": "",
-      "f_essais": "Test de pression de pression E5 EG ECH ",
+      "f_essais": "Test de pression E5 EG ECH",
       "g_echant": "",
-      "h_imprevus": "Incident Beny TAS Bltherme coupure à l'index,contunuité du travail",
-      "j_decisions": "Deviation circuit EG du GP7 a travers la tremie dite arr9ndie aile C du +5 au -1.\nPiccages a realiser au plus favorable poue EEG. En dn 75\nFichzs technique mannesmann a sertir Acier\nIntrodure, ndc trainnantes existant avec l’ajout du groupe GP7 et GP4.\nVanne Existante dn 50 a conserver pour future GP4.\nEtat des lieu du calorifuge des trainantes a introduire reparation necessaires a faire decompte a introduire.\nIntroduire un devis pour intercaler 2 vanne sur reseau existant devis a introduire 2 vanne dn 100 travail a realiseer en weekend. O coordoner avant mi juin servises technique pas disponible si non.\nPrendre en compte location clim potable pour gama et data en services\nUne fois intercaller les vanne suplaimentaire seulment aprew on peux intercaller leq vanne pour GP7.\nA bpir si pas possible de le fair d’un coup.?.\n\n\n\n",
+      "h_imprevus": "Incident Beny TAS Bltherme coupure à l'index, continuité du travail",
+      "j_decisions": "Deviation circuit EG du GP7 a travers la tremie dite arrondie aile C du +5 au -1.\nPiccages a realiser au plus favorable pour EEG. En DN 75.\nFiches technique mannesmann a sertir Acier.\nIntroduire NDC trainantes existant avec l'ajout du groupe GP7 et GP4.\nVanne Existante DN 50 a conserver pour future GP4.\nEtat des lieu du calorifuge des trainantes a introduire reparation necessaires a faire decompte a introduire.\nIntroduire un devis pour intercaler 2 vanne sur reseau existant devis a introduire 2 vanne DN 100 travail a realiser en weekend. A coordoner avant mi juin services techniques pas disponible sinon.\nPrendre en compte location clim potable pour gamma et data en services.\nUne fois intercaller les vanne suplementaire seulement apres on peut intercaller les vanne pour GP7.\nA voir si pas possible de le faire d'un coup.",
       "k_visites": "",
       "statut": "Signé",
       "signe_prep": "Non",
       "signe_ent": "Oui",
       "ouvriers": [
-        {
-          "classe": "CONTREMAITRE",
-          "metier": "HVAC",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "HVAC",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "HVAC",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "AERAULYQUE",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "AERAULYQUE",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "Electricité",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "Eleccctricite",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "Electricite",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "SOUDEUR",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "SOUDEUR",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "SOUDEUR",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "REGULATION",
-          "nombre": 1
-        }
+        {"classe": "CONTREMAITRE", "metier": "HVAC", "nombre": 1},
+        {"classe": "III", "metier": "HVAC", "nombre": 1},
+        {"classe": "IIA", "metier": "HVAC", "nombre": 1},
+        {"classe": "IIIA", "metier": "AERAULYQUE", "nombre": 1},
+        {"classe": "IIA", "metier": "AERAULYQUE", "nombre": 1},
+        {"classe": "IIIA", "metier": "Electricité", "nombre": 1},
+        {"classe": "III", "metier": "Electricite", "nombre": 1},
+        {"classe": "IIA", "metier": "Electricite", "nombre": 1},
+        {"classe": "IIIA", "metier": "SOUDEUR", "nombre": 1},
+        {"classe": "III", "metier": "SOUDEUR", "nombre": 1},
+        {"classe": "IIA", "metier": "SOUDEUR", "nombre": 1},
+        {"classe": "IIIA", "metier": "REGULATION", "nombre": 1}
       ],
       "id": 1
     }
@@ -135,10 +112,10 @@
   "complements": [
     {
       "folio_compl_no": 31,
-      "folio_no_ref": null,
-      "date_ref": "",
+      "folio_no_ref": 1,
+      "date_ref": "2026-05-19",
       "case": "H",
-      "texte": "Incident , Benny Tas coupure a l'index droit avec gaine tranchant , desinfecté et proteger.\nVisite => decompte pour deux vanne suplaimentaire du 100 sue reseau existant EG.",
+      "texte": "Incident, Benny Tas coupure a l'index droit avec gaine tranchant, desinfecté et protégé.\nVisite => decompte pour deux vanne supplémentaire DN 100 sur reseau existant EG.",
       "id": 1
     }
   ]
