@@ -107,6 +107,11 @@ def read_data_from_json(json_path):
         'date_reelle_achevement':   parse_date(projet_raw.get('date_reelle_achevement')),
         'date_reportee':            parse_date(projet_raw.get('date_reportee')),
         'jours_retard':             to_int(projet_raw.get('jours_retard')) or 0,
+        # Page 3 — Identification complète (nouveaux champs structurés)
+        'maitre_oeuvre':            projet_raw.get('maitre_oeuvre', {}) or {},
+        'bureau_etude':             projet_raw.get('bureau_etude', {}) or {},
+        'adresse_chantier':         projet_raw.get('adresse_chantier', ''),
+        'contacts':                 projet_raw.get('contacts', []) or [],
     }
 
     folios = []
@@ -199,6 +204,48 @@ def field(c, x, y_top, label, value, total_w, label_size=9, val_size=9):
         c.setFont(F_REG, val_size); c.drawString(x + lw + 2, y, str(value))
 
 
+def field_wrap(c, x, y_top, label, value, total_w, label_size=9, val_size=9, max_lines=2, line_h=14):
+    """Champ avec retour à la ligne auto si trop long. Retourne le y_top consommé."""
+    y = yt(y_top); c.setFont(F_REG, label_size); c.drawString(x, y, label)
+    lw = c.stringWidth(label, F_REG, label_size) + 4
+    dotted(c, x + lw, x + total_w, y - 2)
+    if value in (None, ''):
+        return y_top
+    text = str(value)
+    avail_w = total_w - lw - 4
+    c.setFont(F_REG, val_size)
+    # Découpe en mots, lignes successives
+    words = text.split(' ')
+    lines = []
+    cur = ''
+    for w in words:
+        test = (cur + ' ' + w).strip()
+        if c.stringWidth(test, F_REG, val_size) <= avail_w:
+            cur = test
+        else:
+            if cur:
+                lines.append(cur)
+            cur = w
+            if len(lines) >= max_lines - 1:
+                break
+    if cur:
+        lines.append(cur)
+    if len(lines) > max_lines:
+        # Tronquer la dernière ligne avec "..."
+        last = lines[max_lines - 1]
+        while c.stringWidth(last + '...', F_REG, val_size) > avail_w and len(last) > 1:
+            last = last[:-1]
+        lines = lines[:max_lines - 1] + [last + '...']
+    # Dessine la 1ère ligne sur la même ligne que le label
+    c.drawString(x + lw + 2, y, lines[0])
+    # Dessine les suivantes en dessous, alignées sur le label
+    for i, ln in enumerate(lines[1:], 1):
+        ny = yt(y_top + i * line_h)
+        dotted(c, x, x + total_w, ny - 2)
+        c.drawString(x + 2, ny, ln)
+    return y_top + (len(lines) - 1) * line_h
+
+
 def case_tag(c, x, y_top, letter, w=18, h=18):
     y = yt(y_top); c.saveState()
     c.setStrokeColor(black); c.setLineWidth(1)
@@ -223,15 +270,70 @@ def vline(c, x, y_top, y_bot, line_width=0.5):
 
 
 def para(c, text, x, y_top, w, h, font_size=8, font=F_REG, padding=2, leading=None):
-    if leading is None: leading = font_size + 2
-    style = ParagraphStyle('p', fontName=font, fontSize=font_size,
-                           leading=leading, alignment=TA_LEFT, textColor=black)
-    s = str(text or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-    s = s.replace('\n', '<br/>')
-    p = Paragraph(s, style); y_bot = yt(y_top) - h
-    f = Frame(x, y_bot, w, h, leftPadding=padding, rightPadding=padding,
-              topPadding=padding, bottomPadding=padding, showBoundary=0)
-    f.addFromList([p], c)
+    """Affiche un texte multi-ligne dans une zone fixe.
+    - Gère les vrais sauts de ligne (\\n)
+    - Wrap auto sur la largeur
+    - REDUIT la police automatiquement si dépassement de la hauteur
+    - Au pire : tronque avec ' …' à la fin
+    """
+    text = str(text or '').strip()
+    if not text:
+        return
+
+    def wrap_text(txt, fs):
+        avail_w = w - 2 * padding
+        raw_lines = txt.split('\n')
+        out = []
+        for raw in raw_lines:
+            raw = raw.rstrip()
+            if not raw:
+                out.append('')
+                continue
+            words = raw.split(' ')
+            cur = ''
+            for word in words:
+                test = (cur + ' ' + word).strip() if cur else word
+                if c.stringWidth(test, font, fs) <= avail_w:
+                    cur = test
+                else:
+                    if cur:
+                        out.append(cur)
+                    while word and c.stringWidth(word, font, fs) > avail_w:
+                        i = 1
+                        while i <= len(word) and c.stringWidth(word[:i], font, fs) <= avail_w:
+                            i += 1
+                        out.append(word[:max(1, i - 1)])
+                        word = word[max(1, i - 1):]
+                    cur = word
+            if cur:
+                out.append(cur)
+        return out
+
+    fs = font_size
+    fs_min = max(6, font_size - 2.5)
+    lead = (leading or fs + 2)
+    lines = []
+    while fs >= fs_min:
+        lead = fs + 2
+        max_lines = max(1, int((h - 2 * padding) / lead))
+        lines = wrap_text(text, fs)
+        if len(lines) <= max_lines:
+            break
+        fs -= 0.5
+
+    max_lines = max(1, int((h - 2 * padding) / lead))
+    avail_w = w - 2 * padding
+    if len(lines) > max_lines:
+        last = lines[max_lines - 1]
+        while c.stringWidth(last + ' …', font, fs) > avail_w and len(last) > 1:
+            last = last[:-1]
+        lines = lines[:max_lines - 1] + [last + ' …']
+
+    c.setFont(font, fs)
+    y = y_top + padding + fs
+    for line in lines:
+        c.drawString(x + padding, yt(y), line)
+        y += lead
 
 
 def text_at(c, text, x, y_top, font=F_REG, size=9):
@@ -333,13 +435,13 @@ def draw_page_de_garde(c, p):
     admin_x = 230
     admin_w = W - admin_x - MARGIN_R
     y = 55
-    for lbl, val in [
-        ('Pouvoir adjudicateur', p['pouvoir_adjudicateur']),
-        ('Administration',       p['administration']),
-        ('Service',              p['service']),
-        ('N° du dossier',        p['no_dossier']),
-    ]:
-        field(c, admin_x, y, lbl, val, admin_w); y += 18
+    # Pouvoir adjudicateur, Administration, N° dossier — court, field standard
+    field(c, admin_x, y, 'Pouvoir adjudicateur', p['pouvoir_adjudicateur'], admin_w); y += 18
+    field(c, admin_x, y, 'Administration',       p['administration'],       admin_w); y += 18
+    # Service peut être long → wrap auto sur 2 lignes max
+    consumed = field_wrap(c, admin_x, y, 'Service', p['service'], admin_w, max_lines=2, line_h=12)
+    y = consumed + 18
+    field(c, admin_x, y, 'N° du dossier', p['no_dossier'], admin_w); y += 18
     c.setLineWidth(0.8); c.line(admin_x + 200, yt(y - 4), admin_x + 280, yt(y - 4))
 
     title_y = 175
@@ -383,8 +485,7 @@ def draw_page_de_garde(c, p):
             field(c, form_x, y, lbl, val, form_w)
         y += 16
 
-    draw_eeg_cachet(c, W/2 + 90, 365, scale=0.85)
-    c.setLineWidth(0.7); c.line(W/2 + 50, yt(465), W/2 + 130, yt(465))
+    # (Cachet retiré d'ici — placé en bas à droite près de la signature)
 
     y = 485
     text_p = ("Le présent journal des travaux contenant trente quadruples folios "
@@ -419,9 +520,8 @@ def draw_page_de_garde(c, p):
     dotted(c, role_x + a_w, role_x + 250, yt(y) - 2)
     c.drawString(role_x + a_w + 4, yt(y), p['lieu_remise'])
 
+    # (Doublon Uccle retiré ici) — on conserve seulement la ligne ", le DATE"
     y = 668
-    dotted(c, role_x, role_x + 130, yt(y) - 2)
-    c.drawString(role_x + 4, yt(y), p['lieu_remise'])
     le_x = role_x + 140
     c.setFont(F_REG, 9); c.drawString(le_x, yt(y), ', le')
     le_w = c.stringWidth(', le', F_REG, 9) + 4
@@ -441,8 +541,13 @@ def draw_page_de_garde(c, p):
     box(c, MARGIN_L, y + 46, 160, 35, line_width=0.4)
     c.setFont(F_IT, 9); c.drawString(MARGIN_L + 5, yt(y + 70), p['prepose'])
 
-    draw_embuild(c, W - 175, 720)
+    # Cachet EEG en bas à droite (équilibre visuel avec la signature à gauche)
+    # Légende au-dessus : "Pour l'entrepreneur" → comme une signature de l'autre côté
+    c.setFont(F_REG, 9); c.drawString(W - MARGIN_R - 165, yt(y), "Pour l'entrepreneur,")
+    c.setFont(F_IT, 8); c.drawString(W - MARGIN_R - 130, yt(y + 12), '(Cachet et signature)')
+    draw_eeg_cachet(c, W - MARGIN_R - 90, y + 25, scale=0.7)
 
+    # Mention bas de page
     c.setFont(F_REG, 8); c.drawString(MARGIN_L, yt(820), '(1) Biffer les mentions inutiles')
     c.setFont(F_BOLD, 9); c.drawString(W - MARGIN_R - 35, yt(820), '9545 F')
 
@@ -453,10 +558,18 @@ def draw_page_de_garde(c, p):
 def draw_page_synthese(c, p):
     admin_x = 180; admin_w = W - admin_x - MARGIN_R - 20
     y = 60
-    for lbl, val in [('Ministère', p['pouvoir_adjudicateur']),
-                     ('Administration', p['administration']),
-                     ('Service', p['service'])]:
-        field(c, admin_x, y, lbl, val, admin_w); y += 18
+    # Le terme "Ministère" est officiel pour les marchés publics étatiques.
+    # Pour un marché privé (hôpital, etc.), on met "—".
+    pa = p['pouvoir_adjudicateur'] or ''
+    is_etat = any(k in pa.lower() for k in [
+        'ministère', 'région', 'fédéral', 'communauté', 'province', 'commune', 'ville de'
+    ])
+    ministere_val = pa if is_etat else '—'
+    field(c, admin_x, y, 'Ministère', ministere_val, admin_w); y += 18
+    field(c, admin_x, y, 'Administration', p['administration'], admin_w); y += 18
+    # Service peut être long → wrap
+    consumed = field_wrap(c, admin_x, y, 'Service', p['service'], admin_w, max_lines=2, line_h=12)
+    y = consumed + 18
 
     y = 135
     c.setFont(F_BOLD, 16); c.drawString(admin_x, yt(y), 'Journal des Travaux N°')
@@ -496,8 +609,16 @@ def draw_page_synthese(c, p):
     c.setFont(F_REG, 10); c.drawString(col_right_x, yt(y_ent), 'Entrepreneur:')
     lbl_w = c.stringWidth('Entrepreneur:', F_REG, 10) + 6
     dotted(c, col_right_x + lbl_w, col_right_x + col_right_w, yt(y_ent) - 2)
-    draw_eeg_cachet(c, col_right_x + lbl_w + (col_right_w - lbl_w) / 2 + 10,
-                    y_ent - 5, scale=0.78)
+    # Nom de l'entrepreneur en clair (le cachet est maintenant sur la page de garde)
+    c.setFont(F_REG, 10)
+    c.drawString(col_right_x + lbl_w + 2, yt(y_ent), p['entrepreneur'])
+    # Adresse en plus petit en dessous
+    if p['adresse']:
+        c.setFont(F_REG, 8)
+        c.drawString(col_right_x, yt(y_ent + 14), p['adresse'])
+    if p['no_entreprise']:
+        c.setFont(F_REG, 8)
+        c.drawString(col_right_x, yt(y_ent + 26), 'N° entreprise : ' + p['no_entreprise'])
 
     y_a = 360
     c.setFont(F_REG, 10); c.drawString(col_right_x, yt(y_a), 'à')
@@ -593,9 +714,193 @@ def draw_page_synthese(c, p):
 
 
 # ═════════════════════════════════════════════════════════════════════════════
+# PAGE 3 — Identification complète du marché (intervenants, contacts, notes)
+# ═════════════════════════════════════════════════════════════════════════════
+def draw_page_identification(c, p):
+    """Page 3 : fiche d'identification complète du marché.
+    Affichée uniquement s'il y a au moins un champ supplémentaire rempli."""
+    # Titre
+    c.setFont(F_BOLD, 16)
+    c.drawCentredString(W/2, yt(55), 'IDENTIFICATION DU MARCHÉ')
+    tw = c.stringWidth('IDENTIFICATION DU MARCHÉ', F_BOLD, 16)
+    c.setLineWidth(1.0); c.line(W/2 - tw/2, yt(60), W/2 + tw/2, yt(60))
+
+    # Sous-titre = nom court du projet
+    if p.get('nom'):
+        c.setFont(F_IT, 10)
+        c.drawCentredString(W/2, yt(75), p['nom'][:90])
+
+    x_left = MARGIN_L + 10
+    x_right = W - MARGIN_R - 10
+    full_w = x_right - x_left
+    y = 105
+
+    def bloc(titre, lignes, y_start):
+        """Dessine un bloc avec un titre en gras et des lignes en dessous."""
+        c.setFillColor(black)
+        c.setFont(F_BOLD, 10)
+        c.drawString(x_left, yt(y_start), titre)
+        c.setLineWidth(0.4)
+        c.line(x_left, yt(y_start + 3), x_left + 200, yt(y_start + 3))
+        yy = y_start + 16
+        c.setFont(F_REG, 9)
+        for lbl, val in lignes:
+            if not val:
+                continue
+            if lbl:
+                c.setFont(F_BOLD, 9)
+                lblw = c.stringWidth(lbl + ' : ', F_BOLD, 9)
+                c.drawString(x_left + 8, yt(yy), lbl + ' : ')
+                c.setFont(F_REG, 9)
+                # Wrap si trop long
+                avail = full_w - 8 - lblw
+                text = str(val)
+                if c.stringWidth(text, F_REG, 9) <= avail:
+                    c.drawString(x_left + 8 + lblw, yt(yy), text)
+                else:
+                    # Découpe sur 2 lignes max
+                    words = text.split(' ')
+                    cur = ''
+                    line1 = ''
+                    for w in words:
+                        test = (cur + ' ' + w).strip()
+                        if c.stringWidth(test, F_REG, 9) <= avail:
+                            cur = test
+                        else:
+                            line1 = cur; cur = w; break
+                    if not line1:
+                        line1 = cur; cur = ''
+                    rest = (cur + ' ' + ' '.join(words[words.index(cur.split()[0] if cur else words[0]) + 1:])).strip() if cur else ''
+                    c.drawString(x_left + 8 + lblw, yt(yy), line1)
+                    if rest:
+                        yy += 12
+                        c.drawString(x_left + 8, yt(yy), rest[:200])
+            else:
+                # Ligne sans label (continuation, adresse, etc.)
+                c.drawString(x_left + 8, yt(yy), str(val))
+            yy += 14
+        return yy + 6  # marge en bas
+
+    # Bloc 1 — Pouvoir adjudicateur
+    lignes_pa = [
+        ('Nom',           p['pouvoir_adjudicateur']),
+        ('Administration', p['administration']),
+        ('Adresse / Coord.', p['service']),
+        ('N° dossier',    p['no_dossier']),
+    ]
+    y = bloc('Pouvoir adjudicateur (maître de l\'ouvrage)', lignes_pa, y)
+
+    # Bloc 2 — Maître d'œuvre (architecte)
+    mo = p.get('maitre_oeuvre') or {}
+    if mo.get('nom') or mo.get('adresse'):
+        lignes_mo = [
+            ('Nom',     mo.get('nom', '')),
+            ('Adresse', mo.get('adresse', '')),
+            ('Contact', mo.get('contact', '')),
+        ]
+        y = bloc("Maître d'œuvre (Architecte)", lignes_mo, y)
+
+    # Bloc 3 — Bureau d'étude
+    be = p.get('bureau_etude') or {}
+    if be.get('nom') or be.get('adresse'):
+        lignes_be = [
+            ('Nom',     be.get('nom', '')),
+            ('Adresse', be.get('adresse', '')),
+            ('Contact', be.get('contact', '')),
+        ]
+        y = bloc("Bureau d'étude", lignes_be, y)
+
+    # Bloc 4 — Chantier
+    if p.get('adresse_chantier'):
+        lignes_ch = [
+            ('Adresse', p.get('adresse_chantier', '')),
+        ]
+        y = bloc('Chantier (adresse d\'exécution)', lignes_ch, y)
+
+    # Bloc 5 — Contacts (liste)
+    contacts = p.get('contacts') or []
+    if contacts:
+        c.setFont(F_BOLD, 10)
+        c.drawString(x_left, yt(y), 'Contacts')
+        c.setLineWidth(0.4)
+        c.line(x_left, yt(y + 3), x_left + 200, yt(y + 3))
+        y += 16
+        for ct in contacts:
+            if not isinstance(ct, dict):
+                continue
+            role = ct.get('role', '')
+            nom  = ct.get('nom', '')
+            tel  = ct.get('tel', '')
+            email = ct.get('email', '')
+            line_parts = []
+            if role: line_parts.append(role)
+            if nom: line_parts.append(nom)
+            if tel: line_parts.append('☎ ' + tel)
+            if email: line_parts.append('✉ ' + email)
+            if line_parts:
+                c.setFont(F_REG, 9)
+                c.drawString(x_left + 8, yt(y), ' — '.join(line_parts))
+                y += 14
+        y += 6
+
+    # Bloc 6 — Entrepreneur
+    lignes_ent = [
+        ('Raison sociale', p['entrepreneur']),
+        ('Adresse',        p['adresse']),
+        ('Téléphone',      p['telephone']),
+        ('N° entreprise',  p['no_entreprise']),
+        ('Agréation',      p['agreation']),
+        ('ONSS',           p['onss']),
+    ]
+    y = bloc('Entrepreneur (titulaire du marché)', lignes_ent, y)
+
+    # Bloc 7 — Notes contractuelles
+    if p.get('notes'):
+        c.setFont(F_BOLD, 10)
+        c.drawString(x_left, yt(y), 'Notes contractuelles')
+        c.setLineWidth(0.4)
+        c.line(x_left, yt(y + 3), x_left + 200, yt(y + 3))
+        y += 16
+        # Wrap des notes sur plusieurs lignes
+        para(c, p['notes'], x_left + 8, y - 8, full_w - 8, 80,
+             font_size=9, padding=0, leading=12)
+
+    # Cachet EEG en bas à droite
+    draw_eeg_cachet(c, W - MARGIN_R - 90, H - MARGIN_B - 50, scale=0.75)
+
+    # Pied de page
+    c.setFont(F_IT, 7)
+    c.drawString(MARGIN_L, yt(H - MARGIN_B - 5),
+                 "Page d'identification — Journal des Travaux EEG")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
 # FOLIO + COMPLEMENT (identiques à v4 — versions courtes)
 # ═════════════════════════════════════════════════════════════════════════════
-def draw_folio_page(c, p, f, ouvriers):
+def draw_folio_page(c, p, f, ouvriers, complements_du_folio=None):
+    """Dessine une page folio. Si complements_du_folio est fourni,
+    affiche en bas de chaque case concernée 'Voir complément N°XX'."""
+    complements_du_folio = complements_du_folio or []
+    # Indexer par lettre de case (B, C, D, E, F, G, H, J, K)
+    cpls_by_case = {}
+    for cpl in complements_du_folio:
+        case = (cpl.get('case') or '').strip().upper()[:1]
+        if case:
+            cpls_by_case.setdefault(case, []).append(cpl)
+
+    def mark_case(case_letter, x, y_top, w, font_size=7):
+        """Ajoute en bas de la case une mention 'Voir complément N°...'"""
+        cpls = cpls_by_case.get(case_letter, [])
+        if not cpls:
+            return
+        nums = ', '.join('N°' + str(c.get('folio_compl_no', '')) for c in cpls)
+        msg = '→ Voir complément ' + nums
+        c.saveState()
+        c.setFont(F_IT, font_size)
+        c.setFillColor(black)
+        c.drawString(x + 4, yt(y_top - 2), msg)
+        c.restoreState()
+
     hdr_y = MARGIN_T; hdr_h = 110
     c.setFont(F_IT, 7)
     c.drawString(MARGIN_L + 5, yt(hdr_y - 4),
@@ -678,12 +983,12 @@ def draw_folio_page(c, p, f, ouvriers):
     text_at(c, 'OUVRIERS', grid_x + 28, grid_y + 16, font=F_BOLD, size=9)
     sub_y_hdr = grid_y + 28
     text_at(c, 'Classes', grid_x + 6, sub_y_hdr + 9, font=F_REG, size=7.5)
-    text_at(c, 'Métiers', grid_x + a_w_cell * 0.22 + 4, sub_y_hdr + 9, font=F_REG, size=7.5)
-    text_at(c, 'Nombre', grid_x + a_w_cell * 0.72 + 4, sub_y_hdr + 9, font=F_REG, size=7.5)
+    text_at(c, 'Métiers', grid_x + a_w_cell * 0.30 + 4, sub_y_hdr + 9, font=F_REG, size=7.5)
+    text_at(c, 'Nombre', grid_x + a_w_cell * 0.78 + 4, sub_y_hdr + 9, font=F_REG, size=7.5)
     sub_y_data = sub_y_hdr + 12
     hline(c, grid_x, grid_x + a_w_cell, sub_y_data)
-    sub_x_v1 = grid_x + a_w_cell * 0.22
-    sub_x_v2 = grid_x + a_w_cell * 0.72
+    sub_x_v1 = grid_x + a_w_cell * 0.30
+    sub_x_v2 = grid_x + a_w_cell * 0.78
     vline(c, sub_x_v1, sub_y_hdr, grid_y + h_ab)
     vline(c, sub_x_v2, sub_y_hdr, grid_y + h_ab)
     rows_a = 11; total_strip_h = 14
@@ -692,8 +997,23 @@ def draw_folio_page(c, p, f, ouvriers):
     c.setFont(F_REG, 8)
     for i, o in enumerate(ouvriers[:rows_a]):
         y_base = sub_y_data + (i + 1) * row_h - 3
-        c.drawString(grid_x + 6, yt(y_base), str(o['classe']))
-        c.drawString(sub_x_v1 + 4, yt(y_base), str(o['metier']))
+        # Classe : si trop long, réduire la police
+        cls_txt = str(o['classe'])
+        cls_max_w = a_w_cell * 0.30 - 8
+        cls_font_size = 8
+        if c.stringWidth(cls_txt, F_REG, cls_font_size) > cls_max_w:
+            cls_font_size = 6.5
+        c.setFont(F_REG, cls_font_size)
+        c.drawString(grid_x + 6, yt(y_base), cls_txt)
+        c.setFont(F_REG, 8)
+        # Métier : tronquer si trop long
+        met_txt = str(o['metier'])
+        met_max_w = a_w_cell * 0.48 - 8
+        while c.stringWidth(met_txt, F_REG, 8) > met_max_w and len(met_txt) > 3:
+            met_txt = met_txt[:-1]
+        if met_txt != str(o['metier']):
+            met_txt = met_txt[:-1] + '…'
+        c.drawString(sub_x_v1 + 4, yt(y_base), met_txt)
         c.drawCentredString((sub_x_v2 + grid_x + a_w_cell) / 2,
                             yt(y_base), str(o['nombre']))
     for i in range(rows_a):
@@ -710,7 +1030,9 @@ def draw_folio_page(c, p, f, ouvriers):
     case_tag(c, grid_x + a_w_cell + 4, grid_y + 4, 'B', w=18, h=18)
     text_at(c, 'TRAVAUX EXÉCUTÉS', grid_x + a_w_cell + 28, grid_y + 16, font=F_BOLD, size=9)
     para(c, f['b_travaux'], grid_x + a_w_cell + 4, grid_y + 30,
-         b_w_cell - 8, h_ab - 32, font_size=8.5, padding=2, leading=11)
+         b_w_cell - 8, h_ab - 32 - (10 if cpls_by_case.get('B') else 0),
+         font_size=8.5, padding=2, leading=11)
+    mark_case('B', grid_x + a_w_cell, grid_y + h_ab, b_w_cell)
 
     cd_y = grid_y + h_ab
     c_w_cell = grid_w * 0.21; d_w_cell = grid_w * 0.21
@@ -719,15 +1041,19 @@ def draw_folio_page(c, p, f, ouvriers):
     box(c, grid_x, cd_y, c_w_cell, h_cd)
     case_tag(c, grid_x + 4, cd_y + 4, 'C', w=14, h=14)
     text_at(c, 'MATÉRIEL EN SERVICE', grid_x + 22, cd_y + 14, font=F_BOLD, size=7)
-    para(c, f['c_materiel'], grid_x + 4, cd_y + 22, c_w_cell - 8, h_cd - 24,
+    para(c, f['c_materiel'], grid_x + 4, cd_y + 22,
+         c_w_cell - 8, h_cd - 24 - (9 if cpls_by_case.get('C') else 0),
          font_size=7.5, padding=1, leading=9)
+    mark_case('C', grid_x, cd_y + h_cd, c_w_cell)
 
     box(c, grid_x + c_w_cell, cd_y, d_w_cell, h_cd)
     case_tag(c, grid_x + c_w_cell + 4, cd_y + 4, 'D', w=14, h=14)
     text_at(c, 'MATÉRIEL HORS SERVICE', grid_x + c_w_cell + 22, cd_y + 12, font=F_BOLD, size=7)
     text_at(c, 'CAUSES', grid_x + c_w_cell + 22, cd_y + 20, font=F_BOLD, size=7)
-    para(c, f['d_hs'], grid_x + c_w_cell + 4, cd_y + 26, d_w_cell - 8, h_cd - 28,
+    para(c, f['d_hs'], grid_x + c_w_cell + 4, cd_y + 26,
+         d_w_cell - 8, h_cd - 28 - (9 if cpls_by_case.get('D') else 0),
          font_size=7.5, padding=1, leading=9)
+    mark_case('D', grid_x + c_w_cell, cd_y + h_cd, d_w_cell)
 
     box(c, grid_x + c_w_cell + d_w_cell, cd_y, e_w_cell, e_h_total)
     case_tag(c, grid_x + c_w_cell + d_w_cell + 4, cd_y + 4, 'E', w=14, h=14)
@@ -736,39 +1062,53 @@ def draw_folio_page(c, p, f, ouvriers):
     text_at(c, '(observations éventuelles)',
             grid_x + c_w_cell + d_w_cell + 22, cd_y + 20, font=F_IT, size=6.5)
     para(c, f['e_materiaux'], grid_x + c_w_cell + d_w_cell + 4, cd_y + 28,
-         e_w_cell - 8, e_h_total - 30, font_size=8, padding=2, leading=10)
+         e_w_cell - 8, e_h_total - 30 - (10 if cpls_by_case.get('E') else 0),
+         font_size=8, padding=2, leading=10)
+    mark_case('E', grid_x + c_w_cell + d_w_cell, cd_y + e_h_total, e_w_cell)
 
     fg_y = cd_y + h_cd
     box(c, grid_x, fg_y, c_w_cell, h_fg)
     case_tag(c, grid_x + 4, fg_y + 4, 'F', w=14, h=14)
     text_at(c, 'ESSAIS SUR CHANTIER', grid_x + 22, fg_y + 14, font=F_BOLD, size=7)
-    para(c, f['f_essais'], grid_x + 4, fg_y + 22, c_w_cell - 8, h_fg - 24,
+    para(c, f['f_essais'], grid_x + 4, fg_y + 22,
+         c_w_cell - 8, h_fg - 24 - (9 if cpls_by_case.get('F') else 0),
          font_size=7.5, padding=1, leading=9)
+    mark_case('F', grid_x, fg_y + h_fg, c_w_cell)
+
     box(c, grid_x + c_w_cell, fg_y, d_w_cell, h_fg)
     case_tag(c, grid_x + c_w_cell + 4, fg_y + 4, 'G', w=14, h=14)
     text_at(c, 'ÉCHANTILLONS EXPÉDIÉS', grid_x + c_w_cell + 22, fg_y + 14, font=F_BOLD, size=7)
     para(c, f['g_echant'], grid_x + c_w_cell + 4, fg_y + 22,
-         d_w_cell - 8, h_fg - 24, font_size=7.5, padding=1, leading=9)
+         d_w_cell - 8, h_fg - 24 - (9 if cpls_by_case.get('G') else 0),
+         font_size=7.5, padding=1, leading=9)
+    mark_case('G', grid_x + c_w_cell, fg_y + h_fg, d_w_cell)
 
     h_y = fg_y + h_fg
     box(c, grid_x, h_y, grid_w, h_h)
     case_tag(c, grid_x + 4, h_y + 4, 'H', w=14, h=14)
     text_at(c, 'ÉVÉNEMENTS IMPRÉVUS', grid_x + 22, h_y + 14, font=F_BOLD, size=7)
-    para(c, f['h_imprevus'], grid_x + 4, h_y + 22, grid_w - 8, h_h - 24,
+    para(c, f['h_imprevus'], grid_x + 4, h_y + 22,
+         grid_w - 8, h_h - 24 - (10 if cpls_by_case.get('H') else 0),
          font_size=8, padding=2, leading=10)
+    mark_case('H', grid_x, h_y + h_h, grid_w)
 
     jk_y = h_y + h_h
     j_w_cell = grid_w * 0.50; k_w_cell = grid_w - j_w_cell
     box(c, grid_x, jk_y, j_w_cell, h_jk)
     case_tag(c, grid_x + 4, jk_y + 4, 'J', w=14, h=14)
     text_at(c, 'DÉCISIONS PRISES', grid_x + 22, jk_y + 14, font=F_BOLD, size=7)
-    para(c, f['j_decisions'], grid_x + 4, jk_y + 22, j_w_cell - 8, h_jk - 24,
+    para(c, f['j_decisions'], grid_x + 4, jk_y + 22,
+         j_w_cell - 8, h_jk - 24 - (10 if cpls_by_case.get('J') else 0),
          font_size=8, padding=2, leading=10)
+    mark_case('J', grid_x, jk_y + h_jk, j_w_cell)
+
     box(c, grid_x + j_w_cell, jk_y, k_w_cell, h_jk)
     case_tag(c, grid_x + j_w_cell + 4, jk_y + 4, 'K', w=14, h=14)
     text_at(c, 'VISITES - DIVERS', grid_x + j_w_cell + 22, jk_y + 14, font=F_BOLD, size=7)
     para(c, f['k_visites'], grid_x + j_w_cell + 4, jk_y + 22,
-         k_w_cell - 8, h_jk - 24, font_size=8, padding=2, leading=10)
+         k_w_cell - 8, h_jk - 24 - (10 if cpls_by_case.get('K') else 0),
+         font_size=8, padding=2, leading=10)
+    mark_case('K', grid_x + j_w_cell, jk_y + h_jk, k_w_cell)
 
     sig_y = grid_bot_y + 10
     c.setFont(F_IT, 8); c.drawString(grid_x + 4, yt(sig_y), 'Le préposé à la surveillance :')
@@ -830,6 +1170,26 @@ def draw_complement_page(c, p, parent_folio_data, cpl):
     c.setLineWidth(0.7); c.line(case_x + 8 + cw_lbl, yt(cy) - 2, case_x + 80, yt(cy) - 2)
     c.setFont(F_BOLD, 12); c.drawString(case_x + 8 + cw_lbl + 6, yt(cy), str(cpl['case']))
 
+    # Titre court de la case d'origine (rappel contextuel)
+    CASE_TITLES = {
+        'B': 'Travaux exécutés',
+        'C': 'Matériel en service',
+        'D': 'Matériel hors service',
+        'E': 'Matériaux entrés ce jour',
+        'F': 'Essais sur chantier',
+        'G': 'Échantillons expédiés',
+        'H': 'Événements imprévus',
+        'J': 'Décisions prises',
+        'K': 'Visites - Divers',
+    }
+    case_letter = (cpl.get('case') or '').strip().upper()[:1]
+    case_title = CASE_TITLES.get(case_letter, '')
+    if case_title:
+        c.setFont(F_IT, 10)
+        c.drawString(case_x + 100, yt(cy),
+                     '— ' + case_title + ' (rappel du folio N°' +
+                     fmt_folio_no(cpl['folio_no_ref']) + ')')
+
     text_top = cy + 14; text_bot = case_y + case_h - 14
     n_lines = 7
     line_spacing = (text_bot - text_top) / n_lines
@@ -875,10 +1235,19 @@ def build_pdf(json_path, output_path=None):
 
     draw_page_de_garde(c, projet); c.showPage()
     draw_page_synthese(c, projet); c.showPage()
+    draw_page_identification(c, projet); c.showPage()
 
     folio_by_no = {f['folio_no']: f for f, _ in folios}
+    # Pré-calculer les compléments par folio_no
+    cpl_by_folio = {}
+    for cpl in complements:
+        ref = cpl.get('folio_no_ref')
+        if ref is None:
+            continue
+        cpl_by_folio.setdefault(ref, []).append(cpl)
     for f, ouvriers in folios:
-        draw_folio_page(c, projet, f, ouvriers); c.showPage()
+        cpls_for_folio = cpl_by_folio.get(f['folio_no'], [])
+        draw_folio_page(c, projet, f, ouvriers, cpls_for_folio); c.showPage()
 
     for cpl in complements:
         parent = folio_by_no.get(cpl['folio_no_ref'])
