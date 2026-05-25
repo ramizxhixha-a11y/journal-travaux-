@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F4E5F">
+<title>Journal des Travaux — EEG</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" href="cachet.png">
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+
+<style>
+  /* Bulle "Enregistré" */
+  #save-indicator {
+    position: fixed;
+    bottom: 80px;
+    right: 16px;
+    background: #1F4E5F;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity .2s ease, transform .2s ease;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  #save-indicator.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  /* Bouton météo dans le folio */
+  .meteo-btn-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 8px 0 12px;
+    flex-wrap: wrap;
+  }
+  .btn-meteo {
+    background: #E8F1F3;
+    color: #1F4E5F;
+    border: 1px solid #B5D3DA;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-meteo:active { background: #D0E2E6; }
+  .btn-meteo:disabled { opacity: .6; cursor: not-allowed; }
+
+  /* V2.1 — badge "✓ météo OK" */
+  .meteo-ok-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    background: rgba(63, 94, 72, 0.15);
+    color: #3F5E48;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  /* V2.1 — case qui déborde (textarea avec data-overflow dépassé) */
+  .case-fieldset.overflowing > summary {
+    background: linear-gradient(90deg, rgba(196,104,16,0.18) 0%, transparent 80%);
+  }
+  .overflow-badge {
+    display: none;
+    align-items: center;
+    background: #C46810;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 8px;
+    margin-left: 8px;
+  }
+  .case-fieldset.overflowing .overflow-badge { display: inline-flex; }
+
+  .overflow-warn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    background: rgba(196,104,16,0.10);
+    border: 1px solid rgba(196,104,16,0.30);
+    border-radius: 6px;
+    font-size: 13px;
+    flex-wrap: wrap;
+  }
+  .overflow-warn strong { color: #C46810; }
+  .overflow-warn .char-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #595550;
+    margin-left: auto;
+  }
+  .overflow-warn .btn-create-complement {
+    width: 100%;
+    margin-top: 4px;
+    padding: 8px 14px;
+    background: #1F4E5F;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .overflow-warn .btn-create-complement:active { background: #2D7A8C; }
+</style>
+</head>
+<body>
+
+<!-- ╔════════════════════════════════════════════════════════════════════╗ -->
+<!-- ║ HEADER                                                              ║ -->
+<!-- ╚════════════════════════════════════════════════════════════════════╝ -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <h1>Journal des Travaux</h1>
+      <p class="header-sub"><span id="header-projet-id">PRJ-001</span> · <span id="header-projet-nom">Sans nom</span></p>
+    </div>
+    <div class="header-actions">
+      <span id="sync-indicator" class="sync-dot" title="Statut sync"></span>
+    </div>
+  </div>
+</header>
+
+<main id="main-content">
+
+  <!-- ─── SCREEN: ACCUEIL ──────────────────────────────────────────── -->
+  <section class="screen active" data-screen="accueil">
+    <h2 class="screen-title">Aujourd'hui</h2>
+
+    <div class="card card-hero" id="today-card">
+      <p class="card-label">Saisie en cours</p>
+      <p class="card-date" id="today-date">—</p>
+      <div class="card-actions">
+        <button class="btn btn-primary" data-action="new-folio">+ Nouveau folio</button>
+        <button class="btn btn-ghost" data-action="open-current-folio">Ouvrir le folio du jour</button>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card stat-card">
+        <p class="stat-label">Folios saisis</p>
+        <p class="stat-value" id="stat-folios">0</p>
+      </div>
+      <div class="card stat-card">
+        <p class="stat-label">Ouvriers · cumul</p>
+        <p class="stat-value" id="stat-ouvriers">0</p>
+      </div>
+      <div class="card stat-card">
+        <p class="stat-label">Compléments</p>
+        <p class="stat-value" id="stat-complements">0</p>
+      </div>
+      <div class="card stat-card">
+        <p class="stat-label">J.O. consommés</p>
+        <p class="stat-value" id="stat-jo">—</p>
+      </div>
+    </div>
+
+    <h3 class="section-title">Derniers folios</h3>
+    <ul class="folio-list" id="recent-folios">
+      <li class="empty-state">Aucun folio saisi pour le moment.</li>
+    </ul>
+
+    <h3 class="section-title">Actions rapides</h3>
+    <div class="quick-actions">
+      <button class="btn btn-secondary" data-action="publish-github">🔄 Publier sur GitHub</button>
+      <button class="btn btn-secondary" data-action="generate-pdf">⚙ Générer le PDF</button>
+      <button class="btn btn-secondary" data-action="download-pdf">📄 Télécharger le PDF</button>
+      <button class="btn btn-secondary" data-action="share-pdf" id="btn-share-pdf">🔗 Partager le PDF</button>
+      <button class="btn btn-secondary" data-action="export-json">⬇ Exporter JSON</button>
+      <button class="btn btn-secondary" data-action="import-json">⬆ Importer JSON</button>
+    </div>
+  </section>
+
+  <!-- ─── SCREEN: PROJET ───────────────────────────────────────────── -->
+  <section class="screen" data-screen="projet">
+    <h2 class="screen-title">Projet</h2>
+    <p class="screen-sub">À remplir une fois au début du chantier (page de garde + synthèse contrat).</p>
+
+    <form id="form-projet" autocomplete="off">
+
+      <details class="fieldset" open>
+        <summary><span class="num">①</span> Pouvoir adjudicateur</summary>
+        <div class="field">
+          <label for="p-pouvoir">Pouvoir adjudicateur</label>
+          <input id="p-pouvoir" name="pouvoir_adjudicateur" type="text" placeholder="Ex. Région wallonne">
+        </div>
+        <div class="field">
+          <label for="p-admin">Administration</label>
+          <input id="p-admin" name="administration" type="text">
+        </div>
+        <div class="field">
+          <label for="p-service">Service</label>
+          <input id="p-service" name="service" type="text">
+        </div>
+        <div class="field">
+          <label for="p-dossier">N° du dossier</label>
+          <input id="p-dossier" name="no_dossier" type="text">
+        </div>
+      </details>
+
+      <details class="fieldset">
+        <summary><span class="num">②</span> Travaux</summary>
+        <div class="field">
+          <label for="p-desc">Description des travaux</label>
+          <textarea id="p-desc" name="description" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label for="p-csc">Cahier des charges N°</label>
+          <input id="p-csc" name="csc_no" type="text">
+        </div>
+        <div class="field">
+          <label for="p-csc-ref">Référence cahier des charges</label>
+          <input id="p-csc-ref" name="csc_ref" type="text">
+        </div>
+      </details>
+
+      <details class="fieldset">
+        <summary><span class="num">③</span> Entrepreneur</summary>
+        <div class="field">
+          <label for="p-ent">Entrepreneur — nom</label>
+          <input id="p-ent" name="entrepreneur" type="text">
+        </div>
+        <div class="field">
+          <label for="p-adr">Adresse</label>
+          <input id="p-adr" name="adresse" type="text">
+        </div>
+        <div class="field">
+          <label for="p-tel">Téléphone</label>
+          <input id="p-tel" name="telephone" type="tel">
+        </div>
+        <div class="field">
+          <label for="p-agre">N° du certificat d'agréation</label>
+          <input id="p-agre" name="agreation" type="text">
+        </div>
+        <div class="field">
+          <label for="p-onss">N° d'immatriculation O.N.S.S.</label>
+          <input id="p-onss" name="onss" type="text">
+        </div>
+        <div class="field">
+          <label for="p-bce">N° d'entreprise</label>
+          <input id="p-bce" name="no_entreprise" type="text" placeholder="BE 0000.000.000">
+        </div>
+      </details>
+
+      <!-- Intervenants -->
+      <details class="fieldset">
+        <summary><span class="num">④</span> Intervenants (Maître d'œuvre, Bureau d'étude, Chantier)</summary>
+        <p class="subgroup-title">Maître d'œuvre (Architecte)</p>
+        <div class="field">
+          <label for="p-mo-nom">Nom</label>
+          <input id="p-mo-nom" name="mo_nom" type="text" placeholder="Ex. ASSAR Architects">
+        </div>
+        <div class="field">
+          <label for="p-mo-adr">Adresse</label>
+          <input id="p-mo-adr" name="mo_adresse" type="text">
+        </div>
+        <div class="field">
+          <label for="p-mo-ct">Contact</label>
+          <input id="p-mo-ct" name="mo_contact" type="text" placeholder="Nom + téléphone + email">
+        </div>
+
+        <p class="subgroup-title">Bureau d'étude</p>
+        <div class="field">
+          <label for="p-be-nom">Nom</label>
+          <input id="p-be-nom" name="be_nom" type="text" placeholder="Ex. Sweco Belgium">
+        </div>
+        <div class="field">
+          <label for="p-be-adr">Adresse</label>
+          <input id="p-be-adr" name="be_adresse" type="text">
+        </div>
+        <div class="field">
+          <label for="p-be-ct">Contact</label>
+          <input id="p-be-ct" name="be_contact" type="text">
+        </div>
+
+        <p class="subgroup-title">Chantier</p>
+        <div class="field">
+          <label for="p-adr-ch">Adresse du chantier</label>
+          <input id="p-adr-ch" name="adresse_chantier" type="text" placeholder="Ex. 37 rue Général Lotz, 1180 Uccle">
+        </div>
+
+        <p class="subgroup-title">Contacts du marché (un par ligne, format : Rôle — Nom — Tél — Email)</p>
+        <div class="field">
+          <textarea id="p-contacts" name="contacts_raw" rows="4" placeholder="Suivi infrastructures — Julie Guardia — +32 2 434 67 96 — mp@chirec.be&#10;Suivi infrastructures — Jean-Marie Herbots — +32 2 434 44 69 — jean-marie.herbots@chirec.be"></textarea>
+        </div>
+      </details>
+
+      <details class="fieldset">
+        <summary><span class="num">⑤</span> Remise du journal</summary>
+        <div class="field">
+          <label for="p-jno">Journal N°</label>
+          <input id="p-jno" name="journal_no" type="number" min="1">
+        </div>
+        <div class="field">
+          <label for="p-remis">Remis à (nom)</label>
+          <input id="p-remis" name="remis_a" type="text">
+        </div>
+        <div class="field">
+          <label for="p-role">Rôle destinataire</label>
+          <select id="p-role" name="role">
+            <option value="">—</option>
+            <option>Conducteur</option>
+            <option>Chef de district</option>
+            <option>Contrôleur des travaux</option>
+            <option>Surveillant des travaux</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="p-lieu">Lieu de remise</label>
+            <input id="p-lieu" name="lieu_remise" type="text">
+          </div>
+          <div class="field">
+            <label for="p-date-rem">Date de remise</label>
+            <input id="p-date-rem" name="date_remise" type="date">
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-fonc">Fonctionnaire dirigeant</label>
+          <input id="p-fonc" name="fonct_dirigeant" type="text">
+        </div>
+        <div class="field">
+          <label for="p-prep">Préposé à la surveillance</label>
+          <input id="p-prep" name="prepose" type="text">
+        </div>
+      </details>
+
+      <details class="fieldset">
+        <summary><span class="num">⑥</span> Infos complémentaires</summary>
+        <div class="grid-2">
+          <div class="field">
+            <label for="p-pid">ProjetID</label>
+            <input id="p-pid" name="projet_id" type="text" placeholder="PRJ-001">
+          </div>
+          <div class="field">
+            <label for="p-statut">Statut</label>
+            <select id="p-statut" name="statut">
+              <option>Actif</option>
+              <option>Clôturé</option>
+              <option>Archivé</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-nom">Nom du projet</label>
+          <input id="p-nom" name="nom" type="text">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="p-deb">Date début chantier</label>
+            <input id="p-deb" name="date_debut" type="date">
+          </div>
+          <div class="field">
+            <label for="p-fin">Date fin prévue</label>
+            <input id="p-fin" name="date_fin" type="date">
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-notes">Notes</label>
+          <textarea id="p-notes" name="notes" rows="2"></textarea>
+        </div>
+      </details>
+
+      <details class="fieldset">
+        <summary><span class="num">⑦</span> Synthèse contrat (page 2 du PDF)</summary>
+        <div class="field">
+          <label for="p-mont">Montant de l'entreprise</label>
+          <input id="p-mont" name="montant_entreprise" type="text" placeholder="Ex. 1.250.000,00 EUR HTVA">
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="p-dadj">Date d'adjudication</label>
+            <input id="p-dadj" name="date_adjudication" type="date">
+          </div>
+          <div class="field">
+            <label for="p-dapp">Date d'approbation</label>
+            <input id="p-dapp" name="date_approbation" type="date">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="p-dcdeb">Date contractuelle début</label>
+            <input id="p-dcdeb" name="date_contract_debut" type="date">
+          </div>
+          <div class="field">
+            <label for="p-dcfin">Date contractuelle fin</label>
+            <input id="p-dcfin" name="date_contract_fin" type="date">
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="p-lcont">Lieu (à ___)</label>
+            <input id="p-lcont" name="lieu_contrat" type="text">
+          </div>
+          <div class="field">
+            <label for="p-delai">Délai d'achèvement (J.O.)</label>
+            <input id="p-delai" name="delai_achevement_jo" type="number" min="0">
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-int">Interruptions autorisées</label>
+          <textarea id="p-int" name="interruptions_autorisees" rows="2"></textarea>
+        </div>
+        <div class="field">
+          <label for="p-prol">Prolongations délai autorisées</label>
+          <textarea id="p-prol" name="prolongations_delai" rows="2"></textarea>
+        </div>
+
+        <p class="subgroup-title">Nombre de jours (en J.O.)</p>
+        <div class="grid-4">
+          <div class="field"><label for="p-feries">Fériés</label><input id="p-feries" name="jours_feries" type="number" min="0" value="0"></div>
+          <div class="field"><label for="p-conges">Congés légaux</label><input id="p-conges" name="jours_conges_legaux" type="number" min="0" value="0"></div>
+          <div class="field"><label for="p-intemp">Intempéries</label><input id="p-intemp" name="jours_intemperies" type="number" min="0" value="0"></div>
+          <div class="field"><label for="p-divers">Divers</label><input id="p-divers" name="jours_divers" type="number" min="0" value="0"></div>
+        </div>
+
+        <p class="subgroup-title">Achèvement réel</p>
+        <div class="grid-2">
+          <div class="field">
+            <label for="p-dreel">Date réelle d'achèvement</label>
+            <input id="p-dreel" name="date_reelle_achevement" type="date">
+          </div>
+          <div class="field">
+            <label for="p-drep">Reportée au</label>
+            <input id="p-drep" name="date_reportee" type="date">
+          </div>
+        </div>
+        <div class="field">
+          <label for="p-retard">Nombre de jours pleins de retard</label>
+          <input id="p-retard" name="jours_retard" type="number" min="0" value="0">
+        </div>
+      </details>
+
+      <div class="sticky-actions">
+        <button type="button" class="btn btn-primary" id="save-projet">Sauvegarder le projet</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ─── SCREEN: FOLIO ────────────────────────── -->
+  <section class="screen" data-screen="folio">
+    <div class="folio-toolbar">
+      <button class="btn-icon" data-action="back-to-list" title="Retour à la liste">←</button>
+      <h2 id="folio-title">Folio N° 0001</h2>
+      <button class="btn-icon" data-action="delete-folio" title="Supprimer">🗑</button>
+    </div>
+
+    <form id="form-folio" autocomplete="off">
+
+      <details class="fieldset" open>
+        <summary><span class="num">①</span> Informations générales</summary>
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-no">Folio N°</label>
+            <input id="f-no" name="folio_no" type="number" min="1" max="30" required>
+          </div>
+          <div class="field">
+            <label for="f-date">Date</label>
+            <input id="f-date" name="date" type="date" required>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-hdeb">Heure début</label>
+            <input id="f-hdeb" name="h_debut" type="time" value="07:30">
+          </div>
+          <div class="field">
+            <label for="f-hfin">Heure fin</label>
+            <input id="f-hfin" name="h_fin" type="time" value="16:30">
+          </div>
+        </div>
+
+        <!-- Bouton météo (+ V2.1 : badge auto-météo OK) -->
+        <div class="meteo-btn-row">
+          <button type="button" class="btn-meteo" id="btn-fetch-meteo">🌤️ Récupérer la météo du jour</button>
+          <span class="meteo-ok-badge" id="meteo-ok-badge" hidden>✓ météo auto</span>
+        </div>
+
+        <div class="field">
+          <label for="f-meteo">État atmosphérique</label>
+          <select id="f-meteo" name="meteo">
+            <option value="">—</option>
+            <option>Ensoleillé</option><option>Beau</option><option>Nuageux</option>
+            <option>Couvert</option><option>Pluie légère</option><option>Pluie forte</option>
+            <option>Neige</option><option>Gel</option><option>Brouillard</option>
+            <option>Vent fort</option><option>Orage</option><option>Variable</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-t8">Temp. à 8h (°C)</label>
+            <input id="f-t8" name="t_8h" type="number">
+          </div>
+          <div class="field">
+            <label for="f-t16">Temp. à 16h (°C)</label>
+            <input id="f-t16" name="t_16h" type="number">
+          </div>
+        </div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="A" open>
+        <summary><span class="case-tag">A</span> Ouvriers <span class="overflow-badge"></span></summary>
+        <div class="ouvriers-table" id="ouvriers-rows"></div>
+        <button type="button" class="btn-add-row" id="add-ouvrier-row">+ Ajouter une ligne</button>
+        <p class="ouvriers-total">Total ouvriers : <strong id="total-ouvriers">0</strong></p>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="B">
+        <summary><span class="case-tag">B</span> Travaux exécutés <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="b_travaux" rows="7" data-overflow="900"></textarea></div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="C">
+        <summary><span class="case-tag">C</span> Matériel en service <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="c_materiel" rows="3" data-overflow="300"></textarea></div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="D">
+        <summary><span class="case-tag">D</span> Matériel hors service — causes <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="d_hs" rows="3" data-overflow="300"></textarea></div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="E">
+        <summary><span class="case-tag">E</span> Matériaux entrés ce jour <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="e_materiaux" rows="3" data-overflow="400"></textarea></div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="F">
+        <summary><span class="case-tag">F</span> Essais sur chantier <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="f_essais" rows="3" data-overflow="250"></textarea></div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="G">
+        <summary><span class="case-tag">G</span> Échantillons expédiés <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="g_echant" rows="3" data-overflow="250"></textarea></div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="H">
+        <summary><span class="case-tag">H</span> Événements imprévus <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="h_imprevus" rows="5" data-overflow="350"></textarea></div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="J">
+        <summary><span class="case-tag">J</span> Décisions prises <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="j_decisions" rows="5" data-overflow="300"></textarea></div>
+      </details>
+
+      <details class="fieldset case-fieldset" data-case="K">
+        <summary><span class="case-tag">K</span> Visites - divers <span class="overflow-badge"></span></summary>
+        <div class="field"><textarea name="k_visites" rows="3" data-overflow="300"></textarea></div>
+      </details>
+
+      <details class="fieldset">
+        <summary><span class="num">②</span> Statut et signatures</summary>
+        <div class="field">
+          <label for="f-statut">Statut</label>
+          <select id="f-statut" name="statut">
+            <option>Brouillon</option><option>À signer</option>
+            <option>Signé</option><option>Validé</option><option>Archivé</option>
+          </select>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="f-sp">Signé préposé</label>
+            <select id="f-sp" name="signe_prep"><option>Non</option><option>Oui</option></select>
+          </div>
+          <div class="field">
+            <label for="f-se">Signé entrepreneur</label>
+            <select id="f-se" name="signe_ent"><option>Non</option><option>Oui</option></select>
+          </div>
+        </div>
+      </details>
+
+      <div class="sticky-actions">
+        <button type="button" class="btn btn-ghost" id="save-folio-draft">Brouillon</button>
+        <button type="button" class="btn btn-primary" id="save-folio">Sauvegarder</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ─── SCREEN: FOLIOS LIST ─────────────────────────────────────── -->
+  <section class="screen" data-screen="folios">
+    <div class="screen-header">
+      <h2 class="screen-title">Folios</h2>
+      <button class="btn btn-primary btn-compact" data-action="new-folio">+ Nouveau</button>
+    </div>
+    <ul class="folio-list" id="all-folios">
+      <li class="empty-state">Aucun folio.</li>
+    </ul>
+
+    <h3 class="section-title">Compléments</h3>
+    <div class="screen-header">
+      <p class="screen-sub" style="flex:1">Pour les cases qui débordent (folio 31 à 40).</p>
+      <button class="btn btn-ghost btn-compact" data-action="new-complement">+ Complément</button>
+    </div>
+    <ul class="folio-list" id="all-complements">
+      <li class="empty-state">Aucun complément.</li>
+    </ul>
+  </section>
+
+  <!-- ─── SCREEN: COMPLEMENT ─────────────────────────────── -->
+  <section class="screen" data-screen="complement">
+    <div class="folio-toolbar">
+      <button class="btn-icon" data-action="back-to-list" title="Retour">←</button>
+      <h2 id="complement-title">Complément N° 0031</h2>
+      <button class="btn-icon" data-action="delete-complement" title="Supprimer">🗑</button>
+    </div>
+
+    <form id="form-complement" autocomplete="off">
+      <details class="fieldset" open>
+        <summary><span class="num">①</span> Références</summary>
+        <div class="grid-2">
+          <div class="field">
+            <label for="c-no">N° du complément (31-40)</label>
+            <input id="c-no" name="folio_compl_no" type="number" min="31" max="40" required>
+          </div>
+          <div class="field">
+            <label for="c-fno">Folio principal référé</label>
+            <input id="c-fno" name="folio_no_ref" type="number" min="1" max="30" required>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label for="c-dref">Date du folio principal</label>
+            <input id="c-dref" name="date_ref" type="date">
+          </div>
+          <div class="field">
+            <label for="c-case">Case continuée</label>
+            <select id="c-case" name="case">
+              <option>A</option><option>B</option><option>C</option><option>D</option>
+              <option>E</option><option>F</option><option>G</option><option>H</option>
+              <option>J</option><option>K</option>
+            </select>
+          </div>
+        </div>
+      </details>
+
+      <details class="fieldset" open>
+        <summary><span class="num">②</span> Texte du complément</summary>
+        <div class="field"><textarea name="texte" rows="10" placeholder="Suite du texte qui ne tenait pas dans la case…"></textarea></div>
+      </details>
+
+      <div class="sticky-actions">
+        <button type="button" class="btn btn-primary" id="save-complement">Sauvegarder</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ─── SCREEN: RÉGLAGES ────────────────────────────────────────── -->
+  <section class="screen" data-screen="reglages">
+    <h2 class="screen-title">Réglages</h2>
+
+    <details class="fieldset" open>
+      <summary>🔄 Synchronisation GitHub</summary>
+      <p class="screen-sub">Configurez ces 3 champs pour pouvoir publier vos données vers votre repo GitHub. Token créé via <code>github.com/settings/tokens</code> (scope <code>repo</code>).</p>
+      <div class="field">
+        <label for="g-owner">Owner (votre pseudo GitHub)</label>
+        <input id="g-owner" type="text" placeholder="ramizxhixha-a11y">
+      </div>
+      <div class="field">
+        <label for="g-repo">Nom du repo</label>
+        <input id="g-repo" type="text" placeholder="journal-travaux-">
+      </div>
+      <div class="field">
+        <label for="g-token">Personal Access Token</label>
+        <input id="g-token" type="password" placeholder="ghp_xxxxxxxxxxxx">
+        <p class="field-hint">Stocké uniquement sur ce device. Jamais transmis ailleurs.</p>
+      </div>
+      <button class="btn btn-primary" id="save-github-config">Enregistrer</button>
+    </details>
+
+    <details class="fieldset">
+      <summary>🌤️ Météo automatique</summary>
+      <p class="screen-sub">À l'ouverture d'un nouveau folio, la météo du jour est récupérée automatiquement.</p>
+      <div class="field">
+        <label for="g-meteo-auto">Récupération automatique</label>
+        <select id="g-meteo-auto">
+          <option value="oui">Oui (recommandé)</option>
+          <option value="non">Non</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" id="save-meteo-config">Enregistrer</button>
+    </details>
+
+    <details class="fieldset">
+      <summary>📂 Données locales</summary>
+      <p class="screen-sub">Vos données sont stockées sur cet appareil (IndexedDB). Aucune fuite, mais pensez à exporter régulièrement.</p>
+      <button class="btn btn-secondary" data-action="export-json">⬇ Exporter tout en JSON</button>
+      <button class="btn btn-secondary" data-action="import-json">⬆ Importer un JSON</button>
+      <button class="btn btn-danger" id="reset-data">⚠ Tout effacer</button>
+    </details>
+
+    <details class="fieldset">
+      <summary>ℹ À propos</summary>
+      <p>Journal des Travaux v2.1 — Modèle Embuild 9545 F</p>
+      <p>App locale + GitHub. Chantier CHIREC Cavell / EEG Techniques Spéciales.</p>
+      <p class="screen-sub">Nouveautés V2.1 : météo auto à l'ouverture, cases A/B/H/J agrandies, détection débordement avec bouton "créer complément".</p>
+    </details>
+  </section>
+
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-nav="accueil">
+    <span class="nav-icon">⌂</span>
+    <span class="nav-label">Accueil</span>
+  </button>
+  <button class="nav-btn" data-nav="projet">
+    <span class="nav-icon">◧</span>
+    <span class="nav-label">Projet</span>
+  </button>
+  <button class="nav-btn" data-nav="folios">
+    <span class="nav-icon">≡</span>
+    <span class="nav-label">Folios</span>
+  </button>
+  <button class="nav-btn" data-nav="reglages">
+    <span class="nav-icon">⚙</span>
+    <span class="nav-label">Réglages</span>
+  </button>
+</nav>
+
+<!-- Indicateur d'enregistrement -->
+<div id="save-indicator">💾 Enregistré</div>
+
+<!-- Toast notifications -->
+<div id="toast-container"></div>
+
+<!-- File input invisible pour Import JSON -->
+<input type="file" id="import-file" accept=".json" hidden>
+
+<script src="app.js"></script>
+</body>
+</html>
