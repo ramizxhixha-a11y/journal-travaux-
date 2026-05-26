@@ -1375,7 +1375,13 @@ function wireEvents() {
 
   // Réglages
   $('#btn-save-config').onclick = async () => {
+    // Sauvegarder le projet_id avant readForm (champ readonly)
+    const savedProjetId = state.config.projet_id;
     readForm($('#screen-reglages'), { config: state.config });
+    // Restaurer le projet_id si readForm l'a vidé
+    if (!state.config.projet_id && savedProjetId) {
+      state.config.projet_id = savedProjetId;
+    }
     for (const k of Object.keys(state.config)) {
       await saveConfigKey(k, state.config[k]);
     }
