@@ -1179,16 +1179,33 @@ async function importJSON(file) {
     const text = await file.text();
     const data = JSON.parse(text);
     if (!data || typeof data !== 'object') throw new Error('JSON invalide');
-    if (data.projet) {
+
+    // Import projet
+    if (data.projet && data.projet.id) {
       await dbPut(STORES.projet, data.projet);
       await saveConfigKey('projet_id', data.projet.id);
     }
+
+    // Import folios — compat V2.1
     if (Array.isArray(data.folios)) {
-      for (const f of data.folios) await dbPut(STORES.folios, f);
+      for (const f of data.folios) {
+        if (!f.projet_id && data.projet) f.projet_id = data.projet.id;
+        await dbPut(STORES.folios, f);
+      }
     }
+
+    // Import compléments — compat V2.1 (case+texte) et V2.2 (sections)
     if (Array.isArray(data.complements)) {
-      for (const c of data.complements) await dbPut(STORES.complements, c);
+      for (const c of data.complements) {
+        if (!c.projet_id && data.projet) c.projet_id = data.projet.id;
+        if (!c.sections) {
+          c.sections = {};
+          if (c.case && c.texte) c.sections[c.case] = c.texte;
+        }
+        await dbPut(STORES.complements, c);
+      }
     }
+
     await loadConfig();
     await loadProjet();
     await loadAll();
