@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F4E5F">
+<title>Journal des Travaux — EEG</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --teal:#1F4E5F; --teal-d:#163a47; --gold:#C9A24B; --ink:#1c2b30; --ink-soft:#5d6b6f;
+    --cream:#f6f1e7; --card:#ffffff; --line:#e6dfd0; --ok:#2f7d52; --warn:#b4452f; --amber:#e9d9b0; --amber-ink:#8a6d1f;
+    --r:14px; --nav-h:64px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:"DM Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:var(--cream); color:var(--ink); line-height:1.5;
+    padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  }
+  h1,h2,h3,.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:.2px;}
+  .mono{font-family:"JetBrains Mono",monospace;}
+
+  /* HEADER */
+  .app-header{background:var(--teal);color:#fff;padding:14px 18px 12px;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:30;}
+  .app-header h1{font-size:26px;margin:0;line-height:1.05;}
+  .header-sub{font-family:"JetBrains Mono",monospace;font-size:11px;opacity:.85;margin:3px 0 0;letter-spacing:.3px;}
+  .sync-dot{position:absolute;top:16px;right:18px;width:11px;height:11px;border-radius:50%;background:#9fb4ba;box-shadow:0 0 0 3px rgba(255,255,255,.12);}
+  .sync-dot.dirty{background:var(--gold);} .sync-dot.synced{background:#6fdc9a;} .sync-dot.error{background:#ff8a7a;}
+
+  /* SCREENS */
+  main{padding:20px 16px 28px;max-width:760px;margin:0 auto;}
+  .screen{display:none;animation:fade .25s ease;}
+  .screen.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+  .screen-title{font-size:34px;margin:2px 0 2px;}
+  .screen-sub{color:var(--ink-soft);font-size:14px;margin:0 0 18px;}
+  .section-title{font-size:21px;margin:26px 0 12px;}
+
+  /* CARDS */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:14px;}
+  .card-hero{border-left:4px solid var(--teal);}
+  .card-label{font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px;}
+  .card-hero h3{font-size:24px;margin:0 0 14px;line-height:1.15;}
+  .card-actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+  .grid-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media(max-width:560px){.grid-stats{grid-template-columns:repeat(2,1fr);}}
+  .stat-card{text-align:center;padding:16px 8px;}
+  .stat-label{font-family:"JetBrains Mono",monospace;font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px;}
+  .stat-value{font-size:30px;font-weight:600;color:var(--teal);margin:0;}
+
+  .quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+  .quick-actions .btn{justify-content:center;}
+
+  /* BUTTONS */
+  .btn{appearance:none;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:11px;padding:12px 16px;font-size:14.5px;font-weight:600;font-family:inherit;display:inline-flex;align-items:center;gap:7px;cursor:pointer;transition:.15s;}
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--teal);border-color:var(--teal);color:#fff;}
+  .btn-ghost{background:transparent;}
+  .btn-secondary{background:#fff;}
+  .btn-danger{background:#fff;border-color:#e7b7ab;color:var(--warn);}
+  .btn-compact{padding:9px 13px;font-size:13.5px;}
+  .btn-block{width:100%;justify-content:center;}
+  .btn:disabled{opacity:.5;cursor:not-allowed;}
+
+  /* FORMS */
+  details.fieldset{background:var(--card);border:1px solid var(--line);border-radius:var(--r);margin-bottom:12px;overflow:hidden;}
+  details.fieldset>summary{padding:14px 16px;font-weight:600;cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px;font-size:15px;}
+  details.fieldset>summary::-webkit-details-marker{display:none;}
+  details.fieldset>summary::after{content:"▾";margin-left:auto;color:var(--ink-soft);transition:.2s;}
+  details.fieldset[open]>summary::after{transform:rotate(180deg);}
+  details.fieldset>summary .num,.case-tag{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:7px;background:var(--teal);color:#fff;font-size:12px;font-weight:700;font-family:"JetBrains Mono",monospace;}
+  .case-tag{background:var(--gold);}
+  details.fieldset>*:not(summary){margin-left:16px;margin-right:16px;}
+  details.fieldset>*:last-child{margin-bottom:16px;}
+  .field{margin:12px 0;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px;}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;font-family:inherit;background:#fcfaf5;color:var(--ink);}
+  .field textarea{resize:vertical;min-height:64px;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--teal);background:#fff;}
+  .field-hint{font-size:12px;color:var(--ink-soft);margin-top:5px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  @media(max-width:560px){.grid-4{grid-template-columns:1fr 1fr;}}
+  .subgroup-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-soft);margin:16px 0 4px;}
+
+  /* OUVRIERS */
+  .ouv-row{display:grid;grid-template-columns:1fr 1.4fr 64px 34px;gap:7px;align-items:center;margin-bottom:8px;}
+  .ouv-row input{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 10px;font-size:14px;background:#fcfaf5;font-family:inherit;}
+  .ouv-row .row-del{border:none;background:#f3ece0;color:var(--warn);border-radius:9px;height:38px;font-size:18px;cursor:pointer;}
+  .btn-add-row{width:100%;border:1px dashed var(--teal);background:#fff;color:var(--teal);border-radius:10px;padding:10px;font-weight:600;cursor:pointer;font-family:inherit;font-size:14px;}
+  .ouv-total{text-align:right;font-size:14px;color:var(--ink-soft);margin-top:8px;}
+  .ouv-total strong{color:var(--teal);font-size:18px;}
+
+  /* FOLIO LIST */
+  .folio-list{list-style:none;padding:0;margin:0;}
+  .folio-item{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 14px;margin-bottom:9px;cursor:pointer;transition:.15s;}
+  .folio-item:active{background:#fbf8f1;}
+  .folio-num{font-family:"JetBrains Mono",monospace;font-size:12px;font-weight:700;color:var(--ink-soft);background:#f1eadd;border:1px solid var(--line);padding:6px 8px;border-radius:8px;white-space:nowrap;}
+  .folio-info{flex:1;min-width:0;}
+  .folio-date{font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:600;}
+  .folio-summary{font-size:13px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .badge{font-family:"JetBrains Mono",monospace;font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:5px 9px;border-radius:20px;white-space:nowrap;}
+  .badge.brouillon{background:var(--amber);color:var(--amber-ink);}
+  .badge.signe{background:#cfe8d8;color:var(--ok);}
+  .badge.compl{background:#dfeaf0;color:var(--teal);}
+  .empty-state{color:var(--ink-soft);font-size:14px;padding:14px;text-align:center;background:var(--card);border:1px dashed var(--line);border-radius:12px;}
+
+  .screen-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .screen-header .screen-title{margin:0;}
+  .folio-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .folio-toolbar h2{flex:1;font-size:24px;margin:0;}
+  .btn-icon{width:42px;height:42px;border-radius:11px;border:1px solid var(--line);background:#fff;font-size:18px;cursor:pointer;}
+
+  .sticky-actions{position:sticky;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 8px);display:flex;gap:10px;padding:10px 0 2px;background:linear-gradient(to top,var(--cream) 70%,transparent);z-index:10;}
+  .sticky-actions .btn{flex:1;justify-content:center;}
+
+  /* BOTTOM NAV */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-h);padding-bottom:env(safe-area-inset-bottom);background:rgba(255,255,255,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);display:flex;z-index:40;}
+  .nav-btn{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--ink-soft);font-family:inherit;padding:0;}
+  .nav-btn .nav-icon{font-size:20px;line-height:1;}
+  .nav-btn .nav-label{font-size:10.5px;font-weight:600;letter-spacing:.3px;}
+  .nav-btn.active{color:var(--teal);}
+  .nav-btn.active .nav-icon{transform:translateY(-1px);}
+
+  /* TOAST */
+  #toast-container{position:fixed;left:0;right:0;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 16px);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:60;pointer-events:none;}
+  .toast{background:#11201f;color:#fff;padding:12px 18px;border-radius:11px;font-size:14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);animation:toastin .25s ease;max-width:90%;}
+  .toast.success{background:#1f5b3a;} .toast.error{background:#8f3322;}
+  @keyframes toastin{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(20,30,32,.5);display:none;align-items:center;justify-content:center;z-index:70;padding:20px;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:#fff;border-radius:18px;padding:22px;max-width:440px;width:100%;}
+  .modal h3{font-size:22px;margin:0 0 12px;}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+
+  /* PRINT AREA */
+  #print-area{display:none;}
+  @media print{
+    body>*:not(#print-area){display:none !important;}
+    #print-area{display:block !important;}
+    body{background:#fff;padding:0;}
+  }
+  /* print styles applied inline within print-area for portability */
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <h1>Journal des Travaux</h1>
+  <p class="header-sub" id="header-sub">— · v3.0</p>
+  <span class="sync-dot" id="sync-dot" title="Statut"></span>
+</header>
+
+<main>
+  <!-- ACCUEIL -->
+  <section class="screen active" data-screen="accueil">
+    <h2 class="screen-title">Aujourd'hui</h2>
+    <p class="screen-sub" id="today-date">—</p>
+
+    <div class="card card-hero">
+      <p class="card-label">Projet en cours</p>
+      <h3 id="hero-projet-nom">—</h3>
+      <div class="card-actions">
+        <button class="btn btn-primary" id="btn-new-folio">📝 Nouveau folio</button>
+        <button class="btn btn-ghost" id="btn-continue-folio">↻ Continuer</button>
+      </div>
+    </div>
+
+    <h3 class="section-title">Synthèse du projet</h3>
+    <div class="grid-stats">
+      <div class="card stat-card"><p class="stat-label">Folios</p><p class="stat-value" id="st-folios">0</p></div>
+      <div class="card stat-card"><p class="stat-label">Compléments</p><p class="stat-value" id="st-compl">0</p></div>
+      <div class="card stat-card"><p class="stat-label">Ouvriers cumul</p><p class="stat-value" id="st-ouv">0</p></div>
+      <div class="card stat-card"><p class="stat-label">Journal N°</p><p class="stat-value" id="st-journal">1</p></div>
+    </div>
+
+    <h3 class="section-title">Actions rapides</h3>
+    <div class="quick-actions">
+      <button class="btn btn-secondary" id="btn-publish">☁ Publier sur GitHub</button>
+      <button class="btn btn-secondary" id="btn-pdf">📄 Télécharger le PDF</button>
+      <button class="btn btn-secondary" id="btn-export">⬇ Exporter JSON</button>
+      <button class="btn btn-secondary" id="btn-import">⬆ Importer JSON</button>
+    </div>
+
+    <h3 class="section-title">Derniers folios</h3>
+    <ul class="folio-list" id="recent-folios"><li class="empty-state">Aucun folio.</li></ul>
+  </section>
+
+  <!-- PROJET -->
+  <section class="screen" data-screen="projet">
+    <h2 class="screen-title">Projet</h2>
+    <p class="screen-sub">Page de garde & contrat — à remplir une fois.</p>
+    <form id="form-projet" autocomplete="off">
+      <details class="fieldset" open>
+        <summary><span class="num">①</span> Identité</summary>
+        <div class="field"><label>Nom du projet</label><input name="nom" type="text"></div>
+        <div class="field"><label>Description des travaux</label><textarea name="description" rows="3"></textarea></div>
+        <div class="grid-2">
+          <div class="field"><label>ProjetID</label><input name="projet_id" type="text" placeholder="PRJ-CHIREC-CAVELL"></div>
+          <div class="field"><label>Statut</label>
+            <select name="statut"><option>Actif</option><option>Clôturé</option><option>Archivé</option></select></div>
+        </div>
+      </details>
+      <details class="fieldset">
+        <summary><span class="num">②</span> Marché</summary>
+        <div class="field"><label>Pouvoir adjudicateur</label><input name="pouvoir_adjudicateur" type="text"></div>
+        <div class="field"><label>N° du dossier</label><input name="no_dossier" type="text"></div>
+        <div class="field"><label>Cahier des charges N°</label><input name="csc_no" type="text"></div>
+        <div class="field"><label>Référence CSC</label><input name="csc_ref" type="text"></div>
+        <div class="field"><label>Journal N°</label><input name="journal_no" type="number" min="1"></div>
+      </details>
+      <details class="fieldset">
+        <summary><span class="num">③</span> Entrepreneur</summary>
+        <div class="field"><label>Entrepreneur — nom</label><input name="ent_nom" type="text"></div>
+        <div class="field"><label>Adresse</label><input name="ent_adresse" type="text"></div>
+        <div class="grid-2">
+          <div class="field"><label>Téléphone</label><input name="ent_tel" type="tel"></div>
+          <div class="field"><label>N° TVA / entreprise</label><input name="ent_tva" type="text"></div>
+        </div>
+        <div class="field"><label>Agréation</label><input name="ent_agreation" type="text"></div>
+      </details>
+      <details class="fieldset">
+        <summary><span class="num">④</span> Dates & notes</summary>
+        <div class="grid-2">
+          <div class="field"><label>Début chantier</label><input name="date_debut" type="date"></div>
+          <div class="field"><label>Fin prévue</label><input name="date_fin" type="date"></div>
+        </div>
+        <div class="field"><label>Notes</label><textarea name="notes" rows="3"></textarea></div>
+      </details>
+      <div class="sticky-actions">
+        <button type="button" class="btn btn-primary" id="save-projet">Sauvegarder le projet</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- FOLIO EDITOR -->
+  <section class="screen" data-screen="folio">
+    <div class="folio-toolbar">
+      <button class="btn-icon" id="folio-back" title="Retour">←</button>
+      <h2 id="folio-title">Folio</h2>
+      <button class="btn-icon" id="folio-delete" title="Supprimer">🗑</button>
+    </div>
+    <form id="form-folio" autocomplete="off">
+      <details class="fieldset" open>
+        <summary><span class="num">①</span> Informations générales</summary>
+        <div class="grid-2">
+          <div class="field"><label>Folio N°</label><input name="folio_no" type="number" min="1" max="30" required></div>
+          <div class="field"><label>Date</label><input name="date" type="date" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Heure début</label><input name="heures_debut" type="time" value="06:30"></div>
+          <div class="field"><label>Heure fin</label><input name="heures_fin" type="time" value="15:00"></div>
+        </div>
+        <div class="field"><label>État atmosphérique</label>
+          <select name="etat_atmospherique"><option value="">—</option><option>Ciel dégagé</option><option>Ensoleillé</option><option>Beau</option><option>Nuageux</option><option>Couvert</option><option>Pluie légère</option><option>Pluie forte</option><option>Neige</option><option>Gel</option><option>Brouillard</option><option>Vent fort</option><option>Orage</option><option>Variable</option></select>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Temp. 8h (°C)</label><input name="temp_8h" type="number" step="0.1"></div>
+          <div class="field"><label>Temp. 16h (°C)</label><input name="temp_16h" type="number" step="0.1"></div>
+        </div>
+        <button type="button" class="btn btn-ghost btn-compact" id="btn-meteo">🌤 Récupérer la météo</button>
+      </details>
+
+      <details class="fieldset case-fieldset" open>
+        <summary><span class="case-tag">A</span> Ouvriers</summary>
+        <div id="ouvriers-rows"></div>
+        <button type="button" class="btn-add-row" id="add-ouvrier">+ Ajouter une ligne</button>
+        <p class="ouv-total">Total : <strong id="ouv-total">0</strong></p>
+      </details>
+
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">B</span> Travaux exécutés</summary><div class="field"><textarea name="case_B" rows="4"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">C</span> Matériel en service</summary><div class="field"><textarea name="case_C" rows="3"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">D</span> Matériel hors service</summary><div class="field"><textarea name="case_D" rows="3"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">E</span> Matériaux entrés</summary><div class="field"><textarea name="case_E" rows="3"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">F</span> Essais sur chantier</summary><div class="field"><textarea name="case_F" rows="3"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">G</span> Échantillons expédiés</summary><div class="field"><textarea name="case_G" rows="3"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">H</span> Événements imprévus</summary><div class="field"><textarea name="case_H" rows="4"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">J</span> Décisions prises</summary><div class="field"><textarea name="case_J" rows="4"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">K</span> Visites & divers</summary><div class="field"><textarea name="case_K" rows="3"></textarea></div></details>
+
+      <details class="fieldset">
+        <summary><span class="num">②</span> Statut & signatures</summary>
+        <div class="field"><label>Statut</label>
+          <select name="statut"><option>brouillon</option><option>À signer</option><option>Signé</option><option>Validé</option><option>Archivé</option></select></div>
+        <div class="grid-2">
+          <div class="field"><label>Signé préposé</label><select name="signature_prepose"><option value="">Non</option><option value="Signé">Oui</option></select></div>
+          <div class="field"><label>Signé entrepreneur</label><select name="signature_entrepreneur"><option value="">Non</option><option value="Signé">Oui</option></select></div>
+        </div>
+      </details>
+
+      <div class="sticky-actions">
+        <button type="button" class="btn btn-ghost" id="save-folio-draft">Brouillon</button>
+        <button type="button" class="btn btn-primary" id="save-folio">Sauvegarder</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- HISTORIQUE -->
+  <section class="screen" data-screen="historique">
+    <div class="screen-header"><h2 class="screen-title">Historique</h2>
+      <button class="btn btn-primary btn-compact" id="hist-new" style="margin-left:auto">+ Folio</button></div>
+    <ul class="folio-list" id="all-folios"><li class="empty-state">Aucun folio.</li></ul>
+
+    <div class="screen-header" style="margin-top:24px;">
+      <h3 class="section-title" style="margin:0;flex:1;">Compléments</h3>
+      <button class="btn btn-ghost btn-compact" id="hist-new-compl">+ Complément</button>
+    </div>
+    <p class="screen-sub">Pour les cases qui débordent (N° 31 à 40).</p>
+    <ul class="folio-list" id="all-complements"><li class="empty-state">Aucun complément.</li></ul>
+  </section>
+
+  <!-- COMPLEMENT EDITOR -->
+  <section class="screen" data-screen="complement">
+    <div class="folio-toolbar">
+      <button class="btn-icon" id="compl-back" title="Retour">←</button>
+      <h2 id="compl-title">Complément</h2>
+      <button class="btn-icon" id="compl-delete" title="Supprimer">🗑</button>
+    </div>
+    <form id="form-complement" autocomplete="off">
+      <details class="fieldset" open>
+        <summary><span class="num">①</span> Références</summary>
+        <div class="grid-2">
+          <div class="field"><label>N° complément (31-40)</label><input name="folio_compl_no" type="number" min="31" max="40" required></div>
+          <div class="field"><label>Folio principal réf.</label><input name="folio_no_ref" type="number" min="1" max="30" required></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Date folio principal</label><input name="date_ref" type="date"></div>
+          <div class="field"><label>Case continuée</label>
+            <select name="case"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>J</option><option>K</option></select></div>
+        </div>
+      </details>
+      <details class="fieldset" open>
+        <summary><span class="num">②</span> Texte</summary>
+        <div class="field"><textarea name="texte" rows="10"></textarea></div>
+      </details>
+      <div class="sticky-actions">
+        <button type="button" class="btn btn-primary" id="save-complement">Sauvegarder</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- REGLAGES -->
+  <section class="screen" data-screen="reglages">
+    <h2 class="screen-title">Réglages</h2>
+
+    <details class="fieldset" open>
+      <summary>📍 Localisation météo</summary>
+      <div class="grid-2">
+        <div class="field"><label>Latitude</label><input id="r-lat" type="number" step="0.0001"></div>
+        <div class="field"><label>Longitude</label><input id="r-lon" type="number" step="0.0001"></div>
+      </div>
+      <div class="field"><label>Météo auto à la création d'un folio</label>
+        <select id="r-meteo-auto"><option value="oui">Oui</option><option value="non">Non</option></select></div>
+    </details>
+
+    <details class="fieldset" open>
+      <summary>☁ GitHub (publication + PDF)</summary>
+      <p class="screen-sub">Token créé sur github.com/settings/tokens (scope <b>repo</b>). Stocké uniquement sur cet appareil.</p>
+      <div class="field"><label>Owner</label><input id="r-owner" type="text" placeholder="ramizxhixha-a11y"></div>
+      <div class="field"><label>Repo</label><input id="r-repo" type="text" placeholder="journal-travaux-"></div>
+      <div class="field"><label>Branche</label><input id="r-branch" type="text" placeholder="main"></div>
+      <div class="field"><label>Personal Access Token</label><input id="r-token" type="password" placeholder="ghp_…"></div>
+      <button class="btn btn-ghost btn-compact" id="btn-test-github" style="margin-top:4px;">🔍 Tester la connexion</button>
+    </details>
+
+    <details class="fieldset">
+      <summary>💾 Sauvegarde & import</summary>
+      <button class="btn btn-secondary btn-block" id="r-export" style="margin-bottom:8px;">⬇ Exporter tout (JSON)</button>
+      <button class="btn btn-secondary btn-block" id="r-import">⬆ Importer un JSON</button>
+    </details>
+
+    <details class="fieldset">
+      <summary>⚠ Zone dangereuse</summary>
+      <button class="btn btn-danger btn-block" id="r-reset">Tout effacer (local)</button>
+    </details>
+
+    <details class="fieldset">
+      <summary>ℹ À propos</summary>
+      <p style="font-size:14px;">Journal des Travaux v3.0 — modèle Embuild 9545 F.</p>
+      <p class="screen-sub">100 % local (IndexedDB) + publication GitHub explicite. Fonctionne hors-ligne.</p>
+    </details>
+
+    <div class="sticky-actions">
+      <button type="button" class="btn btn-primary" id="save-reglages">💾 Enregistrer les réglages</button>
+    </div>
+  </section>
+</main>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-nav="accueil"><span class="nav-icon">⌂</span><span class="nav-label">Accueil</span></button>
+  <button class="nav-btn" data-nav="projet"><span class="nav-icon">▤</span><span class="nav-label">Projet</span></button>
+  <button class="nav-btn" data-nav="historique"><span class="nav-icon">≣</span><span class="nav-label">Historique</span></button>
+  <button class="nav-btn" data-nav="reglages"><span class="nav-icon">⚙</span><span class="nav-label">Réglages</span></button>
+</nav>
+
+<div id="toast-container"></div>
+<div class="modal-overlay" id="modal"><div class="modal" id="modal-box"></div></div>
+<div id="print-area"></div>
+<input type="file" id="import-file" accept=".json,application/json" hidden>
+
+<script>
+(() => {
+'use strict';
+
+/* ═══════════ CONSTANTES & ÉTAT ═══════════ */
+const APP_VERSION='3.0';
+const DB_NAME='journal-travaux-db';
+const DB_VERSION=3;
+const STORES={projet:'projet',folios:'folios',complements:'complements',config:'config'};
+const LEGACY_DB_NAMES=['journal-travaux-db','journal_travaux','journal-travaux'];
+
+const DEFAULT_CONFIG={
+  projet_id:'main', meteo_lat:50.7949, meteo_lon:4.3520, meteo_auto:'oui',
+  gh_owner:'', gh_repo:'', gh_branch:'main', gh_token:''
+};
+
+let db=null;
+let state={ config:{...DEFAULT_CONFIG}, projet:null, folios:[], complements:[],
+            curFolioId:null, curComplId:null, screen:'accueil' };
+
+/* ═══════════ INDEXEDDB ═══════════ */
+function openDB(name=DB_NAME, version=DB_VERSION){
+  return new Promise((res,rej)=>{
+    const r=indexedDB.open(name,version);
+    r.onerror=()=>rej(r.error);
+    r.onsuccess=()=>res(r.result);
+    r.onupgradeneeded=e=>{
+      const d=e.target.result;
+      Object.values(STORES).forEach(s=>{ if(!d.objectStoreNames.contains(s)) d.createObjectStore(s,{keyPath:'id'}); });
+    };
+  });
+}
+function tx(store,mode='readonly'){ return db.transaction(store,mode).objectStore(store); }
+function dbGet(store,key){ return new Promise((res,rej)=>{const r=tx(store).get(key);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); }
+function dbAll(store){ return new Promise((res,rej)=>{const r=tx(store).getAll();r.onsuccess=()=>res(r.result||[]);r.onerror=()=>rej(r.error);}); }
+function dbPut(store,val){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').put(val);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}); }
+function dbDel(store,key){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').delete(key);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);}); }
+function dbClear(store){ return new Promise((res,rej)=>{const r=tx(store,'readwrite').clear();r.onsuccess=()=>res();r.onerror=()=>rej(r.error);}); }
+
+/* ═══════════ HELPERS ═══════════ */
+const $=s=>document.querySelector(s);
+const $$=s=>Array.from(document.querySelectorAll(s));
+const pad=(n,l=4)=>String(n||0).padStart(l,'0');
+const uid=()=>'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function todayISO(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fmtDate(iso){ if(!iso) return '—'; const p=String(iso).split('-'); return p.length===3?`${p[2].slice(0,2)}/${p[1]}/${p[0]}`:iso; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function toast(msg,type=''){
+  const t=document.createElement('div');
+  t.className='toast '+type; t.textContent=msg;
+  $('#toast-container').appendChild(t);
+  setTimeout(()=>t.remove(),3000);
+}
+function syncDot(s){ const d=$('#sync-dot'); d.className='sync-dot '+s; }
+
+function formRead(form){
+  const o={};
+  form.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(!el.name) return;
+    let v=el.value;
+    if(el.type==='number') v=v===''?null:Number(v);
+    o[el.name]=v;
+  });
+  return o;
+}
+function formFill(form,obj){
+  obj=obj||{};
+  form.querySelectorAll('input,select,textarea').forEach(el=>{
+    if(!el.name) return;
+    el.value=(obj[el.name]===undefined||obj[el.name]===null)?'':obj[el.name];
+  });
+}
+
+/* ═══════════ NORMALISATION (ancien format → nouveau) ═══════════ */
+const FOLIO_MAP={ h_debut:'heures_debut', h_fin:'heures_fin', meteo:'etat_atmospherique',
+  t_8h:'temp_8h', t_16h:'temp_16h', b_travaux:'case_B', c_materiel:'case_C', d_hs:'case_D',
+  e_materiaux:'case_E', f_essais:'case_F', g_echant:'case_G', h_imprevus:'case_H',
+  j_decisions:'case_J', k_visites:'case_K', signe_prep:'signature_prepose', signe_ent:'signature_entrepreneur' };
+
+function normFolio(f){
+  const o={...f};
+  for(const [oldK,newK] of Object.entries(FOLIO_MAP)){
+    if(o[oldK]!==undefined && (o[newK]===undefined||o[newK]==='' )){
+      let v=o[oldK];
+      if((oldK==='signe_prep'||oldK==='signe_ent')) v=(v==='Oui')?'Signé':'';
+      o[newK]=v;
+    }
+    delete o[oldK];
+  }
+  if(o.id===undefined||o.id===null||o.id==='') o.id=uid();
+  o.id=String(o.id);
+  if(!o.ouvriers) o.ouvriers=[];
+  o.ouvriers_total=(o.ouvriers||[]).reduce((a,x)=>a+(Number(x.nombre)||0),0);
+  if(!o.statut) o.statut='brouillon';
+  o.projet_id=o.projet_id||state.config.projet_id||'main';
+  return o;
+}
+function normCompl(c){
+  const o={...c};
+  if(o.id===undefined||o.id===null||o.id==='') o.id=uid();
+  o.id=String(o.id);
+  if(!o.texte && o.sections){ o.texte=Object.values(o.sections).join('\n'); }
+  o.projet_id=o.projet_id||state.config.projet_id||'main';
+  return o;
+}
+
+/* ═══════════ LOAD STATE ═══════════ */
+async function loadState(){
+  const cfg=await dbGet(STORES.config,'config');
+  state.config={...DEFAULT_CONFIG, ...(cfg?cfg.value:{})};
+  const proj=await dbGet(STORES.projet,'main');
+  state.projet=proj?proj.value:null;
+  const folios=await dbAll(STORES.folios);
+  state.folios=folios.map(x=>normFolio(x.value!==undefined?x.value:x)).sort((a,b)=>(a.folio_no||0)-(b.folio_no||0));
+  const compls=await dbAll(STORES.complements);
+  state.complements=compls.map(x=>normCompl(x.value!==undefined?x.value:x)).sort((a,b)=>(a.folio_compl_no||0)-(b.folio_compl_no||0));
+}
+
+async function saveConfig(){ await dbPut(STORES.config,{id:'config',value:state.config}); }
+async function saveProjet(p){ state.projet=p; await dbPut(STORES.projet,{id:'main',value:p}); }
+async function putFolio(f){ await dbPut(STORES.folios,{id:f.id,value:f}); }
+async function putCompl(c){ await dbPut(STORES.complements,{id:c.id,value:c}); }
+
+/* ═══════════ NAVIGATION ═══════════ */
+function show(name){
+  state.screen=name;
+  $$('.screen').forEach(s=>s.classList.toggle('active',s.dataset.screen===name));
+  $$('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.nav===name));
+  if(name==='accueil') renderAccueil();
+  if(name==='projet') renderProjet();
+  if(name==='historique') renderHistorique();
+  if(name==='reglages') renderReglages();
+  window.scrollTo(0,0);
+}
+$$('.nav-btn').forEach(b=>b.addEventListener('click',()=>show(b.dataset.nav)));
+
+/* ═══════════ RENDER ACCUEIL ═══════════ */
+function projetNom(){ return (state.projet && (state.projet.nom||state.projet.projet_id)) || 'Aucun projet'; }
+function lastFolioNo(){ return state.folios.length? Math.max(...state.folios.map(f=>f.folio_no||0)) : 0; }
+
+function renderAccueil(){
+  $('#today-date').textContent=new Date().toLocaleDateString('fr-BE',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  $('#header-sub').textContent=`${projetNom()} · v${APP_VERSION}`;
+  $('#hero-projet-nom').textContent=projetNom();
+  const last=lastFolioNo();
+  $('#btn-continue-folio').style.display=last?'inline-flex':'none';
+  $('#btn-continue-folio').textContent=`↻ Continuer folio ${pad(last)}`;
+
+  $('#st-folios').textContent=state.folios.length;
+  $('#st-compl').textContent=state.complements.length;
+  $('#st-ouv').textContent=state.folios.reduce((a,f)=>a+(f.ouvriers_total||0),0);
+  $('#st-journal').textContent=(state.projet&&state.projet.journal_no)||1;
+
+  const recent=state.folios.slice().reverse().slice(0,5);
+  renderFolioList($('#recent-folios'),recent);
+}
+
+function folioItemHTML(f){
+  const st=(f.statut||'brouillon').toLowerCase();
+  const cls=/sign|valid/.test(st)?'signe':'brouillon';
+  const sum=esc((f.case_B||'').replace(/\n/g,' ').slice(0,52))||'<span style="opacity:.5">— vide —</span>';
+  return `<li class="folio-item" data-id="${esc(f.id)}">
+    <span class="folio-num">N° ${pad(f.folio_no)}</span>
+    <div class="folio-info"><div class="folio-date">${fmtDate(f.date)}</div><div class="folio-summary">${sum}</div></div>
+    <span class="badge ${cls}">${esc(f.statut||'brouillon')}</span></li>`;
+}
+function renderFolioList(ul,arr){
+  if(!arr.length){ ul.innerHTML='<li class="empty-state">Aucun folio.</li>'; return; }
+  ul.innerHTML=arr.map(folioItemHTML).join('');
+  ul.querySelectorAll('.folio-item').forEach(li=>li.addEventListener('click',()=>openFolio(li.dataset.id)));
+}
+
+/* ═══════════ RENDER PROJET ═══════════ */
+function projetToForm(p){
+  p=p||{};
+  const ent=p.entrepreneur||{};
+  return {
+    nom:p.nom||'', description:p.description||'', projet_id:p.projet_id||'', statut:p.statut||'Actif',
+    pouvoir_adjudicateur:p.pouvoir_adjudicateur||'', no_dossier:p.no_dossier||'', csc_no:p.csc_no||'',
+    csc_ref:p.csc_ref||'', journal_no:p.journal_no||1,
+    ent_nom:ent.nom||p.entrepreneur_nom||'', ent_adresse:ent.adresse||p.adresse||'',
+    ent_tel:ent.tel||p.telephone||'', ent_tva:ent.tva||p.no_entreprise||'', ent_agreation:ent.agreation||p.agreation||'',
+    date_debut:p.date_debut||'', date_fin:p.date_fin||'', notes:p.notes||''
+  };
+}
+function renderProjet(){ formFill($('#form-projet'), projetToForm(state.projet)); }
+
+$('#save-projet').addEventListener('click',async()=>{
+  const d=formRead($('#form-projet'));
+  const base=state.projet?{...state.projet}:{};
+  base.id='main';
+  base.nom=d.nom; base.description=d.description; base.projet_id=d.projet_id||'main'; base.statut=d.statut;
+  base.pouvoir_adjudicateur=d.pouvoir_adjudicateur; base.no_dossier=d.no_dossier; base.csc_no=d.csc_no;
+  base.csc_ref=d.csc_ref; base.journal_no=d.journal_no; base.date_debut=d.date_debut; base.date_fin=d.date_fin; base.notes=d.notes;
+  base.entrepreneur={...(base.entrepreneur||{}),nom:d.ent_nom,adresse:d.ent_adresse,tel:d.ent_tel,tva:d.ent_tva,agreation:d.ent_agreation};
+  base.updated_at=new Date().toISOString();
+  if(d.projet_id){ state.config.projet_id=d.projet_id; }
+  await saveProjet(base);
+  syncDot('dirty');
+  toast('Projet sauvegardé ✓','success');
+  renderAccueil();
+});
+
+/* ═══════════ FOLIO EDITOR ═══════════ */
+function nextFolioNo(){ const n=lastFolioNo()+1; return Math.min(n,30); }
+
+function newFolio(){
+  state.curFolioId=null;
+  const f={ id:uid(), folio_no:nextFolioNo(), date:todayISO(), heures_debut:'06:30', heures_fin:'15:00',
+    etat_atmospherique:'', temp_8h:null, temp_16h:null, ouvriers:[], statut:'brouillon',
+    signature_prepose:'', signature_entrepreneur:'', projet_id:state.config.projet_id||'main' };
+  fillFolioForm(f); show('folio');
+  if(state.config.meteo_auto==='oui') fetchMeteo(true);
+}
+function openFolio(id){
+  const f=state.folios.find(x=>String(x.id)===String(id)); if(!f) return;
+  state.curFolioId=String(id); fillFolioForm(f); show('folio');
+}
+function continueFolio(){
+  const last=lastFolioNo(); const f=state.folios.find(x=>x.folio_no===last);
+  if(f) openFolio(f.id); else newFolio();
+}
+function fillFolioForm(f){
+  $('#folio-title').textContent='Folio N° '+pad(f.folio_no);
+  formFill($('#form-folio'),f);
+  renderOuvriers(f.ouvriers||[]);
+}
+function renderOuvriers(rows){
+  const w=$('#ouvriers-rows'); w.innerHTML='';
+  if(!rows.length) addOuvrier(); else rows.forEach(o=>addOuvrier(o));
+  updOuvTotal();
+}
+function addOuvrier(d={}){
+  const w=$('#ouvriers-rows');
+  const div=document.createElement('div'); div.className='ouv-row';
+  div.innerHTML=`<input class="o-classe" placeholder="Classe" value="${esc(d.classe||'')}">
+    <input class="o-metier" placeholder="Métier" value="${esc(d.metier||'')}">
+    <input class="o-nb" type="number" min="0" placeholder="0" value="${d.nombre!=null?d.nombre:''}">
+    <button type="button" class="row-del">×</button>`;
+  w.appendChild(div);
+  div.querySelector('.row-del').addEventListener('click',()=>{div.remove();updOuvTotal();});
+  div.querySelectorAll('input').forEach(i=>i.addEventListener('input',updOuvTotal));
+}
+function collectOuvriers(){
+  return $$('.ouv-row').map(r=>({
+    classe:r.querySelector('.o-classe').value.trim(),
+    metier:r.querySelector('.o-metier').value.trim(),
+    nombre:Number(r.querySelector('.o-nb').value)||0
+  })).filter(o=>o.classe||o.metier||o.nombre);
+}
+function updOuvTotal(){ $('#ouv-total').textContent=collectOuvriers().reduce((a,o)=>a+o.nombre,0); }
+$('#add-ouvrier').addEventListener('click',()=>addOuvrier());
+
+async function doSaveFolio(forceStatut){
+  const d=formRead($('#form-folio'));
+  let f=state.curFolioId? {...state.folios.find(x=>String(x.id)===state.curFolioId)} : {};
+  Object.assign(f,d);
+  f.id=state.curFolioId||f.id||uid();
+  f.ouvriers=collectOuvriers();
+  f.ouvriers_total=f.ouvriers.reduce((a,o)=>a+o.nombre,0);
+  f.projet_id=state.config.projet_id||'main';
+  if(forceStatut && !/Sign|Valid/.test(String(d.statut||''))) f.statut=forceStatut;
+  if(!f.created_at) f.created_at=new Date().toISOString();
+  f.updated_at=new Date().toISOString();
+  await putFolio(f);
+  state.curFolioId=String(f.id);
+  await loadState();
+  syncDot('dirty');
+  toast('Folio sauvegardé ✓','success');
+  show('historique');
+}
+$('#save-folio').addEventListener('click',()=>doSaveFolio(null));
+$('#save-folio-draft').addEventListener('click',()=>doSaveFolio('brouillon'));
+$('#folio-back').addEventListener('click',()=>show('historique'));
+$('#folio-delete').addEventListener('click',async()=>{
+  if(!state.curFolioId){ show('historique'); return; }
+  const ok=await confirmModal('Supprimer ce folio ?','Cette action est irréversible.');
+  if(!ok) return;
+  await dbDel(STORES.folios,state.curFolioId);
+  state.curFolioId=null; await loadState(); syncDot('dirty');
+  toast('Folio supprimé'); show('historique');
+});
+
+/* ═══════════ MÉTÉO (Open-Meteo) ═══════════ */
+async function fetchMeteo(silent){
+  const lat=state.config.meteo_lat, lon=state.config.meteo_lon;
+  const dateEl=$('#form-folio [name="date"]'); const date=dateEl?dateEl.value:todayISO();
+  try{
+    const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=temperature_2m&start_date=${date}&end_date=${date}&timezone=auto`;
+    const r=await fetch(url); if(!r.ok) throw new Error('HTTP '+r.status);
+    const j=await r.json();
+    const times=j.hourly&&j.hourly.time||[]; const temps=j.hourly&&j.hourly.temperature_2m||[];
+    const at=h=>{ const i=times.findIndex(t=>t.endsWith('T'+h)); return i>=0?temps[i]:null; };
+    const t8=at('08:00'), t16=at('16:00');
+    if(t8!=null) $('#form-folio [name="temp_8h"]').value=t8;
+    if(t16!=null) $('#form-folio [name="temp_16h"]').value=t16;
+    if(!silent) toast('Météo récupérée ✓','success');
+  }catch(e){ if(!silent) toast('Météo indisponible : '+e.message,'error'); }
+}
+$('#btn-meteo').addEventListener('click',()=>fetchMeteo(false));
+
+/* ═══════════ HISTORIQUE ═══════════ */
+function renderHistorique(){
+  renderFolioList($('#all-folios'), state.folios.slice().reverse());
+  const cul=$('#all-complements');
+  if(!state.complements.length){ cul.innerHTML='<li class="empty-state">Aucun complément.</li>'; return; }
+  cul.innerHTML=state.complements.map(c=>`<li class="folio-item" data-id="${esc(c.id)}">
+    <span class="folio-num">N° ${pad(c.folio_compl_no)}</span>
+    <div class="folio-info"><div class="folio-date">Case ${esc(c.case||'?')} · Folio ${pad(c.folio_no_ref)}</div>
+      <div class="folio-summary">${esc((c.texte||'').replace(/\n/g,' ').slice(0,52))}</div></div>
+    <span class="badge compl">Compl.</span></li>`).join('');
+  cul.querySelectorAll('.folio-item').forEach(li=>li.addEventListener('click',()=>openCompl(li.dataset.id)));
+}
+$('#hist-new').addEventListener('click',newFolio);
+$('#hist-new-compl').addEventListener('click',newCompl);
+
+/* ═══════════ COMPLEMENT EDITOR ═══════════ */
+function nextComplNo(){ const used=state.complements.map(c=>c.folio_compl_no); let n=31; while(used.includes(n)&&n<40) n++; return n; }
+function newCompl(){
+  state.curComplId=null;
+  const c={ id:uid(), folio_compl_no:nextComplNo(), folio_no_ref:lastFolioNo()||1, date_ref:todayISO(), case:'H', texte:'', projet_id:state.config.projet_id||'main' };
+  fillComplForm(c); show('complement');
+}
+function openCompl(id){ const c=state.complements.find(x=>String(x.id)===String(id)); if(!c) return; state.curComplId=String(id); fillComplForm(c); show('complement'); }
+function fillComplForm(c){ $('#compl-title').textContent='Complément N° '+pad(c.folio_compl_no); formFill($('#form-complement'),c); }
+$('#save-complement').addEventListener('click',async()=>{
+  const d=formRead($('#form-complement'));
+  let c=state.curComplId? {...state.complements.find(x=>String(x.id)===state.curComplId)} : {};
+  Object.assign(c,d);
+  c.id=state.curComplId||c.id||uid();
+  c.projet_id=state.config.projet_id||'main';
+  c.updated_at=new Date().toISOString();
+  await putCompl(c); state.curComplId=String(c.id); await loadState();
+  syncDot('dirty'); toast('Complément sauvegardé ✓','success'); show('historique');
+});
+$('#compl-back').addEventListener('click',()=>show('historique'));
+$('#compl-delete').addEventListener('click',async()=>{
+  if(!state.curComplId){ show('historique'); return; }
+  const ok=await confirmModal('Supprimer ce complément ?','Cette action est irréversible.'); if(!ok) return;
+  await dbDel(STORES.complements,state.curComplId); state.curComplId=null; await loadState();
+  syncDot('dirty'); toast('Complément supprimé'); show('historique');
+});
+
+/* ═══════════ RÉGLAGES ═══════════ */
+function renderReglages(){
+  const c=state.config;
+  $('#r-lat').value=c.meteo_lat; $('#r-lon').value=c.meteo_lon; $('#r-meteo-auto').value=c.meteo_auto||'oui';
+  $('#r-owner').value=c.gh_owner||''; $('#r-repo').value=c.gh_repo||''; $('#r-branch').value=c.gh_branch||'main'; $('#r-token').value=c.gh_token||'';
+}
+$('#save-reglages').addEventListener('click',async()=>{
+  state.config.meteo_lat=Number($('#r-lat').value)||DEFAULT_CONFIG.meteo_lat;
+  state.config.meteo_lon=Number($('#r-lon').value)||DEFAULT_CONFIG.meteo_lon;
+  state.config.meteo_auto=$('#r-meteo-auto').value;
+  state.config.gh_owner=$('#r-owner').value.trim();
+  state.config.gh_repo=$('#r-repo').value.trim();
+  state.config.gh_branch=$('#r-branch').value.trim()||'main';
+  state.config.gh_token=$('#r-token').value.trim();
+  await saveConfig();
+  toast('Réglages enregistrés ✓','success');   /* FIX #3 : message systématique */
+});
+$('#btn-test-github').addEventListener('click',testGitHub);
+$('#r-export').addEventListener('click',exportJSON);
+$('#r-import').addEventListener('click',()=>$('#import-file').click());
+$('#r-reset').addEventListener('click',async()=>{
+  const ok=await confirmModal('Tout effacer ?','Efface projet, folios et compléments de CET appareil. Exporte avant si besoin.');
+  if(!ok) return;
+  await dbClear(STORES.projet); await dbClear(STORES.folios); await dbClear(STORES.complements);
+  await loadState(); show('accueil'); toast('Données effacées');
+});
+
+/* ═══════════ EXPORT / IMPORT JSON ═══════════ */
+function buildExport(){
+  return { version:APP_VERSION, exported_at:new Date().toISOString(),
+    config:state.config, projet:state.projet, folios:state.folios, complements:state.complements };
+}
+function exportJSON(){
+  const json=JSON.stringify(buildExport(),null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const pid=(state.config.projet_id||'main');
+  a.href=url; a.download=`journal-travaux_${pid}_${todayISO()}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  toast('Sauvegarde JSON générée ✓','success');   /* FIX #6 : pas de faux "terminé" */
+}
+$('#btn-export').addEventListener('click',exportJSON);
+$('#btn-import').addEventListener('click',()=>$('#import-file').click());
+
+$('#import-file').addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  try{
+    const data=JSON.parse(await file.text());
+    const ok=await confirmModal('Importer ce JSON ?','Cela REMPLACE les données locales actuelles.');
+    if(!ok){ e.target.value=''; return; }
+    await importData(data);
+    await loadState(); show('accueil');
+    toast('Import réussi ✓','success');
+  }catch(err){ toast('Erreur import : '+err.message,'error'); }
+  e.target.value='';
+});
+
+async function importData(data){
+  await dbClear(STORES.projet); await dbClear(STORES.folios); await dbClear(STORES.complements);
+  if(data.config){ state.config={...DEFAULT_CONFIG,...data.config}; await saveConfig(); }
+  if(data.projet){ const p={...data.projet,id:'main'}; await dbPut(STORES.projet,{id:'main',value:p}); }
+  if(Array.isArray(data.folios)) for(const f of data.folios){ const nf=normFolio(f); await putFolio(nf); }
+  if(Array.isArray(data.complements)) for(const c of data.complements){ const nc=normCompl(c); await putCompl(nc); }
+}
+
+/* ═══════════ GITHUB ═══════════ */
+function ghCfg(){ return {owner:state.config.gh_owner,repo:state.config.gh_repo,branch:state.config.gh_branch||'main',token:state.config.gh_token}; }
+function ghHeaders(t){ return {Authorization:'Bearer '+t,Accept:'application/vnd.github+json'}; }
+
+async function testGitHub(){
+  const c=ghCfg();
+  if(!c.owner||!c.repo||!c.token){ toast('Remplis owner, repo et token','error'); return; }
+  toast('Test en cours…');
+  try{
+    const r=await fetch(`https://api.github.com/repos/${c.owner}/${c.repo}`,{headers:ghHeaders(c.token)});
+    if(r.status===401){ toast('❌ Token invalide (401)','error'); return; }
+    if(r.status===404){ toast('❌ Repo introuvable (404) — vérifie owner/repo','error'); return; }
+    if(!r.ok){ toast('❌ Erreur HTTP '+r.status,'error'); return; }
+    const j=await r.json();
+    const br=await fetch(`https://api.github.com/repos/${c.owner}/${c.repo}/branches/${c.branch}`,{headers:ghHeaders(c.token)});
+    if(br.status===404){ toast(`⚠ Connexion OK mais branche « ${c.branch} » absente. Défaut du repo : « ${j.default_branch} »`,'error'); return; }
+    toast(`✓ Connexion OK — branche « ${c.branch} » trouvée`,'success');
+  }catch(e){ toast('❌ '+e.message,'error'); }
+}
+
+async function publishGitHub(){
+  const c=ghCfg();
+  if(!c.owner||!c.repo||!c.token){ toast('Configure GitHub dans Réglages','error'); show('reglages'); return false; }
+  const pid=state.config.projet_id||'main';
+  const path=`data/${pid}.json`;
+  const content=btoa(unescape(encodeURIComponent(JSON.stringify(buildExport(),null,2))));
+  syncDot('dirty'); toast('Publication en cours…');
+  try{
+    const base=`https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;
+    let sha=null;
+    const g=await fetch(`${base}?ref=${encodeURIComponent(c.branch)}`,{headers:ghHeaders(c.token)});
+    if(g.ok){ sha=(await g.json()).sha; }
+    const body={ message:`Journal ${pid} — ${todayISO()}`, content, branch:c.branch, ...(sha&&{sha}) };
+    const p=await fetch(base,{method:'PUT',headers:{...ghHeaders(c.token),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!p.ok){
+      let m='HTTP '+p.status; try{ m=(await p.json()).message||m; }catch(_){}
+      if(p.status===401) m='Token invalide (401)';
+      else if(p.status===404) m='Repo ou chemin introuvable (404)';
+      else if(/branch/i.test(m)) m=`Branche « ${c.branch} » introuvable — corrige-la dans Réglages`;
+      throw new Error(m);
+    }
+    syncDot('synced'); toast('Publié sur GitHub ✓','success'); return true;
+  }catch(e){ syncDot('error'); toast('Échec publication : '+e.message,'error'); return false; }
+}
+$('#btn-publish').addEventListener('click',publishGitHub);
+
+/* ═══════════ PDF (impression navigateur → FIX #5) ═══════════ */
+function pdfFolioHTML(f){
+  const ouv=(f.ouvriers||[]).map(o=>`<tr><td>${esc(o.classe)}</td><td>${esc(o.metier)}</td><td style="text-align:center">${o.nombre}</td></tr>`).join('')
+    || '<tr><td colspan="3" style="color:#888">—</td></tr>';
+  const cases=[['B','Travaux exécutés',f.case_B],['C','Matériel en service',f.case_C],['D','Matériel hors service',f.case_D],
+    ['E','Matériaux entrés',f.case_E],['F','Essais',f.case_F],['G','Échantillons',f.case_G],
+    ['H','Événements imprévus',f.case_H],['J','Décisions',f.case_J],['K','Visites & divers',f.case_K]];
+  const caseRows=cases.map(([t,l,v])=>`<tr><td class="ct">${t}</td><td class="cl">${esc(l)}</td><td class="cv">${esc(v||'').replace(/\n/g,'<br>')||'—'}</td></tr>`).join('');
+  return `<section class="pf">
+    <div class="pf-h"><b>Folio N° ${pad(f.folio_no)}</b> &nbsp; ${fmtDate(f.date)} &nbsp; · &nbsp; ${esc(f.heures_debut||'')}–${esc(f.heures_fin||'')} &nbsp; · &nbsp; ${esc(f.etat_atmospherique||'')} &nbsp; ${f.temp_8h!=null?('('+f.temp_8h+'°/'+(f.temp_16h!=null?f.temp_16h+'°':'')+')'):''}</div>
+    <table class="pf-ouv"><thead><tr><th>Classe</th><th>Métier</th><th>Nb</th></tr></thead><tbody>${ouv}</tbody>
+      <tfoot><tr><td colspan="2" style="text-align:right"><b>Total</b></td><td style="text-align:center"><b>${f.ouvriers_total||0}</b></td></tr></tfoot></table>
+    <table class="pf-cases"><tbody>${caseRows}</tbody></table>
+    <div class="pf-sig">Préposé : ${f.signature_prepose?'✔ signé':'—'} &nbsp;&nbsp; Entrepreneur : ${f.signature_entrepreneur?'✔ signé':'—'} &nbsp;&nbsp; Statut : ${esc(f.statut||'')}</div>
+  </section>`;
+}
+function generatePDF(){
+  const p=state.projet||{};
+  const garde=`<section class="pf pf-garde">
+    <h1>Journal des Travaux</h1>
+    <p class="g-nom">${esc(p.nom||'')}</p>
+    <table class="pf-cases"><tbody>
+      <tr><td class="cl">Pouvoir adjudicateur</td><td class="cv">${esc(p.pouvoir_adjudicateur||'—')}</td></tr>
+      <tr><td class="cl">N° dossier</td><td class="cv">${esc(p.no_dossier||'—')}</td></tr>
+      <tr><td class="cl">Cahier des charges</td><td class="cv">${esc(p.csc_no||'—')} ${esc(p.csc_ref||'')}</td></tr>
+      <tr><td class="cl">Entrepreneur</td><td class="cv">${esc((p.entrepreneur&&p.entrepreneur.nom)||'—')}</td></tr>
+      <tr><td class="cl">Journal N°</td><td class="cv">${esc(p.journal_no||1)}</td></tr>
+      <tr><td class="cl">Période</td><td class="cv">${fmtDate(p.date_debut)} → ${fmtDate(p.date_fin)}</td></tr>
+    </tbody></table>
+    <p class="g-desc">${esc(p.description||'')}</p>
+  </section>`;
+  const folios=state.folios.map(pdfFolioHTML).join('');
+  const css=`<style>
+    #print-area{font-family:'DM Sans',Arial,sans-serif;color:#111;font-size:11px;}
+    #print-area h1{font-family:'Instrument Serif',Georgia,serif;font-size:30px;margin:0 0 4px;color:#1F4E5F;}
+    .pf{page-break-after:always;padding:6mm;}
+    .pf-garde .g-nom{font-size:15px;font-weight:700;margin:0 0 12px;}
+    .pf-garde .g-desc{margin-top:12px;font-size:11px;line-height:1.4;}
+    .pf-h{background:#1F4E5F;color:#fff;padding:6px 8px;border-radius:4px;font-size:12px;margin-bottom:6px;}
+    table{width:100%;border-collapse:collapse;margin-bottom:8px;}
+    th,td{border:1px solid #ccc;padding:4px 6px;vertical-align:top;text-align:left;}
+    th{background:#f0ece2;font-size:10px;}
+    .pf-cases .ct{width:18px;text-align:center;font-weight:700;background:#f6f1e7;}
+    .pf-cases .cl{width:130px;font-weight:600;background:#faf7f0;}
+    .pf-cases .cv{white-space:pre-wrap;}
+    .pf-ouv{width:60%;}
+    .pf-sig{font-size:10px;color:#444;margin-top:4px;}
+  </style>`;
+  $('#print-area').innerHTML=css+garde+folios;
+  toast('Ouverture de l\'impression… choisis « Enregistrer en PDF »');
+  setTimeout(()=>window.print(),350);
+}
+$('#btn-pdf').addEventListener('click',generatePDF);
+
+/* ═══════════ ACCUEIL boutons ═══════════ */
+$('#btn-new-folio').addEventListener('click',newFolio);
+$('#btn-continue-folio').addEventListener('click',continueFolio);
+
+/* ═══════════ MODAL CONFIRM ═══════════ */
+function confirmModal(title,msg){
+  return new Promise(res=>{
+    const box=$('#modal-box');
+    box.innerHTML=`<h3>${esc(title)}</h3><p style="color:var(--ink-soft);font-size:14px;margin:0;">${esc(msg)}</p>
+      <div class="modal-actions"><button class="btn btn-ghost" id="m-no">Annuler</button><button class="btn btn-primary" id="m-yes">Confirmer</button></div>`;
+    $('#modal').classList.add('open');
+    const close=v=>{ $('#modal').classList.remove('open'); res(v); };
+    box.querySelector('#m-no').onclick=()=>close(false);
+    box.querySelector('#m-yes').onclick=()=>close(true);
+  });
+}
+
+/* ═══════════ RÉCUPÉRATION DEPUIS ANCIENNE BASE ═══════════ */
+async function tryRecoverLegacy(){
+  if(state.folios.length||state.projet) return;          // déjà des données
+  if(!indexedDB.databases) return;
+  let names=[]; try{ (await indexedDB.databases()).forEach(d=>{if(d.name)names.push(d.name);}); }catch(_){}
+  LEGACY_DB_NAMES.forEach(n=>{ if(!names.includes(n)) names.push(n); });
+  for(const n of names){
+    if(n===DB_NAME) continue;
+    try{
+      const odb=await new Promise(r=>{ const q=indexedDB.open(n); let isNew=false;
+        q.onupgradeneeded=e=>{isNew=true;try{e.target.transaction.abort();}catch(_){}}; q.onerror=()=>r(null);
+        q.onsuccess=()=>r(isNew?(q.result.close(),null):q.result); });
+      if(!odb) continue;
+      const ss=Array.from(odb.objectStoreNames);
+      const readAll=s=>new Promise(r=>{try{const rq=odb.transaction(s).objectStore(s).getAll();rq.onsuccess=()=>r(rq.result||[]);rq.onerror=()=>r([]);}catch(_){r([]);}});
+      const folios=ss.includes('folios')?await readAll('folios'):[];
+      if(folios.length){
+        const proj=ss.includes('projet')?await readAll('projet'):[];
+        const compl=ss.includes('complements')?await readAll('complements'):[];
+        const conf=ss.includes('config')?await readAll('config'):(ss.includes('settings')?await readAll('settings'):[]);
+        const unwrap=x=> (x&&x.value!==undefined)?x.value:x;
+        const cfgObj={}; conf.forEach(k=>{ if(k&&k.key){cfgObj[k.key]=k.value;} });
+        await importData({
+          config:Object.keys(cfgObj).length?cfgObj:(conf[0]?unwrap(conf[0]):null),
+          projet: proj.length? unwrap(proj.find(x=>(x.id==='main'))||proj[0]) : null,
+          folios: folios.map(unwrap), complements: compl.map(unwrap)
+        });
+        odb.close();
+        toast('Données récupérées depuis l\'ancienne base ✓','success');
+        return;
+      }
+      odb.close();
+    }catch(_){}
+  }
+}
+
+/* ═══════════ INIT ═══════════ */
+(async function init(){
+  try{
+    db=await openDB();
+    await loadState();
+    await tryRecoverLegacy();
+    await loadState();
+    renderAccueil();
+    syncDot('idle');
+  }catch(err){
+    console.error(err);
+    alert('Erreur init : '+err.message);
+  }
+})();
+
+})();
+</script>
+</body>
+</html>
