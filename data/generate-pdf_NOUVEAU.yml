@@ -1,0 +1,54 @@
+name: Génération PDFs Journal des Travaux
+
+on:
+  push:
+    paths:
+      - 'data/**.json'
+      - 'pdf/**'
+      - 'cachet.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install reportlab
+        run: pip install -r pdf/requirements.txt
+
+      - name: Génère un PDF pour chaque data/*.json
+        run: |
+          mkdir -p pdfs
+          shopt -s nullglob
+          any=0
+          for f in data/*.json; do
+            pid="$(basename "$f" .json)"
+            echo "→ génère pdfs/Journal_Travaux_${pid}.pdf"
+            python pdf/build_pdf.py "$f" "pdfs/Journal_Travaux_${pid}.pdf"
+            any=1
+          done
+          if [ "$any" = "0" ]; then
+            echo "Aucun fichier data/*.json — rien à faire."
+          fi
+
+      - name: Commit PDFs
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add pdfs/
+          if git diff --staged --quiet; then
+            echo "Aucun changement de PDF."
+          else
+            git commit -m "Auto: PDFs régénérés [skip ci]"
+            git push
+          fi
