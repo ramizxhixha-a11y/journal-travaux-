@@ -1,85 +1,16 @@
 {
   "version": "3.0",
-  "published_at": "2026-05-28T21:45:17.809Z",
+  "published_at": "2026-05-28T21:53:42.356Z",
   "journal_no": 1,
   "projet": {
-    "pouvoir_adjudicateur": "CHIREC asbl",
-    "administration": "",
-    "service": "",
-    "no_dossier": "Chirec-2024-004 / Dossier Sweco 55820002",
-    "description": "Marché de travaux d'aménagement pour l'extension d'un hôpital de jour chirurgical pour le site du Centre Médical Edith Cavell du CHIREC. Lot 3 — Techniques Spéciales : Partie 1 HVAC (Chauffage central, installations thermiques, Ventilation, conditionnement d'air) + Partie 2 Sanitaire.",
-    "csc_no": "Chirec-2024-004",
-    "csc_ref": "Cahier spécial des charges du 27/02/2024 — Lot 3 HVAC + Sanitaire — Réf. Sweco 55820002",
-    "entrepreneur": "EEG Techniques Spéciales",
-    "adresse": "Z.I., 6 rue des Gerboises - 5100 Naninne",
-    "telephone": "081/21 27 02",
-    "agreation": "Classe 5 requise (jusqu'à 1.810.000 EUR)",
+    "entrepreneur": "",
+    "adresse": "",
+    "telephone": "",
+    "agreation": "",
     "onss": "",
-    "no_entreprise": "BE 0442.891.013",
+    "no_entreprise": "",
     "journal_no": 1,
-    "remis_a": "",
-    "role": "Conducteur",
-    "lieu_remise": "Uccle",
-    "date_remise": "",
-    "fonct_dirigeant": "",
-    "prepose": "",
-    "projet_id": "PRJ-CHIREC-CAVELL",
-    "statut": "Actif",
-    "nom": "CHIREC Cavell — Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire)",
-    "date_debut": "2024-05-03",
-    "date_fin": "2025-05-30",
-    "notes": "Marché public de travaux — procédure ouverte avec publication européenne. Valeur globale estimée du marché (tous lots) : 9.030.000 € TVAC. Délai d'engagement soumissionnaire : 180 jours (au lieu de 90). Article 83 du CSC : la tenue du journal des travaux appartient à l'adjudicataire du lot 1 — version EEG tenue à titre interne pour le lot 3.",
-    "montant_entreprise": "",
-    "date_adjudication": "",
-    "date_approbation": "",
-    "date_contract_debut": "2024-05-03",
-    "date_contract_fin": "2025-05-30",
-    "lieu_contrat": "Bruxelles",
-    "delai_achevement_jo": 0,
-    "interruptions_autorisees": "",
-    "prolongations_delai": "",
-    "jours_feries": 0,
-    "jours_conges_legaux": 0,
-    "jours_intemperies": 0,
-    "jours_divers": 0,
-    "date_reelle_achevement": "",
-    "date_reportee": "",
-    "jours_retard": 0,
-    "maitre_oeuvre": {
-      "nom": "",
-      "adresse": "",
-      "contact": ""
-    },
-    "bureau_etude": {
-      "nom": "",
-      "adresse": "",
-      "contact": ""
-    },
-    "adresse_chantier": "",
-    "contacts": [
-      {
-        "role": "Suivi infrastructures CHIREC",
-        "nom": "Julie Guardia Miralles",
-        "tel": "+32 2 434 67 96",
-        "email": "mp@chirec.be"
-      },
-      {
-        "role": "Suivi infrastructures CHIREC",
-        "nom": "Jean-Marie Herbots",
-        "tel": "+32 2 434 44 69",
-        "email": "jean-marie.herbots@chirec.be"
-      }
-    ],
-    "id": "main",
-    "ministere": "",
-    "dossier_no": "",
-    "travaux_de": "",
-    "cahier_charges_no": "",
-    "cahier_charges_de": "",
-    "contacts_libre": "",
-    "fonctionnaire_dirigeant": "",
-    "prepose_surveillance": "",
-    "updated_at": "2026-05-27T19:22:32.577Z"
+    "projet_id": "main"
   },
   "folios": [
     {
@@ -271,8 +202,8 @@
           "nombre": 0
         }
       ],
-      "h_debut": "06:30",
-      "h_fin": "15:00",
+      "h_debut": "07:00",
+      "h_fin": "16:00",
       "meteo": "Ciel dégagé",
       "t_8h": 20.5,
       "t_16h": 28.9,
@@ -285,6 +216,49 @@
       "h_imprevus": "Servomoteur 3 vois collecteur LT +1 manquante pour mise e. Route du local IT bloquer provisoirement le temps d’ARRIVER .\n",
       "j_decisions": "Par E mail, Stockages parking ?. \nDemander à Remi pour en discuter evec BE du nouveau  tracé fonds toiture en attente de proposition \nBart fais une proposition détailler à Rémi.",
       "k_visites": "Bart pour nouveau tracé du circuit froid toiture "
+    },
+    {
+      "folio_no": 4,
+      "date": "2026-05-28",
+      "statut": "brouillon",
+      "signe_prep": "",
+      "signe_ent": "",
+      "ouvriers": [
+        {
+          "classe": "Cont ",
+          "metier": "HVAC",
+          "nombre": 1
+        },
+        {
+          "classe": "III",
+          "metier": "Sanitariste",
+          "nombre": 1
+        },
+        {
+          "classe": "IIIA",
+          "metier": "Aéraulique ",
+          "nombre": 1
+        },
+        {
+          "classe": "IIA",
+          "metier": "Aéraulique ",
+          "nombre": 1
+        }
+      ],
+      "h_debut": "06:30",
+      "h_fin": "15:00",
+      "meteo": "Ciel dégagé",
+      "t_8h": 17.2,
+      "t_16h": 28.6,
+      "b_travaux": "Installation sanitaire QOP premix  plafond scrubs\nSuite Installation raccordement des batteries QOP\n",
+      "c_materiel": "",
+      "d_hs": "",
+      "e_materiaux": "",
+      "f_essais": "",
+      "g_echant": "",
+      "h_imprevus": "",
+      "j_decisions": "",
+      "k_visites": ""
     }
   ],
   "complements": [
