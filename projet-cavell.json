@@ -1,0 +1,21 @@
+{
+  "projets": [
+    {
+      "id": "main",
+      "projet_id": "main",
+      "nom": "Édith Cavel",
+      "description": "Lot 3 — Techniques spéciales : HVAC & Sanitaire. Hôpital CHIREC, site Édith Cavell (Uccle).",
+      "pouvoir_adjudicateur": "CHIREC – Centre Hospitalier Interrégional Edith Cavell asbl",
+      "no_dossier": "Chirec-2024-004",
+      "csc_no": "55820002",
+      "csc_ref": "Cahier spécial des charges — Travaux Cavell, Lot 3 (HVAC & Sanitaire) — Sweco Belgium",
+      "ent_nom": "EEG Techniques Spéciales SA",
+      "ent_cachet_label": "EEG",
+      "ent_ville": "Namur",
+      "ent_adresse": "Z.I., 6 rue des Gerboises - 5100 Naninne",
+      "ent_tel": "081/21 27 02",
+      "ent_mail": "naninne@eeg.be",
+      "ent_tva": "BE 0442.891.013"
+    }
+  ]
+}
