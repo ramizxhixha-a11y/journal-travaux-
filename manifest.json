@@ -1,7 +1,7 @@
 {
-  "name": "Journal des Travaux — EEG",
-  "short_name": "Journal Travaux",
-  "description": "Saisie quotidienne du Journal des Travaux Embuild 9545 F",
+  "name": "Folio",
+  "short_name": "Folio",
+  "description": "Folio — Journal des Travaux quotidien (modèle Embuild 9545 F)",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
