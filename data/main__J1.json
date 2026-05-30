@@ -1,6 +1,6 @@
 {
-  "version": "4.2",
-  "published_at": "2026-05-30T14:30:56.520Z",
+  "version": "5.4",
+  "published_at": "2026-05-30T17:30:41.079Z",
   "journal_no": 1,
   "projet": {
     "nom": "Édith Cavel",
@@ -324,7 +324,7 @@
   ],
   "complements": [
     {
-      "folio_compl_no": 31,
+      "folio_compl_no": 1,
       "folio_no_ref": 1,
       "date_ref": "2026-05-19",
       "case": "H",
