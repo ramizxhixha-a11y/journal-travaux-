@@ -1,6 +1,6 @@
 {
-  "version": "5.4",
-  "published_at": "2026-05-30T17:30:41.079Z",
+  "version": "5.5",
+  "published_at": "2026-05-30T18:11:47.476Z",
   "journal_no": 1,
   "projet": {
     "nom": "Édith Cavel",
@@ -14,7 +14,7 @@
     "projet_id": "main",
     "journal_no": 1,
     "created_at": "2026-05-29T11:04:43.443Z",
-    "updated_at": "2026-05-30T12:24:11.327Z",
+    "updated_at": "2026-05-30T18:09:56.809Z",
     "statut": "Actif",
     "date_debut": "2026-05-14",
     "date_fin": "2026-12-31",
@@ -36,6 +36,312 @@
     "date_reportee": "",
     "jours_retard": 0,
     "_cavell_seed": 2,
+    "planning": [
+      {
+        "nom": "Études d'exécution + fiches techniques",
+        "debut": "2026-05-14",
+        "fin": "2026-06-30",
+        "pct": 0,
+        "id": "plan-cavell-0"
+      },
+      {
+        "nom": "Approvisionnement CTA + groupes froid",
+        "debut": "2026-05-14",
+        "fin": "2026-08-31",
+        "pct": 0,
+        "id": "plan-cavell-1"
+      },
+      {
+        "nom": "Approvisionnement équipements sanitaires",
+        "debut": "2026-05-14",
+        "fin": "2026-07-31",
+        "pct": 0,
+        "id": "plan-cavell-2"
+      },
+      {
+        "nom": "Démontage installations HVAC/SAN existantes",
+        "debut": "2026-06-01",
+        "fin": "2026-07-15",
+        "pct": 0,
+        "id": "plan-cavell-3"
+      },
+      {
+        "nom": "Installation réseaux hydrauliques",
+        "debut": "2026-07-01",
+        "fin": "2026-10-31",
+        "pct": 0,
+        "id": "plan-cavell-4"
+      },
+      {
+        "nom": "Installation réseaux aérauliques",
+        "debut": "2026-07-15",
+        "fin": "2026-10-31",
+        "pct": 0,
+        "id": "plan-cavell-5"
+      },
+      {
+        "nom": "Installation sanitaire ECS/EF + évacuations",
+        "debut": "2026-06-15",
+        "fin": "2026-10-15",
+        "pct": 0,
+        "id": "plan-cavell-6"
+      },
+      {
+        "nom": "Pose CTA + groupes froid + pompes",
+        "debut": "2026-09-01",
+        "fin": "2026-11-15",
+        "pct": 0,
+        "id": "plan-cavell-7"
+      },
+      {
+        "nom": "Régulation DDC + GTC (Honeywell EBI)",
+        "debut": "2026-10-01",
+        "fin": "2026-12-01",
+        "pct": 0,
+        "id": "plan-cavell-8"
+      },
+      {
+        "nom": "Essais hydrauliques + aérauliques + réglages",
+        "debut": "2026-11-15",
+        "fin": "2026-12-20",
+        "pct": 0,
+        "id": "plan-cavell-9"
+      },
+      {
+        "nom": "Réception provisoire",
+        "debut": "2026-12-16",
+        "fin": "2026-12-31",
+        "pct": 0,
+        "id": "plan-cavell-10"
+      }
+    ],
+    "metre": [
+      {
+        "code": "01.01",
+        "designation": "Démontage installations HVAC existantes",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-0"
+      },
+      {
+        "code": "01.02",
+        "designation": "Protection et installation de chantier HVAC",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-1"
+      },
+      {
+        "code": "02.01",
+        "designation": "Tuyauterie acier noir soudée réseau chaud/froid",
+        "unite": "mct",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-2"
+      },
+      {
+        "code": "02.02",
+        "designation": "Tuyauterie acier galvanisé eau froide technique",
+        "unite": "mct",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-3"
+      },
+      {
+        "code": "02.03",
+        "designation": "Calorifugeage réseaux hydrauliques",
+        "unite": "m",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-4"
+      },
+      {
+        "code": "02.04",
+        "designation": "Vases d'expansion + soupapes sécurité",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-5"
+      },
+      {
+        "code": "03.01",
+        "designation": "Gaines rectangulaires acier galvanisé",
+        "unite": "m²",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-6"
+      },
+      {
+        "code": "03.02",
+        "designation": "Gaines circulaires spiralées acier",
+        "unite": "m",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-7"
+      },
+      {
+        "code": "03.03",
+        "designation": "Calorifugeage réseaux aérauliques",
+        "unite": "m²",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-8"
+      },
+      {
+        "code": "04.01",
+        "designation": "Groupes de traitement d'air (CTA/GP)",
+        "unite": "pce",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-9"
+      },
+      {
+        "code": "04.02",
+        "designation": "Groupes d'extraction d'air (GE)",
+        "unite": "pce",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-10"
+      },
+      {
+        "code": "04.03",
+        "designation": "Ventilo-convecteurs 4 tubes (VCV)",
+        "unite": "pce",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-11"
+      },
+      {
+        "code": "04.04",
+        "designation": "Pompes de circulation à débit variable",
+        "unite": "pce",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-12"
+      },
+      {
+        "code": "04.05",
+        "designation": "Humidificateurs vapeur électrique (dans CTA)",
+        "unite": "pce",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-13"
+      },
+      {
+        "code": "04.06",
+        "designation": "Robinetterie + accessoires réseaux",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-14"
+      },
+      {
+        "code": "05.01",
+        "designation": "Régulation DDC décentralisée (type Honeywell EBI)",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-15"
+      },
+      {
+        "code": "05.02",
+        "designation": "Reports alarmes + GTC — câblage et mise en service",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-16"
+      },
+      {
+        "code": "06.01",
+        "designation": "Démontage sanitaire existant",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-17"
+      },
+      {
+        "code": "06.02",
+        "designation": "Tuyauterie cuivre ECS (eau chaude sanitaire)",
+        "unite": "mct",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-18"
+      },
+      {
+        "code": "06.03",
+        "designation": "Tuyauterie cuivre EF (eau froide sanitaire)",
+        "unite": "mct",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-19"
+      },
+      {
+        "code": "06.04",
+        "designation": "Isolation thermique anti-condensation EF",
+        "unite": "m",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-20"
+      },
+      {
+        "code": "06.05",
+        "designation": "Évacuations en PVC/fonte",
+        "unite": "m",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-21"
+      },
+      {
+        "code": "07.01",
+        "designation": "Adoucisseur d'eau (alimentation humidificateurs)",
+        "unite": "pce",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-22"
+      },
+      {
+        "code": "07.02",
+        "designation": "Préparateur ECS",
+        "unite": "pce",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-23"
+      },
+      {
+        "code": "07.03",
+        "designation": "Appareils sanitaires (WC, lavabos, douches)",
+        "unite": "pce",
+        "qte": 0,
+        "pu": 0,
+        "id": "metre-cavell-24"
+      },
+      {
+        "code": "07.04",
+        "designation": "Robinetterie sanitaire + accessoires",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-25"
+      },
+      {
+        "code": "08.01",
+        "designation": "Essais hydrauliques + aérauliques + rapports",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-26"
+      },
+      {
+        "code": "08.02",
+        "designation": "Dossier as-built (plans + fiches techniques)",
+        "unite": "ff",
+        "qte": 1,
+        "pu": 0,
+        "id": "metre-cavell-27"
+      }
+    ],
+    "_cavell_data_v": 1,
     "adresse": "Z.I., 6 rue des Gerboises - 5100 Naninne",
     "telephone": "081/21 27 02",
     "agreation": "",
