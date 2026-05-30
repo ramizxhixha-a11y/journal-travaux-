@@ -226,7 +226,7 @@
     </svg>
     <div class="brand-txt">
       <h1>Folio</h1>
-      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.5</p>
+      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.6</p>
     </div>
   </div>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
@@ -664,7 +664,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='5.5';
+const APP_VERSION='5.6';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=5;
 const STORES={
@@ -860,6 +860,7 @@ async function loadState(){
   state.complements=compls.map(x=>normCompl(x.value!==undefined?x.value:x)).sort((a,b)=>(a.folio_compl_no||0)-(b.folio_compl_no||0));
   await seedCavellIfEmpty();
   await seedCavellProjectData();
+  await seedCavellBiblio();
   if(typeof loadReps==='function') await loadReps();
 }
 
@@ -1016,6 +1017,113 @@ async function seedCavellProjectData(){
 }
 
 async function saveConfig(){ await dbPut(STORES.config,{id:'config',value:state.config}); }
+
+/* ═══ Pré-charge Bibliothèque — données extraites des 5 CSC CHIREC Cavell (idempotent) ═══ */
+const CAVELL_BIBLIO_V=1;
+async function seedCavellBiblio(){
+  const p=state.projet; if(!p) return;
+  if((p._cavell_biblio_v||0)>=CAVELL_BIBLIO_V) return;
+  const pid=p.id||'main';
+  const docs=[
+    { id:'bib-cav-01', projet_id:pid, ocr:false, disciplines:['HVAC','Sanitaire'],
+      name:'Chirec_2024004__CSC__Travaux_Cavell.pdf', pages:90, read:20,
+      ingested_at:'2026-05-30T00:00:00.000Z',
+      text_excerpt:'CHIREC Réf.: Chirec-2024-004 Lot 3 HVAC et Sanitaire. Début travaux 27 mai 2024. Fin 16 mai 2025. 338 jours ouvrables.' },
+    { id:'bib-cav-02', projet_id:pid, ocr:false, disciplines:['HVAC'],
+      name:'CSC_HVAC_CHIREC_Cavell_20240227.pdf', pages:148, read:40,
+      ingested_at:'2026-05-30T00:00:01.000Z',
+      text_excerpt:'Sweco Belgium. Groupes de traitement d\'air GP/GC/GE. Ventilo-convecteurs. Pompes circulation. Humidificateurs vapeur. Régulation DDC Honeywell EBI.' },
+    { id:'bib-cav-03', projet_id:pid, ocr:false, disciplines:['Sanitaire'],
+      name:'CSC_SAN_CHIREC_Cavell_20240227.pdf', pages:30, read:30,
+      ingested_at:'2026-05-30T00:00:02.000Z',
+      text_excerpt:'Sweco Belgium. Adoucisseur eau. Préparateur ECS. Évacuations. Réseaux ECS/EF. Limite d\'entreprise HVAC/SAN.' },
+    { id:'bib-cav-04', projet_id:pid, ocr:false, disciplines:['Acoustique'],
+      name:'Cahier_des_charges_acoustiques.pdf', pages:66, read:66,
+      ingested_at:'2026-05-30T00:00:03.000Z',
+      text_excerpt:'Polyclinique Edith Cavell. NBN S01-400. Chambres : niveau bruit ≤35 dB(A). Catégories isolation façades 1/2/3.' },
+    { id:'bib-cav-05', projet_id:pid, ocr:false, disciplines:['Électricité'],
+      name:'Classification_des_locaux.pdf', pages:6, read:6,
+      ingested_at:'2026-05-30T00:00:04.000Z',
+      text_excerpt:'Classification T013/IA. Locaux médicaux groupe 1 classe 15. RGIE + HD 60364-7-710. Sweco Belgium.' }
+  ];
+  const exts=[
+    { id:'bex-cav-01', doc_id:'bib-cav-01', projet_id:pid, schema_version:1,
+      created_at:'2026-05-30T00:00:00.000Z',
+      tier1:{ pouvoir_adjudicateur:'Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures',
+        no_dossier:'Chirec-2024-004', description:'Extension hôpital de jour chirurgical — Lot 3 HVAC et Sanitaire',
+        montant_entreprise:'1.250.000,00 € HTVA', delai_achevement_jo:'338',
+        agreation:'D16 · D18 · P1 classe 4', procedure:'Ouverte avec publication' },
+      tier2:{ disciplines:['HVAC','Sanitaire'],
+        items:[
+          {discipline:'HVAC',     type:'Centrale de traitement d\'air', capacity:'16 750 m³/h', snippet:'5 groupes de pulsion, débit pulsion max 16 750 m³/h — ventilation mécanique sans recyclage'},
+          {discipline:'HVAC',     type:'Ventilation / extraction',      capacity:'14 410 m³/h', snippet:'8 groupes d\'extraction en régime normal, débit extraction 14 410 m³/h'},
+          {discipline:'HVAC',     type:'Groupe froid',                  capacity:'163,9 kWf',   snippet:'2 machines frigorifiques Carrier AquaSnap 30WG 190-2018, 163,9 kWf total (2 circuits)'},
+          {discipline:'Sanitaire',type:'Production ECS',               capacity:'',            snippet:'Préparateur ECS — débit et volume selon plans Sweco'},
+          {discipline:'Sanitaire',type:'Adoucisseur',                  capacity:'',            snippet:'Adoucisseur alimentation humidificateurs des CTA'}
+        ]},
+      tier3:{ adresse_chantier:'37 Rue Général Lotz, 1180 Uccle', maitre_oeuvre:'ASSAR Architects', bureau_etude:'Sweco Belgium' }
+    },
+    { id:'bex-cav-02', doc_id:'bib-cav-02', projet_id:pid, schema_version:1,
+      created_at:'2026-05-30T00:00:01.000Z',
+      tier1:{ no_dossier:'Chirec-2024-004', description:'Lot 3 Partie 1 — Équipements et installations HVAC' },
+      tier2:{ disciplines:['HVAC'],
+        items:[
+          {discipline:'HVAC', type:'Centrale de traitement d\'air', capacity:'',      snippet:'Groupes GP/GC : section ventilateur, filtration, échangeurs, humidification, récupération chaleur'},
+          {discipline:'HVAC', type:'Ventilation / extraction',      capacity:'',      snippet:'Groupes GE : section ventilateur, récupération chaleur éventuelle'},
+          {discipline:'HVAC', type:'Pompe de circulation',          capacity:'',      snippet:'Pompes à débit variable — contrôle débit par mesure hauteurs énergétiques'},
+          {discipline:'HVAC', type:'Humidificateur',               capacity:'',      snippet:'Humidificateur vapeur électrique dans gaine — thermocontact sécurité, jeu résistances réserve'},
+          {discipline:'HVAC', type:'Ventilo-convecteur',           capacity:'',      snippet:'Ventilo-convecteurs batteries chaude et froide en allège, aile E R+2'},
+          {discipline:'HVAC', type:'Échangeur',                    capacity:'',      snippet:'Récupération de chaleur, batteries thermiques groupes et VCV'}
+        ]},
+      tier3:{ bureau_etude:'Sweco Belgium' }
+    },
+    { id:'bex-cav-03', doc_id:'bib-cav-03', projet_id:pid, schema_version:1,
+      created_at:'2026-05-30T00:00:02.000Z',
+      tier1:{ no_dossier:'Chirec-2024-004', description:'Lot 3 Partie 2 — Équipements et installations Sanitaire' },
+      tier2:{ disciplines:['Sanitaire'],
+        items:[
+          {discipline:'Sanitaire', type:'Production ECS',     capacity:'',  snippet:'Préparateur ECS — vérification sections, calculs pertes de charge à charge Entrepreneur'},
+          {discipline:'Sanitaire', type:'Adoucisseur',       capacity:'',  snippet:'Eau adoucie fournie à la partie HVAC pour alimentation humidificateurs des CTA'},
+          {discipline:'Sanitaire', type:'Pompe de relevage', capacity:'',  snippet:'Évacuations eaux trop-pleins, robinets vidange, soupapes sûreté'},
+          {discipline:'Sanitaire', type:'Séparateur',        capacity:'',  snippet:'Traitement eaux avant rejet réseau'}
+        ]},
+      tier3:{ bureau_etude:'Sweco Belgium' }
+    },
+    { id:'bex-cav-04', doc_id:'bib-cav-04', projet_id:pid, schema_version:1,
+      created_at:'2026-05-30T00:00:03.000Z',
+      tier1:{},
+      tier2:{ disciplines:['Acoustique'],
+        items:[
+          {discipline:'Acoustique', type:'Exigence NBN S01-400', capacity:'35 dB(A)',  snippet:'Chambres : niveau de bruit ≤35 dB(A) selon NBN S01-400 catégorie minimale — hôpital'},
+          {discipline:'Acoustique', type:'Affaiblissement acoustique', capacity:'Rw 23-43 dB', snippet:'Isolation bruits aériens façades — Rw : 23 dB (125 Hz) à 43 dB (4000 Hz)'},
+          {discipline:'Acoustique', type:'Niveau sonore',        capacity:'',          snippet:'Équipements extérieurs conservés (groupe froid 1, groupe froid 2, ventilation) — pas bruyants selon rapport'}
+        ]},
+      tier3:{}
+    },
+    { id:'bex-cav-05', doc_id:'bib-cav-05', projet_id:pid, schema_version:1,
+      created_at:'2026-05-30T00:00:04.000Z',
+      tier1:{},
+      tier2:{ disciplines:['Électricité'],
+        items:[
+          {discipline:'Électricité', type:'Tableau général (TGBT)', capacity:'',  snippet:'Liaisons équipotentielles principales raccordées borne principale local technique TGBT'},
+          {discipline:'Électricité', type:'Transformateur',         capacity:'',  snippet:'HD 60364-7-710 locaux médicaux — groupe 1 classe 15 — UPS + groupe secours 24h'}
+        ]},
+      tier3:{}
+    }
+  ];
+  for(const d of docs){ try{ await dbPut(STORES.biblio_documents, d); }catch(_){} }
+  for(const e of exts){ try{ await dbPut(STORES.biblio_extractions, e); }catch(_){} }
+  /* Meta consolidée */
+  const meta={ id:pid, updated_at:new Date().toISOString(),
+    tier1:{ pouvoir_adjudicateur:'Centre Hospitalier Interrégional Edith Cavell (CHIREC)',
+      no_dossier:'Chirec-2024-004', description:'Lot 3 HVAC et Sanitaire — Édith Cavell Uccle',
+      montant_entreprise:'1.250.000,00 € HTVA', delai_achevement_jo:'338', agreation:'D16 · D18 · P1 classe 4' },
+    tier2:{ disciplines:['HVAC','Sanitaire','Acoustique','Électricité'] },
+    tier3:{ adresse_chantier:'37 Rue Général Lotz, 1180 Uccle', bureau_etude:'Sweco Belgium', maitre_oeuvre:'ASSAR Architects' }
+  };
+  try{ await dbPut(STORES.biblio_projets_meta, meta); }catch(_){}
+  await saveProjet({...p, _cavell_biblio_v:CAVELL_BIBLIO_V});
+}
 async function saveProjet(p){
   /* Multi-projet : la clé est p.id (plus d'id='main' hardcodé) */
   if(!p.id) p.id=p.projet_id||'main';
