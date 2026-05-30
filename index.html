@@ -226,7 +226,7 @@
     </svg>
     <div class="brand-txt">
       <h1>Folio</h1>
-      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.4</p>
+      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.5</p>
     </div>
   </div>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
@@ -559,7 +559,7 @@
 
     <details class="fieldset">
       <summary>ℹ À propos</summary>
-      <p style="font-size:14px;">Folio v5.4 — Journal des Travaux, modèle Embuild 9545 F.</p>
+      <p style="font-size:14px;">Folio v5.5 — Journal des Travaux, modèle Embuild 9545 F.</p>
       <p class="screen-sub">100 % local (IndexedDB) + publication GitHub explicite. Fonctionne hors-ligne.</p>
     </details>
 
@@ -664,7 +664,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='5.4';
+const APP_VERSION='5.5';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=5;
 const STORES={
@@ -859,6 +859,7 @@ async function loadState(){
   const compls=await dbAll(STORES.complements);
   state.complements=compls.map(x=>normCompl(x.value!==undefined?x.value:x)).sort((a,b)=>(a.folio_compl_no||0)-(b.folio_compl_no||0));
   await seedCavellIfEmpty();
+  await seedCavellProjectData();
   if(typeof loadReps==='function') await loadReps();
 }
 
@@ -887,8 +888,7 @@ async function seedCavellIfEmpty(){
   const p=state.projet; if(!p) return;
   const ent=p.entrepreneur||{};
   const vide=!((p.pouvoir_adjudicateur||'').trim() || (ent.nom||'').trim());
-  if(!vide && (p._cavell_seed||0)>=CAVELL_SEED_V) return;   /* déjà à jour → on ne touche pas */
-  /* Données Cavell de référence : on (re)pose le seed en préservant nom, n° de journal et l'historique. */
+  if(!vide && (p._cavell_seed||0)>=CAVELL_SEED_V) return;
   const merged={...p, ...CAVELL_SEED};
   merged.entrepreneur={...(p.entrepreneur||{}), ...CAVELL_SEED.entrepreneur};
   merged.nom=p.nom||CAVELL_SEED.nom;
@@ -896,6 +896,123 @@ async function seedCavellIfEmpty(){
   merged._cavell_seed=CAVELL_SEED_V;
   merged.id=p.id; merged.projet_id=p.projet_id||p.id;
   await saveProjet(merged);
+}
+
+/* ═══ Pré-remplissage données projet CHIREC Cavell depuis les CSC (idempotent) ═══ */
+const CAVELL_DATA_V=1;
+async function seedCavellProjectData(){
+  const p=state.projet; if(!p) return;
+  if((p._cavell_data_v||0)>=CAVELL_DATA_V) return;
+
+  /* PLANNING — phases Lot 3 HVAC+SAN (CSC Chirec-2024-004 §III.14) */
+  if(!(p.planning&&p.planning.length)){
+    p.planning=[
+      {nom:'Études d\'exécution + fiches techniques',       debut:'2026-05-14',fin:'2026-06-30',pct:0},
+      {nom:'Approvisionnement CTA + groupes froid',         debut:'2026-05-14',fin:'2026-08-31',pct:0},
+      {nom:'Approvisionnement équipements sanitaires',      debut:'2026-05-14',fin:'2026-07-31',pct:0},
+      {nom:'Démontage installations HVAC/SAN existantes',   debut:'2026-06-01',fin:'2026-07-15',pct:0},
+      {nom:'Installation réseaux hydrauliques',             debut:'2026-07-01',fin:'2026-10-31',pct:0},
+      {nom:'Installation réseaux aérauliques',              debut:'2026-07-15',fin:'2026-10-31',pct:0},
+      {nom:'Installation sanitaire ECS/EF + évacuations',  debut:'2026-06-15',fin:'2026-10-15',pct:0},
+      {nom:'Pose CTA + groupes froid + pompes',             debut:'2026-09-01',fin:'2026-11-15',pct:0},
+      {nom:'Régulation DDC + GTC (Honeywell EBI)',          debut:'2026-10-01',fin:'2026-12-01',pct:0},
+      {nom:'Essais hydrauliques + aérauliques + réglages',  debut:'2026-11-15',fin:'2026-12-20',pct:0},
+      {nom:'Réception provisoire',                         debut:'2026-12-16',fin:'2026-12-31',pct:0}
+    ].map((t,i)=>({...t,id:'plan-cavell-'+i}));
+  }
+
+  /* MÉTRÉ — postes Lot 3 HVAC+SAN (structure CSC Sweco 55820002, format belge) */
+  if(!(p.metre&&p.metre.length)){
+    p.metre=[
+      /* 01 — Généralités */
+      {code:'01.01',designation:'Démontage installations HVAC existantes',         unite:'ff', qte:1,  pu:0},
+      {code:'01.02',designation:'Protection et installation de chantier HVAC',     unite:'ff', qte:1,  pu:0},
+      /* 02 — Réseaux hydrauliques */
+      {code:'02.01',designation:'Tuyauterie acier noir soudée réseau chaud/froid', unite:'mct',qte:0,  pu:0},
+      {code:'02.02',designation:'Tuyauterie acier galvanisé eau froide technique', unite:'mct',qte:0,  pu:0},
+      {code:'02.03',designation:'Calorifugeage réseaux hydrauliques',              unite:'m',  qte:0,  pu:0},
+      {code:'02.04',designation:'Vases d\'expansion + soupapes sécurité',          unite:'ff', qte:1,  pu:0},
+      /* 03 — Réseaux aérauliques */
+      {code:'03.01',designation:'Gaines rectangulaires acier galvanisé',           unite:'m²', qte:0,  pu:0},
+      {code:'03.02',designation:'Gaines circulaires spiralées acier',              unite:'m',  qte:0,  pu:0},
+      {code:'03.03',designation:'Calorifugeage réseaux aérauliques',              unite:'m²', qte:0,  pu:0},
+      /* 04 — Équipements HVAC */
+      {code:'04.01',designation:'Groupes de traitement d\'air (CTA/GP)',           unite:'pce',qte:0,  pu:0},
+      {code:'04.02',designation:'Groupes d\'extraction d\'air (GE)',               unite:'pce',qte:0,  pu:0},
+      {code:'04.03',designation:'Ventilo-convecteurs 4 tubes (VCV)',               unite:'pce',qte:0,  pu:0},
+      {code:'04.04',designation:'Pompes de circulation à débit variable',          unite:'pce',qte:0,  pu:0},
+      {code:'04.05',designation:'Humidificateurs vapeur électrique (dans CTA)',    unite:'pce',qte:0,  pu:0},
+      {code:'04.06',designation:'Robinetterie + accessoires réseaux',              unite:'ff', qte:1,  pu:0},
+      /* 05 — Régulation */
+      {code:'05.01',designation:'Régulation DDC décentralisée (type Honeywell EBI)',unite:'ff',qte:1,  pu:0},
+      {code:'05.02',designation:'Reports alarmes + GTC — câblage et mise en service',unite:'ff',qte:1, pu:0},
+      /* 06 — Sanitaire : réseaux */
+      {code:'06.01',designation:'Démontage sanitaire existant',                    unite:'ff', qte:1,  pu:0},
+      {code:'06.02',designation:'Tuyauterie cuivre ECS (eau chaude sanitaire)',    unite:'mct',qte:0,  pu:0},
+      {code:'06.03',designation:'Tuyauterie cuivre EF (eau froide sanitaire)',     unite:'mct',qte:0,  pu:0},
+      {code:'06.04',designation:'Isolation thermique anti-condensation EF',        unite:'m',  qte:0,  pu:0},
+      {code:'06.05',designation:'Évacuations en PVC/fonte',                        unite:'m',  qte:0,  pu:0},
+      /* 07 — Équipements sanitaires */
+      {code:'07.01',designation:'Adoucisseur d\'eau (alimentation humidificateurs)',unite:'pce',qte:1,  pu:0},
+      {code:'07.02',designation:'Préparateur ECS',                                  unite:'pce',qte:0,  pu:0},
+      {code:'07.03',designation:'Appareils sanitaires (WC, lavabos, douches)',      unite:'pce',qte:0,  pu:0},
+      {code:'07.04',designation:'Robinetterie sanitaire + accessoires',             unite:'ff', qte:1,  pu:0},
+      /* 08 — Essais */
+      {code:'08.01',designation:'Essais hydrauliques + aérauliques + rapports',    unite:'ff', qte:1,  pu:0},
+      {code:'08.02',designation:'Dossier as-built (plans + fiches techniques)',    unite:'ff', qte:1,  pu:0}
+    ].map((m,i)=>({...m,id:'metre-cavell-'+i}));
+  }
+
+  await saveProjet({...p, _cavell_data_v:CAVELL_DATA_V});
+
+  /* RÉPERTOIRES — matériel HVAC/SAN, matériaux, visiteurs CHIREC */
+  const rm=await dbAll(STORES.rep_materiel);
+  if(!rm.length){
+    const mat=[
+      {designation:'Groupe de traitement d\'air (CTA)',      marque:'Sweco spec GP/GC',     ref:'CTA'},
+      {designation:'Groupe d\'extraction d\'air',            marque:'Sweco spec GE',        ref:'GE'},
+      {designation:'Machine frigorifique AquaSnap',          marque:'Carrier 30WG 190-2018',ref:'MF'},
+      {designation:'Pompe de circulation',                   marque:'(à soumettre DT)',     ref:'PC'},
+      {designation:'Humidificateur vapeur électrique',       marque:'(à soumettre DT)',     ref:'HUM'},
+      {designation:'Ventilo-convecteur 4 tubes',             marque:'(à soumettre DT)',     ref:'VCV'},
+      {designation:'Variateur de fréquence',                 marque:'(à soumettre DT)',     ref:'VF'},
+      {designation:'Régulateur DDC',                         marque:'Honeywell EBI',        ref:'DDC'},
+      {designation:'Adoucisseur d\'eau',                     marque:'(à soumettre DT)',     ref:'AD'},
+      {designation:'Préparateur ECS',                        marque:'(à soumettre DT)',     ref:'PECS'}
+    ];
+    for(const m of mat) await dbPut(STORES.rep_materiel,{...m,id:'rm-cavell-'+m.ref});
+  }
+
+  const rx=await dbAll(STORES.rep_materiaux);
+  if(!rx.length){
+    const maty=[
+      {designation:'Tuyauterie acier noir soudée',           unite:'mct',fournisseur:''},
+      {designation:'Tuyauterie acier galvanisé',             unite:'mct',fournisseur:''},
+      {designation:'Tuyauterie cuivre ECS/EF',               unite:'mct',fournisseur:''},
+      {designation:'Gaine rectangulaire acier galvanisé',    unite:'m²', fournisseur:''},
+      {designation:'Gaine circulaire spiralée acier',        unite:'m',  fournisseur:''},
+      {designation:'Calorifuge laine de roche (chaleur)',    unite:'m',  fournisseur:''},
+      {designation:'Calorifuge mousse synthétique (anti-cond.)',unite:'m',fournisseur:''},
+      {designation:'Manchette anti-vibratile',               unite:'pce',fournisseur:''}
+    ];
+    for(let i=0;i<maty.length;i++) await dbPut(STORES.rep_materiaux,{...maty[i],id:'rx-cavell-'+i});
+  }
+
+  const rv=await dbAll(STORES.rep_visiteurs);
+  if(!rv.length){
+    const vis=[
+      {nom:'Direction des Travaux',         societe:'CHIREC',           fonction:'Maître d\'ouvrage'},
+      {nom:'Fonctionnaire dirigeant',       societe:'CHIREC — Direction des Infrastructures',fonction:'Dirigeant'},
+      {nom:'Sweco Belgium',                 societe:'Sweco Belgium nv', fonction:'Bureau d\'études HVAC/SAN'},
+      {nom:'ASSAR Architects',              societe:'ASSAR Architects', fonction:'Architecte'},
+      {nom:'Coordinateur sécurité-santé',   societe:'(à désigner)',     fonction:'Sécurité chantier'},
+      {nom:'Entreprise générale Lot 1',     societe:'(à désigner)',     fonction:'Coordinateur planning'}
+    ];
+    for(let i=0;i<vis.length;i++) await dbPut(STORES.rep_visiteurs,{...vis[i],id:'rv-cavell-'+i});
+  }
+
+  if(typeof loadReps==='function') await loadReps();
+  if(typeof buildCaseRepPickers==='function') buildCaseRepPickers();
 }
 
 async function saveConfig(){ await dbPut(STORES.config,{id:'config',value:state.config}); }
