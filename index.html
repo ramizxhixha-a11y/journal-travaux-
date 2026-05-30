@@ -228,7 +228,7 @@
     </svg>
     <div class="brand-txt">
       <h1>Folio</h1>
-      <p class="header-sub" id="header-sub">Page après page, ton chantier · v6.2</p>
+      <p class="header-sub" id="header-sub">Page après page, ton chantier · v6.3</p>
     </div>
   </div>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
@@ -305,7 +305,7 @@
     <h3 class="section-title">Publication</h3>
     <div class="quick-actions" style="margin-bottom:20px;">
       <button type="button" class="btn btn-secondary" id="btn-publish"><svg class="ic" viewBox="0 0 24 24"><path d="M7 18h9a3.5 3.5 0 0 0 .5-7A5 5 0 0 0 7 10a4 4 0 0 0 0 8z"/><path d="M12 16.5v-5M9.5 13.5L12 11l2.5 2.5"/></svg>Publier sur GitHub</button>
-      <button type="button" class="btn btn-primary" id="btn-pdf"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v10M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>Générer le PDF (local)</button>
+      <button type="button" class="btn btn-secondary" id="btn-pdf"><svg class="ic" viewBox="0 0 24 24"><path d="M12 4v10M8 11l4 4 4-4"/><path d="M5 19h14"/></svg>Télécharger le PDF</button>
     </div>
     <p class="screen-sub">Page de garde & contrat — à remplir une fois.</p>
     <form id="form-projet" autocomplete="off">
@@ -666,7 +666,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='6.2';
+const APP_VERSION='6.3';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=5;
 const STORES={
@@ -2455,163 +2455,28 @@ $('#btn-publish').addEventListener('click',()=>publishGitHub());
 
 /* ═══════════ PDF — via l'Action GitHub (générateur pdf/build_pdf.py, INCHANGÉ) ═══════════ */
 /* On ne génère PAS le PDF ici : publier les données déclenche l'Action, qui dépose le      */
-/* PDF officiel 9545 F dans pdfs/. Ce bouton télécharge ce PDF-là.                           */
-/* ═══════════ PDF LOCAL (jsPDF, sans GitHub Action) ═══════════ */
-let _jspdf=null;
-function loadJsPDF(){
-  if(_jspdf) return Promise.resolve(_jspdf);
-  return new Promise((res,rej)=>{
-    const s=document.createElement('script');
-    s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-    s.onload=()=>{ _jspdf=window.jspdf||window.jsPDF; res(_jspdf); };
-    s.onerror=()=>rej(new Error('jsPDF indisponible (connexion ?)'));
-    document.head.appendChild(s);
-  });
-}
-const CHIREC_FB2={
-  pouvoir_adjudicateur:'Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures',
-  administration:'Direction des infrastructures',
-  service:'Suivi technique des marchés publics — infrastructures hospitalières',
-  no_dossier:'CHIREC-CAVELL-2026-LOT3',
-  description:'Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire)',
-  csc_no:'2026-CHIREC-CAVELL-L3', csc_ref:'Cahier spécial des charges CHIREC Cavell Lot 3',
-  entrepreneur:'EEG Techniques Spéciales SA', adresse:'Z.I., 6 rue des Gerboises - 5100 Naninne',
-  telephone:'081/21 27 02', no_entreprise:'BE 0442.891.013',
-  lieu_contrat:'Uccle', date_contract_debut:'2026-05-14',
-  cachet_label:'EEG', cachet_ville:'Namur', cachet_mail:'naninne@eeg.be'
-};
-function pdfG(p,key){ const v=p[key]; return (v!=null&&v!=='')?String(v):''; }
-function pdfFallback(p){
-  const o={...p}; Object.keys(CHIREC_FB2).forEach(k=>{ if(!o[k]) o[k]=CHIREC_FB2[k]; }); return o;
-}
-function pdfDotLine(doc,x,y,w){ doc.setLineDashPattern([0.5,1],0); doc.setLineWidth(0.2); doc.line(x,y,x+w,y); doc.setLineDashPattern([],0); }
-function pdfField(doc,label,val,x,y,lw,totalW,sz=8){
-  doc.setFontSize(sz); doc.setFont('helvetica','normal'); doc.text(label,x,y);
-  const vx=x+lw; pdfDotLine(doc,vx,y+0.5,totalW-lw);
-  if(val){ doc.setFontSize(sz-0.5); doc.text(String(val).slice(0,80),vx+1,y); }
-}
-function fmtD(d){ if(!d) return ''; try{ const dt=new Date(d+'T00:00:00'); return dt.toLocaleDateString('fr-BE'); }catch(_){ return String(d).slice(0,10); } }
-async function generateLocalPDF(journalNo){
-  const jLib=await loadJsPDF();
-  const jPDF=jLib.jsPDF||jLib;
-  const doc=new jPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  const p=pdfFallback(publishProjet());
+/* PDF officiel 9545 F généré par GitHub Action → pdfs/. Ce bouton télécharge ce PDF-là. */
+async function downloadPDF(journalNo){
+  const c=ghCfg();
+  if(!c.owner||!c.repo||!c.token){ toast('Configure GitHub dans Réglages (le PDF est généré côté GitHub)','error'); show('reglages'); return; }
   const pid=state.config.projet_id||'main';
-  const jno=journalNo||currentJournalNo();
-  const folios=state.folios.filter(f=>(f.projet_id||'main')===pid&&(f.journal_no||1)===jno);
-  const ML=17,MR=17,PW=210-ML-MR;
-  /* ── PAGE DE GARDE ── */
-  doc.setFont('helvetica','normal'); doc.setFontSize(8);
-  let hx=ML+PW*0.42, hy=18;
-  for(const [lbl,key] of [['Pouvoir adjudicateur','pouvoir_adjudicateur'],['Administration','administration'],['Service','service'],['N° du dossier','no_dossier']]){
-    const v=pdfG(p,key); const lw2=doc.getTextWidth(lbl+'  ');
-    doc.text(lbl+'  ',hx,hy); pdfDotLine(doc,hx+lw2,hy+0.5,PW*0.58-lw2);
-    if(v){ doc.setFontSize(7.5); doc.text(v.slice(0,50),hx+lw2+1,hy); doc.setFontSize(8); }
-    hy+=7;
-  }
-  hy+=3; doc.setLineWidth(0.5); doc.line(ML,hy,ML+PW,hy); hy+=10;
-  doc.setFont('helvetica','bold'); doc.setFontSize(16);
-  const title='JOURNAL DES TRAVAUX'; const tw=doc.getTextWidth(title);
-  doc.text(title,(210-tw)/2,hy); doc.setLineWidth(0.6); doc.line((210-tw)/2,hy+1,(210+tw)/2,hy+1);
-  hy+=13;
-  const desc=pdfG(p,'description')||''; doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
-  doc.text('Travaux de  ',ML,hy); const tdx=ML+doc.getTextWidth('Travaux de  '); pdfDotLine(doc,tdx,hy+0.5,ML+PW-tdx);
-  if(desc){ const lines=doc.splitTextToSize(desc,ML+PW-tdx-2); lines.slice(0,3).forEach((l,i)=>{ if(i===0) doc.text(l,tdx+1,hy); else{ doc.setFontSize(8); pdfDotLine(doc,ML,hy+i*6+0.5,PW); doc.text(l,ML+1,hy+i*6); } }); }
-  else for(let i=1;i<=2;i++) pdfDotLine(doc,ML,hy+i*6+0.5,PW);
-  hy+=20;
-  doc.setFontSize(8.5);
-  const cscN=pdfG(p,'csc_no'), cscR=pdfG(p,'csc_ref');
-  const cscL='Cahier des charges n°  ', cscLw=doc.getTextWidth(cscL);
-  doc.text(cscL,ML,hy); pdfDotLine(doc,ML+cscLw,hy+0.5,PW*0.38);
-  if(cscN) doc.text(cscN.slice(0,30),ML+cscLw+1,hy);
-  const dex=ML+cscLw+PW*0.38+2, deL='de  ', deLw=doc.getTextWidth(deL);
-  doc.text(deL,dex,hy); pdfDotLine(doc,dex+deLw,hy+0.5,ML+PW-dex-deLw);
-  if(cscR) doc.text(cscR.slice(0,35),dex+deLw+1,hy);
-  hy+=12;
-  for(const [lbl,key,lim] of [
-    ['Entrepreneur : ',       'entrepreneur',  70],
-    ['Adresse : ',            'adresse',       80],
-    ['Téléphone : ',          'telephone',     50],
-    ['N° du certificat d\'agréation : ', 'agreation', 60],
-    ['N° d\'immatriculation à l\'O.N.S.S. : ', 'onss', 40],
-    ['N° d\'entreprise : ',   'no_entreprise', 40]
-  ]){
-    const v=pdfG(p,key), lw2=doc.getTextWidth(lbl);
-    doc.setFontSize(8); doc.text(lbl,ML,hy); pdfDotLine(doc,ML+lw2,hy+0.5,PW-lw2);
-    if(v){ doc.setFontSize(7.5); doc.text(v.slice(0,lim),ML+lw2+1,hy); }
-    hy+=7.5;
-  }
-  hy+=6;
-  doc.setFontSize(7.5);
-  const ltxt=`Le présent journal des travaux contenant trente quadruples folios numérotés de 1 à 30 et 10 quadruples folios complémentaires de 31 à 40 a été remis comme journal n°`;
-  const llines=doc.splitTextToSize(ltxt,PW*0.82); llines.forEach((l,i)=>doc.text(l,ML,hy+i*5)); 
-  doc.setFontSize(9); doc.text(String(jno),210-MR-20,hy); pdfDotLine(doc,210-MR-22,hy+0.5,22);
-  hy+=llines.length*5+3;
-  doc.text('à M  ',ML,hy); pdfDotLine(doc,ML+doc.getTextWidth('à M  '),hy+0.5,PW-doc.getTextWidth('à M  ')); hy+=10;
-  const roles=['Conducteur,','Chef de district,','Contrôleur des travaux,','Surveillant des travaux (1)'];
-  const rcx=ML+PW*0.4; doc.setFontSize(7.5);
-  roles.forEach(r=>{ doc.text(r,rcx,hy); const rw=doc.getTextWidth(r); doc.setLineWidth(0.4); doc.line(rcx,hy-2.5,rcx+rw,hy-2.5); hy+=5; });
-  hy+=2;
-  const lieu=pdfG(p,'lieu_contrat'), dat=fmtD(pdfG(p,'date_contract_debut'));
-  doc.setFontSize(8); doc.text('à  ',ML+PW*0.35,hy);
-  const ax=ML+PW*0.35+doc.getTextWidth('à  '); pdfDotLine(doc,ax,hy+0.5,PW*0.18); if(lieu) doc.text(lieu,ax+1,hy);
-  doc.text(', le  ',ML+PW*0.56,hy);
-  const dx=ML+PW*0.56+doc.getTextWidth(', le  '); pdfDotLine(doc,dx,hy+0.5,ML+PW-dx); if(dat) doc.text(dat,dx+1,hy);
-  hy+=4; doc.setFont('helvetica','italic'); doc.setFontSize(7.5); doc.text('Le Fonctionnaire dirigeant,',ML+PW*0.38,hy); doc.setFont('helvetica','normal');
-  /* Cachet + sig */
-  const ccy=22, ccy2=ccy+20, ccx=210-MR-52;
-  doc.setFontSize(7); doc.text('Pour l\'entrepreneur,',ccx,ccy2+7); doc.setFont('helvetica','italic'); doc.text('(Cachet et signature)',ccx,ccy2+3); doc.setFont('helvetica','normal');
-  doc.setLineWidth(0.4); doc.rect(ccx,ccy,52,ccy2-ccy);
-  const cl=pdfG(p,'cachet_label')||'EEG', cv=pdfG(p,'cachet_ville'), cm=pdfG(p,'cachet_mail'), ct=pdfG(p,'telephone'), ca=pdfG(p,'adresse'), tn=pdfG(p,'no_entreprise');
-  doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.text(cl,ccx+26,ccy+14,{align:'center'});
-  doc.setFont('helvetica','normal'); let cy2=ccy+18;
-  for(const ln of [cv,ca,ct,cm,tn].filter(Boolean).slice(0,4)){ doc.setFontSize(6); doc.text(ln.slice(0,30),ccx+26,cy2,{align:'center'}); cy2+=3.5; }
-  doc.setFontSize(7); doc.text('Reçu le présent journal :',ML,ccy2+7); doc.text('Le préposé à la surveillance',ML,ccy2+3); doc.text('chargé de la tenue du journal,',ML,ccy2-1);
-  doc.setFont('helvetica','italic'); doc.text('(Signature)',ML,ccy2-5); doc.setFont('helvetica','normal');
-  doc.setLineWidth(0.3); doc.rect(ML,ccy,52,ccy2-ccy-7);
-  doc.setFontSize(6); doc.text('(1) Biffer les mentions inutiles',ML,10);
-  doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.text('9545 F',210-MR,8,{align:'right'});
-  /* ── FOLIOS ── */
-  const CASES2=[['B','Travaux exécutés','b_travaux'],['C','Matériel en service','c_materiel'],['D','Matériel hors service','d_hs'],['E','Matériaux entrés','e_materiaux'],['F','Essais sur chantier','f_essais'],['G','Échantillons expédiés','g_echant'],['H','Événements imprévus','h_imprevus'],['J','Décisions prises','j_decisions'],['K','Visites & divers','k_visites']];
-  folios.forEach(f=>{
-    doc.addPage();
-    let fy=15; const FL=12, FW=210-FL-12;
-    doc.setFont('helvetica','bold'); doc.setFontSize(9);
-    doc.text(`Folio N° ${f.folio_no||''}`,FL,fy); doc.text(`Date : ${fmtD(f.date||'')}`,FL+FW*0.3,fy);
-    doc.setFont('helvetica','normal'); doc.setFontSize(8.5);
-    doc.text(`Météo : ${f.etat_atmospherique||f.meteo||''}`,FL+FW*0.55,fy);
-    doc.text(`T° 8h : ${f.temp_8h||f.t_8h||''}°`,FL+FW*0.82,fy); fy+=7;
-    doc.text(`Heures : ${f.heures_debut||f.h_debut||''} → ${f.heures_fin||f.h_fin||''}`,FL,fy);
-    doc.text(`T° 16h : ${f.temp_16h||f.t_16h||''}°`,FL+FW*0.82,fy); fy+=5;
-    doc.setLineWidth(0.4); doc.line(FL,fy,FL+FW,fy); fy+=5;
-    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.text('A  Ouvriers sur chantier',FL,fy); fy+=4;
-    doc.setFontSize(7.5); doc.text('Classe',FL+2,fy); doc.text('Métier',FL+45,fy); doc.text('Nombre',FL+90,fy); fy+=3;
-    doc.setLineWidth(0.2); doc.line(FL,fy,FL+FW,fy); fy++;
-    doc.setFont('helvetica','normal'); const ouvs=f.ouvriers||[];
-    ouvs.forEach(o=>{ doc.setFontSize(7.5); doc.text(String(o.classe||'').slice(0,22),FL+2,fy); doc.text(String(o.metier||'').slice(0,22),FL+45,fy); doc.text(String(o.nombre||''),FL+90,fy); fy+=4; });
-    const tot=ouvs.reduce((a,o)=>a+(Number(o.nombre)||0),0);
-    doc.setFont('helvetica','bold'); doc.text(`Total : ${tot}`,FL+78,fy); fy+=5;
-    doc.setLineWidth(0.4); doc.line(FL,fy,FL+FW,fy); fy+=4;
-    CASES2.forEach(([letter,label,key])=>{
-      if(fy>260) return;
-      const val=f[key]||f[{b_travaux:'case_B',c_materiel:'case_C',d_hs:'case_D',e_materiaux:'case_E',f_essais:'case_F',g_echant:'case_G',h_imprevus:'case_H',j_decisions:'case_J',k_visites:'case_K'}[key]]||'';
-      doc.setFont('helvetica','bold'); doc.setFontSize(8.5); doc.text(`${letter}  ${label}`,FL,fy); fy+=4;
-      doc.setFont('helvetica','normal'); doc.setFontSize(8);
-      if(val){ const vlines=doc.splitTextToSize(val,FW-5); vlines.slice(0,4).forEach(l=>{ doc.text(l,FL+5,fy); fy+=4; }); }
-      else for(let i=0;i<3;i++){ pdfDotLine(doc,FL+5,fy+0.5,FW-5); fy+=4; }
-      doc.setLineWidth(0.2); doc.line(FL,fy,FL+FW,fy); fy+=3;
-    });
-    doc.setFontSize(7.5); doc.line(FL,268,FL+FW,268);
-    doc.text('Le préposé à la surveillance (signature) :',FL,272); doc.text('L\'entrepreneur (signature) :',FL+FW*0.58,272);
-    if(f.statut){ doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.text(f.statut,FL+FW,267,{align:'right'}); }
-    doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.text('9545 F',210-12,8,{align:'right'});
-  });
-  const fname=`Journal_Travaux_${pid}__J${jno}_local.pdf`;
-  doc.save(fname);
-  toast(`PDF ${fname} généré ✓`,'success');
+  const j=journalNo||currentJournalNo();
+  const path=`pdfs/Journal_Travaux_${pid}__J${j}.pdf`;
+  toast(`Téléchargement du PDF Journal N°${j}…`);
+  try{
+    const url=`https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path.split('/').map(encodeURIComponent).join('/')}?ref=${encodeURIComponent(c.branch)}`;
+    const r=await fetch(url,{headers:{Authorization:'Bearer '+c.token,Accept:'application/vnd.github.raw'}});
+    if(r.status===404) throw new Error(`Journal N°${j} pas encore prêt — publie-le d'abord, puis attends ~1-2 min`);
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const blob=await r.blob();
+    const dl=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=dl; a.download=`Journal_Travaux_${pid}__J${j}.pdf`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(dl),4000);
+    toast(`PDF Journal N°${j} téléchargé ✓`,'success');
+  }catch(e){ toast('Échec PDF : '+e.message,'error'); }
 }
-async function downloadPDF(journalNo){ await generateLocalPDF(journalNo); }
-$('#btn-pdf').addEventListener('click',()=>generateLocalPDF());
+$('#btn-pdf').addEventListener('click',()=>downloadPDF());
 
 /* ═══════════ ACCUEIL boutons ═══════════ */
 $('#btn-new-folio').addEventListener('click',newFolio);
