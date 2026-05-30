@@ -1,18 +1,18 @@
 {
-  "version": "5.9",
-  "published_at": "2026-05-30T20:19:20.570Z",
+  "version": "6.2",
+  "published_at": "2026-05-30T20:46:35.742Z",
   "journal_no": 1,
   "pouvoir_adjudicateur": "Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures",
   "administration": "Direction des infrastructures",
   "service": "Suivi technique des marchés publics — infrastructures hospitalières",
   "no_dossier": "CHIREC-CAVELL-2026-LOT3",
-  "description": "Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire). Chantier : 37 rue Général Lotz, 1180 Uccle.",
+  "description": "Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire)",
   "csc_no": "2026-CHIREC-CAVELL-L3",
   "csc_ref": "Cahier spécial des charges CHIREC Cavell Lot 3",
   "entrepreneur": "EEG Techniques Spéciales SA",
   "adresse": "Z.I., 6 rue des Gerboises - 5100 Naninne",
   "telephone": "081/21 27 02",
-  "agreation": "",
+  "agreation": "D16 — D18 — P1 classe 4",
   "onss": "",
   "no_entreprise": "BE 0442.891.013",
   "lieu_contrat": "Uccle",
@@ -20,11 +20,11 @@
   "date_contract_fin": "2026-12-31",
   "delai_achevement_jo": 165,
   "cachet_label": "EEG",
-  "cachet_ville": "Naninne",
+  "cachet_ville": "Namur",
   "cachet_mail": "naninne@eeg.be",
   "projet": {
     "nom": "Édith Cavel",
-    "description": "Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire). Chantier : 37 rue Général Lotz, 1180 Uccle.",
+    "description": "Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire)",
     "pouvoir_adjudicateur": "Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures",
     "no_dossier": "CHIREC-CAVELL-2026-LOT3",
     "csc_no": "2026-CHIREC-CAVELL-L3",
@@ -367,12 +367,21 @@
     "service": "Suivi technique des marchés publics — infrastructures hospitalières",
     "adresse": "Z.I., 6 rue des Gerboises - 5100 Naninne",
     "telephone": "081/21 27 02",
-    "agreation": "",
+    "agreation": "D16 — D18 — P1 classe 4",
     "onss": "",
     "no_entreprise": "BE 0442.891.013",
+    "lieu_remise": "Uccle",
+    "date_remise": "2026-05-14",
     "cachet_label": "EEG",
-    "cachet_ville": "Naninne",
-    "cachet_mail": "naninne@eeg.be"
+    "cachet_ville": "Namur",
+    "cachet_mail": "naninne@eeg.be",
+    "adresse_chantier": "37 Rue Général Lotz, 1180 Uccle",
+    "maitre_oeuvre": {
+      "nom": "ASSAR Architects"
+    },
+    "bureau_etude": {
+      "nom": "Sweco Belgium"
+    }
   },
   "folios": [
     {
