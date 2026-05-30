@@ -226,7 +226,7 @@
     </svg>
     <div class="brand-txt">
       <h1>Folio</h1>
-      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.7</p>
+      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.8</p>
     </div>
   </div>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
@@ -664,7 +664,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='5.7';
+const APP_VERSION='5.8';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=5;
 const STORES={
@@ -886,16 +886,16 @@ const CAVELL_SEED={
     adresse:'Z.I., 6 rue des Gerboises - 5100 Naninne', tel:'081/21 27 02',
     mail:'naninne@eeg.be', tva:'BE 0442.891.013', cachet_label:'EEG', agreation:'' }
 };
-const CAVELL_SEED_V=2;   /* incrémenter pour re-pousser les données pré-remplies corrigées */
+const CAVELL_SEED_V=3;   /* v3 : force re-remplissage des données CHIREC (description, administration, service) */
 async function seedCavellIfEmpty(){
   const p=state.projet; if(!p) return;
-  const ent=p.entrepreneur||{};
+  const ent=typeof p.entrepreneur==='object'&&p.entrepreneur?p.entrepreneur:{};
   const vide=!((p.pouvoir_adjudicateur||'').trim() || (ent.nom||'').trim());
   if(!vide && (p._cavell_seed||0)>=CAVELL_SEED_V) return;
   const merged={...p, ...CAVELL_SEED};
-  merged.entrepreneur={...(p.entrepreneur||{}), ...CAVELL_SEED.entrepreneur};
+  merged.entrepreneur={...ent, ...CAVELL_SEED.entrepreneur};  /* ent est toujours un objet ici */
   merged.nom=p.nom||CAVELL_SEED.nom;
-  merged.journal_no=p.journal_no||CAVELL_SEED.journal_no||1;
+  merged.journal_no=p.journal_no||1;
   merged._cavell_seed=CAVELL_SEED_V;
   merged.id=p.id; merged.projet_id=p.projet_id||p.id;
   await saveProjet(merged);
