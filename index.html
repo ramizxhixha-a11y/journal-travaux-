@@ -160,7 +160,7 @@
 
 <header class="app-header">
   <h1>Journal des Travaux</h1>
-  <p class="header-sub" id="header-sub">— · v4.0</p>
+  <p class="header-sub" id="header-sub">— · v4.1</p>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
 </header>
 
@@ -453,7 +453,7 @@
 
     <details class="fieldset">
       <summary>ℹ À propos</summary>
-      <p style="font-size:14px;">Journal des Travaux v4.0 — modèle Embuild 9545 F.</p>
+      <p style="font-size:14px;">Journal des Travaux v4.1 — modèle Embuild 9545 F.</p>
       <p class="screen-sub">100 % local (IndexedDB) + publication GitHub explicite. Fonctionne hors-ligne.</p>
     </details>
 
@@ -480,7 +480,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='4.0';
+const APP_VERSION='4.1';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=4;
 const STORES={
@@ -670,11 +670,19 @@ async function loadState(){
    Idempotent : ne s'applique QUE si le projet est vide, ne remplace JAMAIS une saisie, ne touche pas aux folios. */
 const CAVELL_SEED={
   nom:'Édith Cavel',
-  description:'Lot 3 — Techniques spéciales : HVAC & Sanitaire. Hôpital CHIREC, site Édith Cavell (Uccle).',
-  pouvoir_adjudicateur:'CHIREC – Centre Hospitalier Interrégional Edith Cavell asbl',
-  no_dossier:'Chirec-2024-004', csc_no:'55820002',
-  csc_ref:'Cahier spécial des charges — Travaux Cavell, Lot 3 (HVAC & Sanitaire) — Sweco Belgium',
-  entrepreneur:{ nom:'EEG Techniques Spéciales SA', ville:'Namur',
+  description:'Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire). Chantier : 37 rue Général Lotz, 1180 Uccle.',
+  pouvoir_adjudicateur:'Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures',
+  no_dossier:'CHIREC-CAVELL-2026-LOT3', csc_no:'2026-CHIREC-CAVELL-L3',
+  csc_ref:'Cahier spécial des charges CHIREC Cavell Lot 3',
+  montant_entreprise:'1.250.000,00 EUR HTVA',
+  date_adjudication:'2026-04-15', date_approbation:'2026-04-30',
+  date_contract_debut:'2026-05-14', date_contract_fin:'2026-12-31',
+  date_debut:'2026-05-14', date_fin:'2026-12-31',
+  lieu_contrat:'Uccle', delai_achevement_jo:165,
+  interruptions_autorisees:'', prolongations_delai:'',
+  jours_feries:0, jours_conges_legaux:0, jours_intemperies:0, jours_divers:0, jours_retard:0,
+  notes:'Chantier en milieu hospitalier — protocoles d\'hygiène stricts. Coordination quotidienne avec services médicaux.',
+  entrepreneur:{ nom:'EEG Techniques Spéciales SA', ville:'Naninne',
     adresse:'Z.I., 6 rue des Gerboises - 5100 Naninne', tel:'081/21 27 02',
     mail:'naninne@eeg.be', tva:'BE 0442.891.013', cachet_label:'EEG', agreation:'' }
 };
