@@ -157,7 +157,7 @@
 
 <header class="app-header">
   <h1>Journal des Travaux</h1>
-  <p class="header-sub" id="header-sub">— · v3.5</p>
+  <p class="header-sub" id="header-sub">— · v3.6</p>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
 </header>
 
@@ -453,7 +453,7 @@
 
     <details class="fieldset">
       <summary>ℹ À propos</summary>
-      <p style="font-size:14px;">Journal des Travaux v3.5 — modèle Embuild 9545 F.</p>
+      <p style="font-size:14px;">Journal des Travaux v3.6 — modèle Embuild 9545 F.</p>
       <p class="screen-sub">100 % local (IndexedDB) + publication GitHub explicite. Fonctionne hors-ligne.</p>
     </details>
 
@@ -480,7 +480,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='3.5';
+const APP_VERSION='3.6';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=4;
 const STORES={
@@ -1348,6 +1348,13 @@ async function tryRecoverLegacy(){
 })();
 
 })();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
 </script>
 </body>
 </html>
