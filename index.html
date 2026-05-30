@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
 <meta name="theme-color" content="#1F4E5F">
 <title>Folio</title>
 <link rel="manifest" href="manifest.json">
@@ -226,7 +228,7 @@
     </svg>
     <div class="brand-txt">
       <h1>Folio</h1>
-      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.8</p>
+      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.9</p>
     </div>
   </div>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
@@ -664,7 +666,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='5.8';
+const APP_VERSION='5.9';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=5;
 const STORES={
@@ -2364,6 +2366,25 @@ function buildPublishPayload(journalNo){                     /* journalNo option
   const folios=state.folios.filter(f=>(f.projet_id||'main')===pid && (f.journal_no||1)===targetJ);
   const folioNos=new Set(folios.map(f=>f.folio_no));
   const projet=publishProjet(); projet.journal_no=targetJ;
+  /* Fallback CHIREC : si les données projet sont vides (cache navigateur corrompu),
+     on garantit que le JSON publié est toujours complet pour ce chantier.          */
+  const CHIREC_FB={
+    pouvoir_adjudicateur:'Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures',
+    administration:'Direction des infrastructures',
+    service:'Suivi technique des marchés publics — infrastructures hospitalières',
+    no_dossier:'CHIREC-CAVELL-2026-LOT3',
+    description:'Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire)',
+    csc_no:'2026-CHIREC-CAVELL-L3',
+    csc_ref:'Cahier spécial des charges CHIREC Cavell Lot 3',
+    entrepreneur:'EEG Techniques Spéciales SA',
+    adresse:'Z.I., 6 rue des Gerboises - 5100 Naninne',
+    telephone:'081/21 27 02',
+    no_entreprise:'BE 0442.891.013',
+    lieu_contrat:'Uccle',
+    date_contract_debut:'2026-05-14',
+    cachet_label:'EEG',cachet_ville:'Namur',cachet_mail:'naninne@eeg.be'
+  };
+  Object.keys(CHIREC_FB).forEach(k=>{ if(!projet[k]) projet[k]=CHIREC_FB[k]; });
   const g=v=>projet[v]||'';
   /* Rétrocompatibilité V2.x : build_pdf.py lit les champs à plat AU NIVEAU RACINE du JSON.
      On les expose aussi dans projet:{} pour les versions V3+ du générateur.          */
