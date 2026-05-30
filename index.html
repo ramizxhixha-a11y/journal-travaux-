@@ -27,9 +27,68 @@
   h1,h2,h3,.serif{font-family:"Instrument Serif",Georgia,serif;font-weight:400;letter-spacing:.2px;}
   .mono{font-family:"JetBrains Mono",monospace;}
 
+  /* v4.3 — cases extensibles + aide au débordement */
+  .case-fieldset textarea, #form-complement textarea{resize:none;overflow:hidden;min-height:64px;}
+  .case-extra{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;}
+  .case-hint{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--ink-soft);}
+  .case-hint.over{color:var(--amber-ink);font-weight:700;}
+  .case-suite{display:none;align-items:center;gap:6px;border:1px solid var(--gold);background:#fff;color:var(--amber-ink);border-radius:9px;padding:9px 13px;font-weight:700;font-size:13px;font-family:inherit;cursor:pointer;min-height:42px;}
+  .case-suite.show{display:inline-flex;}
+  .compl-section{border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:10px;background:#fff;}
+  .compl-section-h{display:flex;align-items:center;gap:9px;margin-bottom:8px;}
+  .compl-section-t{flex:1;font-size:13px;color:var(--ink-soft);font-weight:600;}
+  .compl-sec-del{border:none;background:#f3ece0;color:var(--warn);border-radius:8px;width:34px;height:34px;font-size:18px;cursor:pointer;}
+  .compl-section textarea{width:100%;resize:none;overflow:hidden;min-height:64px;border:1px solid var(--line);border-radius:9px;padding:10px;font-family:inherit;font-size:14.5px;}
+  .compl-add{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:4px;}
+  .compl-add select{flex:1;min-width:160px;}
+  .folio-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:-6px 0 14px;}
+  .statut-pill{font-family:"JetBrains Mono",monospace;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;padding:5px 11px;border-radius:20px;background:#f1eadd;color:var(--ink-soft);border:1px solid var(--line);}
+  .statut-pill.ok{background:#e7f3ec;color:var(--ok);border-color:#bfe0cc;}
+  .statut-pill.warn{background:#fbeee9;color:var(--warn);border-color:#f0cfc4;}
+  .folio-horo{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--ink-soft);}
+  .photos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-bottom:10px;}
+  .photo-thumb{position:relative;aspect-ratio:1;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#000;}
+  .photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .photo-thumb .photo-del{position:absolute;top:4px;right:4px;width:26px;height:26px;border:none;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:15px;cursor:pointer;}
+  .biblio-field{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:#fff;cursor:pointer;}
+  .biblio-field input{margin-top:2px;width:20px;height:20px;flex:none;}
+  .biblio-txt{display:flex;flex-direction:column;gap:2px;}
+  .biblio-field-l{font-size:13px;font-weight:700;}
+  .biblio-field-v{font-size:13px;color:var(--ink-soft);}
+  .biblio-field-cur{font-size:11px;color:var(--warn);}
+  .plan-row,.metre-row{display:grid;gap:7px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px;margin-bottom:8px;}
+  .plan-row{grid-template-columns:1fr;}
+  .plan-row .plan-dates{display:grid;grid-template-columns:1fr 1fr auto auto;gap:7px;align-items:center;}
+  .metre-row{grid-template-columns:1fr;}
+  .metre-row .metre-line{display:grid;grid-template-columns:80px 1fr;gap:7px;}
+  .metre-row .metre-line2{display:grid;grid-template-columns:70px 1fr 1fr auto;gap:7px;align-items:center;}
+  .plan-row input,.metre-row input{border:1px solid var(--line);border-radius:8px;padding:9px;font-family:inherit;font-size:14px;width:100%;}
+  .row-del{border:none;background:#f3ece0;color:var(--warn);border-radius:8px;width:38px;height:38px;font-size:18px;cursor:pointer;flex:none;}
+  .gantt{margin:6px 0 16px;display:flex;flex-direction:column;gap:7px;}
+  .gantt-row{display:grid;grid-template-columns:96px 1fr;gap:8px;align-items:center;}
+  .gantt-name{font-size:12px;color:var(--ink-soft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .gantt-track{position:relative;height:20px;background:#efe8d9;border-radius:6px;overflow:hidden;}
+  .gantt-bar{position:absolute;top:0;height:100%;background:var(--teal);border-radius:6px;}
+  .gantt-bar>span{position:absolute;inset:0;background:var(--gold);opacity:.85;}
+  .metre-total{text-align:right;font-size:15px;margin:4px 2px 0;}
+  .rep-tabs{display:flex;gap:6px;overflow-x:auto;margin-bottom:8px;-webkit-overflow-scrolling:touch;}
+  .rep-tab{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 15px;font-size:13px;font-family:inherit;cursor:pointer;color:var(--ink-soft);min-height:40px;}
+  .rep-tab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+  .rep-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:11px;padding:10px;margin-bottom:8px;}
+  .rep-row .rep-f{border:1px solid var(--line);border-radius:8px;padding:9px;font-family:inherit;font-size:14px;width:100%;}
+  .rep-row .row-del{grid-column:1 / -1;justify-self:end;}
+  .case-rep{display:flex;gap:7px;margin-top:7px;align-items:center;}
+  .case-rep-sel{flex:1;min-width:0;border:1px solid var(--line);border-radius:8px;padding:9px;font-family:inherit;font-size:13px;background:#fff;}
+  .cat-item{padding:7px 2px;border-bottom:1px solid var(--line);font-size:14px;}
+  .cat-item:last-child{border-bottom:none;}
+  .cat-snip{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+
   /* HEADER */
   .app-header{background:var(--teal);color:#fff;padding:14px 18px 12px;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:30;}
-  .app-header h1{font-size:26px;margin:0;line-height:1.05;}
+  .app-header h1{font-size:27px;margin:0;line-height:1;letter-spacing:.5px;}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand-mark{width:34px;height:34px;flex:none;filter:drop-shadow(0 1px 1px rgba(0,0,0,.22));}
+  .brand-txt{min-width:0;}
   .header-sub{font-family:"JetBrains Mono",monospace;font-size:11px;opacity:.85;margin:3px 0 0;letter-spacing:.3px;}
   .sync-dot{position:absolute;top:16px;right:18px;width:11px;height:11px;border-radius:50%;background:#9fb4ba;box-shadow:0 0 0 3px rgba(255,255,255,.12);}
   .sync-dot.dirty{background:var(--gold);} .sync-dot.synced{background:#6fdc9a;} .sync-dot.error{background:#ff8a7a;}
@@ -159,8 +218,17 @@
 <body>
 
 <header class="app-header">
-  <h1>Journal des Travaux</h1>
-  <p class="header-sub" id="header-sub">— · v4.2</p>
+  <div class="brand">
+    <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M14 7 H39 L52 20 V57 H14 Z" fill="#f6f1e7"/>
+      <path d="M39 7 L52 20 H39 Z" fill="#C9A24B"/>
+      <path d="M21 30 H45 M21 38 H45 M21 46 H37" stroke="#1F4E5F" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </svg>
+    <div class="brand-txt">
+      <h1>Folio</h1>
+      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.4</p>
+    </div>
+  </div>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
 </header>
 
@@ -186,6 +254,21 @@
       <div class="card stat-card"><p class="stat-label">Compléments</p><p class="stat-value" id="st-compl">0</p></div>
       <div class="card stat-card"><p class="stat-label">Ouvriers cumul</p><p class="stat-value" id="st-ouv">0</p></div>
       <div class="card stat-card"><p class="stat-label">Journal N°</p><p class="stat-value" id="st-journal">1</p></div>
+    </div>
+
+    <h3 class="section-title">Indicateurs</h3>
+    <div class="grid-stats">
+      <div class="card stat-card"><p class="stat-label">Heures-homme</p><p class="stat-value" id="st-hh">0</p></div>
+      <div class="card stat-card"><p class="stat-label">Ouvriers-jours</p><p class="stat-value" id="st-oj">0</p></div>
+      <div class="card stat-card"><p class="stat-label">Jours de pluie</p><p class="stat-value" id="st-pluie">0</p></div>
+      <div class="card stat-card"><p class="stat-label">Avancement J.O.</p><p class="stat-value" id="st-avct">—</p></div>
+    </div>
+
+    <h3 class="section-title">Outils du chantier</h3>
+    <div class="card-actions" style="margin-bottom:6px;">
+      <button class="btn btn-secondary" id="btn-planning"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h10"/></svg>Planning</button>
+      <button class="btn btn-secondary" id="btn-metre"><svg class="ic" viewBox="0 0 24 24"><path d="M3 8h18v8H3z"/><path d="M7 8v3M11 8v4M15 8v3M19 8v4"/></svg>Métré</button>
+      <button class="btn btn-secondary" id="btn-repertoires"><svg class="ic" viewBox="0 0 24 24"><path d="M4 5h16v14H4z"/><path d="M9 5v14"/></svg>Répertoires</button>
     </div>
 
     <h3 class="section-title">Derniers folios</h3>
@@ -310,6 +393,7 @@
       <h2 id="folio-title">Folio</h2>
       <button class="btn-icon" id="folio-delete" title="Supprimer">🗑</button>
     </div>
+    <div class="folio-meta"><span id="folio-statut-pill" class="statut-pill">brouillon</span><span id="folio-horo" class="folio-horo"></span></div>
     <form id="form-folio" autocomplete="off">
       <details class="fieldset" open>
         <summary><span class="num">①</span> Informations générales</summary>
@@ -334,19 +418,29 @@
       <details class="fieldset case-fieldset" open>
         <summary><span class="case-tag">A</span> Ouvriers</summary>
         <div id="ouvriers-rows"></div>
+        <datalist id="dl-classe"></datalist>
+        <datalist id="dl-metier"></datalist>
         <button type="button" class="btn-add-row" id="add-ouvrier">+ Ajouter une ligne</button>
         <p class="ouv-total">Total : <strong id="ouv-total">0</strong></p>
       </details>
 
       <details class="fieldset case-fieldset"><summary><span class="case-tag">B</span> Travaux exécutés</summary><div class="field"><textarea name="case_B" rows="4"></textarea></div></details>
-      <details class="fieldset case-fieldset"><summary><span class="case-tag">C</span> Matériel en service</summary><div class="field"><textarea name="case_C" rows="3"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">C</span> Matériel en service</summary><div class="field"><textarea name="case_C" rows="3"></textarea><div class="case-rep"><select id="caserep-C" class="case-rep-sel"></select><button type="button" class="btn btn-ghost btn-compact case-rep-ins" data-letter="C" data-type="materiel">Insérer</button></div></div></details>
       <details class="fieldset case-fieldset"><summary><span class="case-tag">D</span> Matériel hors service</summary><div class="field"><textarea name="case_D" rows="3"></textarea></div></details>
-      <details class="fieldset case-fieldset"><summary><span class="case-tag">E</span> Matériaux entrés</summary><div class="field"><textarea name="case_E" rows="3"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">E</span> Matériaux entrés</summary><div class="field"><textarea name="case_E" rows="3"></textarea><div class="case-rep"><select id="caserep-E" class="case-rep-sel"></select><button type="button" class="btn btn-ghost btn-compact case-rep-ins" data-letter="E" data-type="materiaux">Insérer</button></div></div></details>
       <details class="fieldset case-fieldset"><summary><span class="case-tag">F</span> Essais sur chantier</summary><div class="field"><textarea name="case_F" rows="3"></textarea></div></details>
       <details class="fieldset case-fieldset"><summary><span class="case-tag">G</span> Échantillons expédiés</summary><div class="field"><textarea name="case_G" rows="3"></textarea></div></details>
       <details class="fieldset case-fieldset"><summary><span class="case-tag">H</span> Événements imprévus</summary><div class="field"><textarea name="case_H" rows="4"></textarea></div></details>
       <details class="fieldset case-fieldset"><summary><span class="case-tag">J</span> Décisions prises</summary><div class="field"><textarea name="case_J" rows="4"></textarea></div></details>
-      <details class="fieldset case-fieldset"><summary><span class="case-tag">K</span> Visites & divers</summary><div class="field"><textarea name="case_K" rows="3"></textarea></div></details>
+      <details class="fieldset case-fieldset"><summary><span class="case-tag">K</span> Visites &amp; divers</summary><div class="field"><textarea name="case_K" rows="3"></textarea><div class="case-rep"><select id="caserep-K" class="case-rep-sel"></select><button type="button" class="btn btn-ghost btn-compact case-rep-ins" data-letter="K" data-type="visiteurs">Insérer</button></div></div></details>
+
+      <details class="fieldset">
+        <summary>📷 Photos du jour</summary>
+        <p class="screen-sub">Jointes au folio pour ta traçabilité interne — elles n'apparaissent pas dans le PDF officiel 9545 F.</p>
+        <div id="photos-grid" class="photos-grid"></div>
+        <input type="file" id="photo-input" accept="image/*" capture="environment" multiple hidden>
+        <button type="button" class="btn btn-ghost btn-compact" id="add-photo">＋ Ajouter une photo</button>
+      </details>
 
       <details class="fieldset">
         <summary><span class="num">②</span> Statut & signatures</summary>
@@ -388,20 +482,20 @@
     </div>
     <form id="form-complement" autocomplete="off">
       <details class="fieldset" open>
-        <summary><span class="num">①</span> Références</summary>
+        <summary><span class="num">①</span> Folio concerné</summary>
         <div class="grid-2">
-          <div class="field"><label>N° complément (31-40)</label><input name="folio_compl_no" type="number" min="31" max="40" required></div>
-          <div class="field"><label>Folio principal réf.</label><input name="folio_no_ref" type="number" min="1" max="30" required></div>
+          <div class="field"><label>Folio principal</label><input id="c-folio-ref" type="number" min="1" max="30" inputmode="numeric"></div>
+          <div class="field"><label>Date du folio</label><input id="c-date-ref" type="date"></div>
         </div>
-        <div class="grid-2">
-          <div class="field"><label>Date folio principal</label><input name="date_ref" type="date"></div>
-          <div class="field"><label>Case continuée</label>
-            <select name="case"><option>A</option><option>B</option><option>C</option><option>D</option><option>E</option><option>F</option><option>G</option><option>H</option><option>J</option><option>K</option></select></div>
-        </div>
+        <p class="screen-sub">N° du complément : <strong class="mono" id="c-num-echo">0000</strong> — identique au folio (numérotation 1:1).</p>
       </details>
       <details class="fieldset" open>
-        <summary><span class="num">②</span> Texte</summary>
-        <div class="field"><textarea name="texte" rows="10"></textarea></div>
+        <summary><span class="num">②</span> Suites de cases</summary>
+        <div id="compl-sections"></div>
+        <div class="compl-add">
+          <select id="c-add-case"></select>
+          <button type="button" class="btn btn-ghost btn-compact" id="c-add-case-btn">+ Ajouter une case</button>
+        </div>
       </details>
       <div class="sticky-actions">
         <button type="button" class="btn btn-primary" id="save-complement">Sauvegarder</button>
@@ -424,6 +518,11 @@
     </details>
 
     <details class="fieldset" open>
+      <summary>👤 Identité</summary>
+      <div class="field"><label>Ton nom (auteur des folios)</label><input id="r-auteur" type="text" placeholder="Ex : Ramiz Xhixha"></div>
+    </details>
+
+    <details class="fieldset" open>
       <summary>☁ GitHub (publication + PDF)</summary>
       <p class="screen-sub">Token créé sur github.com/settings/tokens (scope <b>repo</b>). Stocké uniquement sur cet appareil.</p>
       <div class="field"><label>Owner</label><input id="r-owner" type="text" placeholder="ramizxhixha-a11y"></div>
@@ -431,6 +530,13 @@
       <div class="field"><label>Branche</label><input id="r-branch" type="text" placeholder="main"></div>
       <div class="field"><label>Personal Access Token</label><input id="r-token" type="password" placeholder="ghp_…"></div>
       <button class="btn btn-ghost btn-compact" id="btn-test-github" style="margin-top:4px;">🔍 Tester la connexion</button>
+    </details>
+
+    <details class="fieldset">
+      <summary>✨ IA (optionnel)</summary>
+      <p class="screen-sub">Renfort d'extraction quand les regex/OCR ratent des champs. Ta clé Anthropic reste <b>sur cet appareil</b> (jamais publiée). Crée-la sur console.anthropic.com.</p>
+      <div class="field"><label>Clé API Anthropic</label><input id="r-aikey" type="password" placeholder="sk-ant-…"></div>
+      <div class="field"><label>Modèle</label><input id="r-aimodel" type="text" placeholder="claude-sonnet-4-20250514"></div>
     </details>
 
     <details class="fieldset" open>
@@ -453,7 +559,7 @@
 
     <details class="fieldset">
       <summary>ℹ À propos</summary>
-      <p style="font-size:14px;">Journal des Travaux v4.2 — modèle Embuild 9545 F.</p>
+      <p style="font-size:14px;">Folio v5.4 — Journal des Travaux, modèle Embuild 9545 F.</p>
       <p class="screen-sub">100 % local (IndexedDB) + publication GitHub explicite. Fonctionne hors-ligne.</p>
     </details>
 
@@ -461,12 +567,90 @@
       <button type="button" class="btn btn-primary" id="save-reglages">💾 Enregistrer les réglages</button>
     </div>
   </section>
+
+  <!-- BIBLIOTHEQUE -->
+  <section class="screen" data-screen="biblio">
+    <h2 class="screen-title">Bibliothèque</h2>
+    <p class="screen-sub">Lis un cahier des charges (PDF) du chantier : Folio en extrait les infos du marché et te propose de les reporter dans le projet. Tout reste sur ta tablette.</p>
+    <input type="file" id="biblio-input" accept="application/pdf,.pdf" hidden>
+    <button class="btn btn-primary btn-block" id="biblio-pick">📄 Lire un CSC (PDF)</button>
+    <p class="screen-sub" id="biblio-status" style="margin-top:12px;"></p>
+    <div id="biblio-ai-wrap" style="display:none;margin:2px 0 8px;"><button type="button" class="btn btn-ghost btn-compact" id="biblio-ai">✨ Compléter par IA</button></div>
+    <div id="biblio-review" style="display:none;">
+      <h3 class="section-title">Données détectées</h3>
+      <p class="screen-sub">Coche ce que tu veux reporter dans le projet. Les champs déjà remplis sont décochés par défaut — rien n'est écrasé sans ton accord.</p>
+      <div id="biblio-fields"></div>
+      <div class="sticky-actions">
+        <button type="button" class="btn btn-primary" id="biblio-apply">Reporter dans le projet</button>
+      </div>
+    </div>
+    <h3 class="section-title">Documents lus</h3>
+    <ul class="folio-list" id="biblio-docs"><li class="empty-state">Aucun document lu.</li></ul>
+    <h3 class="section-title">Catalogue du chantier</h3>
+    <div id="biblio-catalogue"></div>
+  </section>
+
+  <!-- PLANNING (Gantt v1) -->
+  <section class="screen" data-screen="planning">
+    <div class="folio-toolbar">
+      <button class="btn-icon" id="plan-back" title="Retour">←</button>
+      <h2 id="plan-title" style="flex:1;font-size:22px;margin:0;">Planning</h2>
+      <button class="btn btn-ghost btn-compact" id="plan-add">+ Tâche</button>
+    </div>
+    <p class="screen-sub">Tâches du chantier. Saisie manuelle, ou génère un squelette depuis les chapitres du métré (dates à compléter).</p>
+    <div class="card-actions" style="margin-bottom:8px;">
+      <button class="btn btn-secondary" id="plan-from-metre">Depuis le métré</button>
+    </div>
+    <div id="plan-gantt" class="gantt"></div>
+    <div id="plan-rows"></div>
+    <div class="sticky-actions"><button type="button" class="btn btn-primary" id="plan-save">Enregistrer le planning</button></div>
+  </section>
+
+  <!-- METRE (v1) -->
+  <section class="screen" data-screen="metre">
+    <div class="folio-toolbar">
+      <button class="btn-icon" id="metre-back" title="Retour">←</button>
+      <h2 id="metre-title" style="flex:1;font-size:22px;margin:0;">Métré</h2>
+      <button class="btn btn-ghost btn-compact" id="metre-add">+ Poste</button>
+    </div>
+    <p class="screen-sub">Postes du marché. Saisis à la main ou importe-les depuis le métré PDF (couche texte requise).</p>
+    <div class="card-actions" style="margin-bottom:8px;">
+      <button class="btn btn-secondary" id="metre-pdf-btn">Importer depuis un PDF</button>
+      <input type="file" id="metre-pdf" accept="application/pdf,.pdf" style="display:none;">
+    </div>
+    <div id="metre-rows"></div>
+    <p class="metre-total">Total HTVA : <strong id="metre-total" class="mono">0,00 €</strong></p>
+    <div class="sticky-actions"><button type="button" class="btn btn-primary" id="metre-save">Enregistrer le métré</button></div>
+  </section>
+
+  <!-- REPERTOIRES (Phase 2) -->
+  <section class="screen" data-screen="repertoires">
+    <div class="folio-toolbar">
+      <button class="btn-icon" id="rep-back" title="Retour">←</button>
+      <h2 id="rep-title" style="flex:1;font-size:22px;margin:0;">Répertoires</h2>
+      <button class="btn btn-ghost btn-compact" id="rep-add">+ Entrée</button>
+    </div>
+    <div class="rep-tabs" id="rep-tabs">
+      <button class="rep-tab active" data-tab="ouvriers">Ouvriers</button>
+      <button class="rep-tab" data-tab="materiel">Matériel</button>
+      <button class="rep-tab" data-tab="materiaux">Matériaux</button>
+      <button class="rep-tab" data-tab="visiteurs">Visiteurs</button>
+    </div>
+    <p class="screen-sub">Base réutilisable sur tous tes chantiers. Saisie manuelle ou import CSV ; les ouvriers saisis dans les folios s'ajoutent automatiquement.</p>
+    <div class="card-actions" style="margin-bottom:8px;">
+      <button class="btn btn-secondary" id="rep-csv-btn">Importer un CSV</button>
+      <input type="file" id="rep-csv" accept=".csv,text/csv" style="display:none;">
+    </div>
+    <div id="rep-rows"></div>
+    <div class="sticky-actions"><button type="button" class="btn btn-primary" id="rep-save">Enregistrer le répertoire</button></div>
+  </section>
 </main>
 
 <nav class="bottom-nav">
   <button class="nav-btn active" data-nav="accueil"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/></svg></span><span class="nav-label">Accueil</span></button>
   <button class="nav-btn" data-nav="projet"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4"/><path d="M9 13h7M9 16.5h5"/></svg></span><span class="nav-label">Projet</span></button>
   <button class="nav-btn" data-nav="historique"><span class="nav-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg></span><span class="nav-label">Historique</span></button>
+  <button class="nav-btn" data-nav="biblio"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 2-2h6v18H7a2 2 0 0 1-2-2z"/><path d="M13 3h4a2 2 0 0 1 2 2v14h-6"/></svg></span><span class="nav-label">Biblio</span></button>
   <button class="nav-btn" data-nav="reglages"><span class="nav-icon"><svg viewBox="0 0 24 24"><path d="M4 8h10M19 8h1M4 16h6M15 16h5"/><circle cx="16" cy="8" r="2.3"/><circle cx="12" cy="16" r="2.3"/></svg></span><span class="nav-label">Réglages</span></button>
 </nav>
 
@@ -480,19 +664,23 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='4.2';
+const APP_VERSION='5.4';
 const DB_NAME='journal-travaux-db';
-const DB_VERSION=4;
+const DB_VERSION=5;
 const STORES={
   projet:'projet', folios:'folios', complements:'complements', config:'config',
   rep_ouvriers:'repertoire_ouvriers', rep_materiel:'repertoire_materiel',
-  rep_materiaux:'repertoire_materiaux', rep_visiteurs:'repertoire_visiteurs'
+  rep_materiaux:'repertoire_materiaux', rep_visiteurs:'repertoire_visiteurs',
+  /* §4.7 — Bibliothèque (ajout v5, non destructif : onupgradeneeded crée seulement les stores absents) */
+  biblio_documents:'biblio_documents', biblio_extractions:'biblio_extractions',
+  biblio_projets_meta:'biblio_projets_meta', patterns_lib:'patterns_lib'
 };
 const LEGACY_DB_NAMES=['journal-travaux-db','journal_travaux','journal-travaux'];
 
 const DEFAULT_CONFIG={
-  projet_id:'main', meteo_lat:50.7949, meteo_lon:4.3520, meteo_auto:'oui',
-  gh_owner:'', gh_repo:'', gh_branch:'main', gh_token:''
+  projet_id:'main', meteo_lat:50.7949, meteo_lon:4.3520, meteo_auto:'oui', auteur:'',
+  gh_owner:'', gh_repo:'', gh_branch:'main', gh_token:'',
+  anthropic_key:'', anthropic_model:'claude-sonnet-4-20250514'
 };
 
 let db=null;
@@ -589,7 +777,14 @@ function normCompl(c){
   const o={...c};
   if(o.id===undefined||o.id===null||o.id==='') o.id=uid();
   o.id=String(o.id);
-  if(!o.texte && o.sections){ o.texte=Object.values(o.sections).join('\n'); }
+  o.folio_no_ref=Number(o.folio_no_ref)||0;
+  /* sections = source de vérité ; migration depuis l'ancien {case, texte} */
+  if(!o.sections || typeof o.sections!=='object' || Array.isArray(o.sections)) o.sections={};
+  if(!Object.keys(o.sections).length && (o.texte||'').trim() && o.case){ o.sections={[o.case]:o.texte}; }
+  /* numérotation 1:1 : le complément porte le N° de son folio */
+  o.folio_compl_no=o.folio_no_ref||Number(o.folio_compl_no)||0;
+  o.texte=Object.values(o.sections).filter(Boolean).join('\n');   /* agrégat rétrocompat lecture */
+  o.case=Object.keys(o.sections)[0]||o.case||'';
   o.projet_id=o.projet_id||state.config.projet_id||'main';
   if(!o.created_at) o.created_at=new Date().toISOString();
   if(!o.updated_at) o.updated_at=o.created_at;
@@ -664,6 +859,7 @@ async function loadState(){
   const compls=await dbAll(STORES.complements);
   state.complements=compls.map(x=>normCompl(x.value!==undefined?x.value:x)).sort((a,b)=>(a.folio_compl_no||0)-(b.folio_compl_no||0));
   await seedCavellIfEmpty();
+  if(typeof loadReps==='function') await loadReps();
 }
 
 /* Pré-remplissage CHIREC – Édith Cavell : commodité temporaire (la Bibliothèque le généralisera).
@@ -782,6 +978,11 @@ function show(name){
   if(name==='projets') renderProjetsScreen();                /* multi-projet : écran de bascule */
   if(name==='historique') renderHistorique();
   if(name==='reglages') renderReglages();
+  if(name==='biblio') renderBiblio();
+  if(name==='planning') renderPlanning();
+  if(name==='metre') renderMetre();
+  if(name==='repertoires') renderReps();
+  if(name==='folio') requestAnimationFrame(refreshFolioHints);
   window.scrollTo(0,0);
 }
 $$('.nav-btn').forEach(b=>b.addEventListener('click',()=>show(b.dataset.nav)));
@@ -804,6 +1005,21 @@ function renderAccueil(){
   $('#st-compl').textContent=mc.length;
   $('#st-ouv').textContent=mf.reduce((a,f)=>a+(f.ouvriers_total||0),0);
   $('#st-journal').textContent=(state.projet&&state.projet.journal_no)||1;
+
+  /* Indicateurs cumulés (Phase 3·B) */
+  const hm=(t)=>{ const p=String(t||'').split(':'); return p.length===2? (Number(p[0])+Number(p[1])/60):0; };
+  let heuresHomme=0, ouvJours=0, pluie=0;
+  mf.forEach(f=>{
+    const dur=Math.max(0, hm(f.heures_fin)-hm(f.heures_debut));
+    const nb=f.ouvriers_total||0;
+    heuresHomme+=dur*nb; ouvJours+=nb;
+    if(/pluie|neige|orage|gel|verglas/i.test(f.etat_atmospherique||'')) pluie++;
+  });
+  $('#st-hh').textContent=Math.round(heuresHomme);
+  $('#st-oj').textContent=ouvJours;
+  $('#st-pluie').textContent=pluie;
+  const delai=(state.projet&&Number(state.projet.delai_achevement_jo))||0;
+  $('#st-avct').textContent= delai>0 ? Math.round(mf.length/delai*100)+'%' : (mf.length+' j');
 
   const recent=mf.slice().reverse().slice(0,5);
   renderFolioList($('#recent-folios'),recent);
@@ -946,7 +1162,12 @@ function continueFolio(){
 function fillFolioForm(f){
   $('#folio-title').textContent='Folio N° '+pad(f.folio_no);
   formFill($('#form-folio'),f);
+  buildOuvrierSuggestions();
+  if(typeof buildCaseRepPickers==='function') buildCaseRepPickers();
   renderOuvriers(f.ouvriers||[]);
+  curPhotos=Array.isArray(f.photos)?f.photos.slice():[]; renderPhotos();
+  updateStatutPill(); showFolioHorodatage(f);
+  requestAnimationFrame(refreshFolioHints);
 }
 function renderOuvriers(rows){
   const w=$('#ouvriers-rows'); w.innerHTML='';
@@ -956,8 +1177,8 @@ function renderOuvriers(rows){
 function addOuvrier(d={}){
   const w=$('#ouvriers-rows');
   const div=document.createElement('div'); div.className='ouv-row';
-  div.innerHTML=`<input class="o-classe" placeholder="Classe" value="${esc(d.classe||'')}">
-    <input class="o-metier" placeholder="Métier" value="${esc(d.metier||'')}">
+  div.innerHTML=`<input class="o-classe" list="dl-classe" placeholder="Classe" value="${esc(d.classe||'')}">
+    <input class="o-metier" list="dl-metier" placeholder="Métier" value="${esc(d.metier||'')}">
     <input class="o-nb" type="number" min="0" placeholder="0" value="${d.nombre!=null?d.nombre:''}">
     <button type="button" class="row-del">×</button>`;
   w.appendChild(div);
@@ -972,7 +1193,57 @@ function collectOuvriers(){
   })).filter(o=>o.classe||o.metier||o.nombre);
 }
 function updOuvTotal(){ $('#ouv-total').textContent=collectOuvriers().reduce((a,o)=>a+o.nombre,0); }
+
+/* Phase 2 — auto-complétion ouvriers : historique du chantier + base métier HVAC/SAN/ÉLEC */
+const CLASSES_BASE=['Chef de chantier','Chef d\u2019\u00e9quipe','Contrema\u00eetre','Technicien','Ouvrier qualifi\u00e9','Ouvrier sp\u00e9cialis\u00e9','Man\u0153uvre','Apprenti','Int\u00e9rimaire'];
+const METIERS_BASE=['Frigoriste','Monteur HVAC','Monteur sanitaire','Soudeur','Tuyauteur','\u00c9lectricien','Ventiliste','Calorifugeur','Plombier','Chauffagiste','G\u00e9om\u00e8tre','Aide-monteur'];
+function buildOuvrierSuggestions(){
+  const cl=new Set(CLASSES_BASE), me=new Set(METIERS_BASE);
+  myFolios().forEach(f=>(f.ouvriers||[]).forEach(o=>{ if(o.classe) cl.add(o.classe.trim()); if(o.metier) me.add(o.metier.trim()); }));
+  (typeof REP!=='undefined'?(REP.ouvriers||[]):[]).forEach(o=>{ if(o.classe) cl.add(o.classe.trim()); if(o.metier) me.add(o.metier.trim()); });
+  const fill=(id,set)=>{ const dl=$('#'+id); if(dl) dl.innerHTML=[...set].filter(Boolean).sort((a,b)=>a.localeCompare(b,'fr')).map(v=>'<option value="'+esc(v)+'">').join(''); };
+  fill('dl-classe',cl); fill('dl-metier',me);
+}
 $('#add-ouvrier').addEventListener('click',()=>addOuvrier());
+
+/* Phase 3·A — folio enrichi : photos jointes, statut visible, horodatage/auteur */
+let curPhotos=[];
+function renderPhotos(){
+  const g=$('#photos-grid'); if(!g) return;
+  g.innerHTML=curPhotos.map((src,i)=>'<div class="photo-thumb"><img src="'+src+'" alt="photo"><button type="button" class="photo-del" data-i="'+i+'">×</button></div>').join('');
+  g.querySelectorAll('.photo-del').forEach(b=>b.addEventListener('click',()=>{ curPhotos.splice(Number(b.dataset.i),1); renderPhotos(); }));
+}
+function compressImage(file, maxPx=1280, quality=0.6){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{ const img=new Image(); img.onload=()=>{
+      let w=img.width, h=img.height; const sc=Math.min(1,maxPx/Math.max(w,h)); w=Math.round(w*sc); h=Math.round(h*sc);
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      res(cv.toDataURL('image/jpeg',quality)); }; img.onerror=rej; img.src=fr.result; };
+    fr.onerror=rej; fr.readAsDataURL(file);
+  });
+}
+$('#add-photo').addEventListener('click',()=>$('#photo-input').click());
+$('#photo-input').addEventListener('change',async e=>{
+  const files=[...e.target.files]; e.target.value='';
+  for(const f of files){ try{ curPhotos.push(await compressImage(f)); }catch(_){ toast('Photo illisible','error'); } }
+  renderPhotos();
+  if(files.length) toast(files.length+' photo'+(files.length>1?'s':'')+' ajoutée'+(files.length>1?'s':'')+' ✓','success');
+});
+const STATUT_CLASS=s=>{ s=String(s||'').toLowerCase(); if(/sign|valid/.test(s))return'ok'; if(/signer|archiv/.test(s))return'warn'; return''; };
+function updateStatutPill(){
+  const sel=$('#form-folio [name="statut"]'); const pill=$('#folio-statut-pill'); if(!sel||!pill) return;
+  pill.textContent=sel.value||'brouillon'; pill.className='statut-pill '+STATUT_CLASS(sel.value);
+}
+function showFolioHorodatage(f){
+  const el=$('#folio-horo'); if(!el) return;
+  const parts=[];
+  if(f&&f.updated_at) parts.push('modifié '+fmtDate(String(f.updated_at).slice(0,10)));
+  if(f&&f.auteur) parts.push('par '+f.auteur);
+  el.textContent=parts.join(' · ');
+}
+const _statutSel=$('#form-folio [name="statut"]'); if(_statutSel) _statutSel.addEventListener('change',updateStatutPill);
 
 async function doSaveFolio(forceStatut){
   const d=formRead($('#form-folio'));
@@ -981,11 +1252,14 @@ async function doSaveFolio(forceStatut){
   f.id=state.curFolioId||f.id||uid();
   f.ouvriers=collectOuvriers();
   f.ouvriers_total=f.ouvriers.reduce((a,o)=>a+o.nombre,0);
+  f.photos=curPhotos.slice();
+  if(!f.auteur) f.auteur=state.config.auteur||'';
   f.projet_id=state.config.projet_id||'main';
   if(!f.journal_no) f.journal_no=currentJournalNo();         /* préserve, sinon journal courant */
   if(forceStatut && !/Sign|Valid/.test(String(d.statut||''))) f.statut=forceStatut;
   if(!f.created_at) f.created_at=new Date().toISOString();
   f.updated_at=new Date().toISOString();
+  if(typeof harvestOuvriers==='function'){ try{ await harvestOuvriers(f.ouvriers); }catch(_){} }
   await putFolio(f);
   state.curFolioId=String(f.id);
   await loadState();
@@ -1026,35 +1300,96 @@ $('#btn-meteo').addEventListener('click',()=>fetchMeteo(false));
 /* ═══════════ HISTORIQUE ═══════════ */
 function renderHistorique(){
   /* Multi-projet : on affiche uniquement les folios et compléments du projet courant */
-  const mf=myFolios(); const mc=myCompls();
+  const mf=myFolios();
+  const mc=myCompls().filter(c=>Object.keys(c.sections||{}).length || (c.texte||'').trim());
   renderFolioList($('#all-folios'), mf.slice().reverse());
   const cul=$('#all-complements');
   if(!mc.length){ cul.innerHTML='<li class="empty-state">Aucun complément.</li>'; return; }
-  cul.innerHTML=mc.map(c=>`<li class="folio-item" data-id="${esc(c.id)}">
-    <span class="folio-num">N° ${pad(c.folio_compl_no)}</span>
-    <div class="folio-info"><div class="folio-date">Case ${esc(c.case||'?')} · Folio ${pad(c.folio_no_ref)}</div>
+  const arr=[...mc].sort((a,b)=>(a.folio_no_ref||0)-(b.folio_no_ref||0));
+  cul.innerHTML=arr.map(c=>{
+    const cases=Object.keys(c.sections||{}).filter(k=>(c.sections[k]||'').trim());
+    const casesTxt=cases.length? ('Cases '+cases.join(', ')) : ('Case '+(c.case||'?'));
+    return `<li class="folio-item" data-id="${esc(c.id)}">
+    <span class="folio-num">N° ${pad(c.folio_no_ref)}</span>
+    <div class="folio-info"><div class="folio-date">${esc(casesTxt)} · Folio ${pad(c.folio_no_ref)}</div>
       <div class="folio-summary">${esc((c.texte||'').replace(/\n/g,' ').slice(0,52))}</div></div>
-    <span class="badge compl">Compl.</span></li>`).join('');
+    <span class="badge compl">Compl.</span></li>`;}).join('');
   cul.querySelectorAll('.folio-item').forEach(li=>li.addEventListener('click',()=>openCompl(li.dataset.id)));
 }
 $('#hist-new').addEventListener('click',newFolio);
 $('#hist-new-compl').addEventListener('click',newCompl);
 
 /* ═══════════ COMPLEMENT EDITOR ═══════════ */
-function nextComplNo(){ const used=myCompls().map(c=>c.folio_compl_no); let n=31; while(used.includes(n)&&n<40) n++; return n; }
-function newCompl(){
-  state.curComplId=null;
-  const c={ id:uid(), folio_compl_no:nextComplNo(), folio_no_ref:lastFolioNo()||1, date_ref:todayISO(), case:'H', texte:'', projet_id:state.config.projet_id||'main' };
-  fillComplForm(c); show('complement');
+/* ═══════════ COMPLEMENT EDITOR (un folio = un complément à sections, N° 1:1) ═══════════ */
+const CASE_LIST=['A','B','C','D','E','F','G','H','J','K'];
+const CASE_TITLES={A:'Ouvriers',B:'Travaux exécutés',C:'Matériel en service',D:'Matériel hors service',E:'Matériaux entrés',F:'Essais sur chantier',G:'Échantillons expédiés',H:'Événements imprévus',J:'Décisions prises',K:'Visites & divers'};
+let editCompl=null;
+
+function findComplForFolio(folioNo){ return myCompls().find(c=>Number(c.folio_no_ref)===Number(folioNo)) || null; }
+function blankCompl(folioNo){
+  const fn=Number(folioNo)||lastFolioNo()||1;
+  const fol=myFolios().find(f=>f.folio_no===fn);
+  return { id:uid(), folio_no_ref:fn, folio_compl_no:fn, date_ref:(fol&&fol.date)||todayISO(),
+           sections:{}, texte:'', case:'', projet_id:state.config.projet_id||'main' };
 }
-function openCompl(id){ const c=state.complements.find(x=>String(x.id)===String(id)); if(!c) return; state.curComplId=String(id); fillComplForm(c); show('complement'); }
-function fillComplForm(c){ $('#compl-title').textContent='Complément N° '+pad(c.folio_compl_no); formFill($('#form-complement'),c); }
+function newCompl(){ state.curComplId=null; editCompl=blankCompl(lastFolioNo()||1); renderComplEditor(); show('complement'); }
+function openCompl(id){
+  const c=state.complements.find(x=>String(x.id)===String(id)); if(!c) return;
+  state.curComplId=String(id); editCompl={...c, sections:{...(c.sections||{})}};
+  renderComplEditor(); show('complement');
+}
+function openComplForFolio(folioNo, focusCase){
+  const ex=findComplForFolio(folioNo);
+  if(ex){ state.curComplId=String(ex.id); editCompl={...ex, sections:{...(ex.sections||{})}}; }
+  else { state.curComplId=null; editCompl=blankCompl(folioNo); }
+  if(focusCase && !(focusCase in editCompl.sections)) editCompl.sections[focusCase]='';
+  renderComplEditor(focusCase); show('complement');
+}
+function renderComplEditor(focusCase){
+  const c=editCompl; if(!c) return;
+  $('#compl-title').textContent='Complément du folio N° '+pad(c.folio_no_ref);
+  $('#c-folio-ref').value=c.folio_no_ref||'';
+  $('#c-date-ref').value=c.date_ref||'';
+  $('#c-num-echo').textContent=pad(c.folio_no_ref);
+  const wrap=$('#compl-sections'); wrap.innerHTML='';
+  const keys=CASE_LIST.filter(k=>k in c.sections);
+  if(!keys.length){ wrap.innerHTML='<p class="screen-sub">Aucune case ajoutée. Choisis une case ci-dessous pour écrire sa suite.</p>'; }
+  keys.forEach(k=>{
+    const blk=document.createElement('div'); blk.className='compl-section'; blk.dataset.case=k;
+    blk.innerHTML='<div class="compl-section-h"><span class="case-tag">'+k+'</span>'
+      +'<span class="compl-section-t">Suite de la case '+k+' — '+esc(CASE_TITLES[k]||'')+'</span>'
+      +'<button type="button" class="compl-sec-del" title="Retirer cette case">×</button></div>'
+      +'<textarea rows="5"></textarea>';
+    wrap.appendChild(blk);
+    const ta=blk.querySelector('textarea'); ta.value=c.sections[k]||'';
+    ta.addEventListener('input',()=>{ c.sections[k]=ta.value; autoGrow(ta); });
+    blk.querySelector('.compl-sec-del').addEventListener('click',()=>{ delete c.sections[k]; renderComplEditor(); });
+    requestAnimationFrame(()=>autoGrow(ta));
+  });
+  const sel=$('#c-add-case'); const avail=CASE_LIST.filter(k=>!(k in c.sections));
+  sel.innerHTML=avail.map(k=>'<option value="'+k+'">'+k+' — '+esc(CASE_TITLES[k]||'')+'</option>').join('');
+  $('#c-add-case-btn').disabled=!avail.length;
+  if(focusCase){ const el=wrap.querySelector('.compl-section[data-case="'+focusCase+'"] textarea'); if(el) requestAnimationFrame(()=>el.focus()); }
+}
+$('#c-add-case-btn').addEventListener('click',()=>{ if(!editCompl) return; const k=$('#c-add-case').value; if(!k) return; if(!(k in editCompl.sections)) editCompl.sections[k]=''; renderComplEditor(k); });
+$('#c-folio-ref').addEventListener('input',()=>{ if(!editCompl) return; const n=Number($('#c-folio-ref').value)||0; editCompl.folio_no_ref=n; editCompl.folio_compl_no=n; $('#compl-title').textContent='Complément du folio N° '+pad(n); $('#c-num-echo').textContent=pad(n); });
+$('#c-date-ref').addEventListener('input',()=>{ if(editCompl) editCompl.date_ref=$('#c-date-ref').value; });
+
 $('#save-complement').addEventListener('click',async()=>{
-  const d=formRead($('#form-complement'));
-  let c=state.curComplId? {...state.complements.find(x=>String(x.id)===state.curComplId)} : {};
-  Object.assign(c,d);
-  c.id=state.curComplId||c.id||uid();
+  const c=editCompl; if(!c){ show('historique'); return; }
+  Object.keys(c.sections).forEach(k=>{ if(!(c.sections[k]||'').trim()) delete c.sections[k]; });
+  if(!c.folio_no_ref){ toast('Indique le folio concerné','error'); return; }
+  /* consolidation non destructive : récupérer les sections d'éventuels autres records du même folio */
+  const dups=myCompls().filter(x=>String(x.id)!==String(c.id) && Number(x.folio_no_ref)===Number(c.folio_no_ref));
+  for(const d of dups){
+    Object.keys(d.sections||{}).forEach(k=>{ if(!(k in c.sections) && (d.sections[k]||'').trim()) c.sections[k]=d.sections[k]; });
+    await putCompl({...d, sections:{}, texte:'', case:'', updated_at:new Date().toISOString()});
+  }
+  c.folio_compl_no=c.folio_no_ref;
+  c.texte=Object.values(c.sections).filter(Boolean).join('\n');
+  c.case=Object.keys(c.sections)[0]||'';
   c.projet_id=state.config.projet_id||'main';
+  if(!c.created_at) c.created_at=new Date().toISOString();
   c.updated_at=new Date().toISOString();
   await putCompl(c); state.curComplId=String(c.id); await loadState();
   syncDot('dirty'); toast('Complément sauvegardé ✓','success'); show('historique');
@@ -1067,11 +1402,556 @@ $('#compl-delete').addEventListener('click',async()=>{
   syncDot('dirty'); toast('Complément supprimé'); show('historique');
 });
 
+/* ═══════════ V4.3 — Saisie journalière : cases extensibles + aide au débordement ═══════════ */
+const CASE_CAP={ B:600, C:150, D:150, E:280, F:150, G:150, H:420, J:320, K:300 };
+function autoGrow(ta){ if(!ta) return; ta.style.height='auto'; ta.style.height=Math.max(ta.scrollHeight,56)+'px'; }
+function caseLetters(){ return Object.keys(CASE_CAP); }
+function refreshCaseHint(letter){
+  const ta=$('#form-folio textarea[name="case_'+letter+'"]'); if(!ta) return;
+  const det=ta.closest('details'); if(!det) return;
+  const extra=det.querySelector('.case-extra'); if(!extra) return;
+  const hint=extra.querySelector('.case-hint'), btn=extra.querySelector('.case-suite');
+  const cap=CASE_CAP[letter]||300, len=(ta.value||'').length;
+  if(len<=cap*0.7){ hint.textContent=''; hint.classList.remove('over'); btn.classList.remove('show'); return; }
+  const over=len>cap;
+  hint.textContent=over ? 'Cette case déborde du folio officiel — bascule le surplus en complément.' : ((cap-len)+' caractères avant débordement');
+  hint.classList.toggle('over',over);
+  btn.classList.toggle('show',over);
+}
+function refreshFolioHints(){ caseLetters().forEach(L=>{ const ta=$('#form-folio textarea[name="case_'+L+'"]'); if(ta){ autoGrow(ta); refreshCaseHint(L); } }); }
+function setupCaseHelpers(){
+  caseLetters().forEach(L=>{
+    const ta=$('#form-folio textarea[name="case_'+L+'"]'); if(!ta) return;
+    const det=ta.closest('details'); if(!det || det.querySelector('.case-extra')) return;
+    const extra=document.createElement('div'); extra.className='case-extra';
+    extra.innerHTML='<span class="case-hint"></span><button type="button" class="case-suite">\u2192 Mettre la suite dans un complément</button>';
+    ta.parentNode.appendChild(extra);
+    extra.querySelector('.case-suite').addEventListener('click',()=>goToComplForCase(L));
+    ta.addEventListener('input',()=>{ autoGrow(ta); refreshCaseHint(L); });
+    det.addEventListener('toggle',()=>{ if(det.open){ autoGrow(ta); refreshCaseHint(L); } });
+  });
+}
+async function persistCurrentFolio(){
+  const d=formRead($('#form-folio'));
+  if(!d.folio_no || !d.date){ toast('Renseigne le N° et la date du folio d’abord','error'); return null; }
+  let f=state.curFolioId? {...state.folios.find(x=>String(x.id)===state.curFolioId)} : {};
+  Object.assign(f,d);
+  f.id=state.curFolioId||f.id||uid();
+  f.ouvriers=collectOuvriers();
+  f.ouvriers_total=f.ouvriers.reduce((a,o)=>a+o.nombre,0);
+  f.photos=curPhotos.slice();
+  if(!f.auteur) f.auteur=state.config.auteur||'';
+  f.projet_id=state.config.projet_id||'main';
+  if(!f.journal_no) f.journal_no=currentJournalNo();
+  if(!f.created_at) f.created_at=new Date().toISOString();
+  f.updated_at=new Date().toISOString();
+  await putFolio(f);
+  state.curFolioId=String(f.id);
+  await loadState();
+  return f;
+}
+async function goToComplForCase(letter){
+  const f=await persistCurrentFolio(); if(!f) return;
+  openComplForFolio(f.folio_no, letter);
+  toast('Complément du folio N° '+pad(f.folio_no)+' — suite de la case '+letter);
+}
+setupCaseHelpers();
+
+/* ═══════════ BIBLIOTHÈQUE — lecture CSC (PDF.js) + extraction marché ═══════════ */
+let _pdfjs=null, biblioFound=null;
+function loadPdfJs(){
+  if(_pdfjs) return Promise.resolve(_pdfjs);
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{ const lib=window.pdfjsLib; if(!lib){ rej(new Error('PDF.js indisponible')); return; }
+      lib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      _pdfjs=lib; res(lib); };
+    s.onerror=()=>rej(new Error('Téléchargement de PDF.js impossible (connexion ?)'));
+    document.head.appendChild(s);
+  });
+}
+async function extractPdfText(file, maxPages=60){
+  const lib=await loadPdfJs();
+  const data=new Uint8Array(await file.arrayBuffer());
+  const pdf=await lib.getDocument({data}).promise;
+  const n=Math.min(pdf.numPages,maxPages); let txt='';
+  for(let i=1;i<=n;i++){ const pg=await pdf.getPage(i); const tc=await pg.getTextContent(); txt+=tc.items.map(x=>x.str).join(' ')+'\n'; }
+  return {text:txt, pages:pdf.numPages, read:n};
+}
+/* OCR (repli pour PDF scannés) — rasterisation PDF.js + reconnaissance Tesseract (français) */
+let _tess=null;
+function loadTesseract(){
+  if(_tess) return Promise.resolve(_tess);
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+    s.onload=()=>{ if(!window.Tesseract){ rej(new Error('OCR indisponible')); return; } _tess=window.Tesseract; res(_tess); };
+    s.onerror=()=>rej(new Error('Téléchargement de l’OCR impossible (connexion ?)'));
+    document.head.appendChild(s);
+  });
+}
+async function ocrPdf(file, maxPages=8, onProgress){
+  const lib=await loadPdfJs(); const T=await loadTesseract();
+  const data=new Uint8Array(await file.arrayBuffer());
+  const pdf=await lib.getDocument({data}).promise;
+  const n=Math.min(pdf.numPages,maxPages); let txt='';
+  for(let i=1;i<=n;i++){
+    if(onProgress) onProgress(i,n);
+    const pg=await pdf.getPage(i);
+    const vp=pg.getViewport({scale:2});
+    const cv=document.createElement('canvas'); cv.width=vp.width; cv.height=vp.height;
+    await pg.render({canvasContext:cv.getContext('2d'), viewport:vp}).promise;
+    try{ const r=await T.recognize(cv,'fra'); txt+=(r&&r.data&&r.data.text||'')+'\n'; }catch(_){}
+    cv.width=cv.height=0;
+  }
+  return {text:txt, pages:pdf.numPages, read:n};
+}
+function extractMarche(text){
+  const T=text.replace(/\u00a0/g,' ').replace(/\s+/g,' ');
+  const m1=re=>{ const m=T.match(re); return m?(m[1]||m[0]).trim():''; };
+  const out={};
+  if(/CHIREC|Edith\s+Cavell|Centre\s+Hospitalier\s+Interr/i.test(T)) out.pouvoir_adjudicateur='Centre Hospitalier Interrégional Edith Cavell (CHIREC)';
+  const dossier=m1(/(Chirec[\s-]?\d{4}[\s-]?\d{3,4})/i); if(dossier) out.no_dossier=dossier.replace(/\s+/g,'-');
+  const obj=m1(/Objet\s+du\s+march[ée]\s*:?\s*([^.;]{15,180})/i)||m1(/(March[ée]\s+de\s+travaux[^.;]{10,160})/i); if(obj) out.description=obj;
+  const montant=m1(/(\d{1,3}(?:[.\s]\d{3})+(?:,\d{2})?)\s*(?:€|EUR)\s*(?:TVAC|HTVA|HT|TVA\s*comprise)?/i); if(montant) out.montant_entreprise=montant+' €';
+  const jo=m1(/(\d{2,3})\s*(?:jours?\s+ouvrables?|J\.?\s?O\.?)/i); if(jo) out.delai_achevement_jo=jo;
+  const ag=T.match(/\b(?:D\s?1[678]|P\s?1)\b(?:[^.\d]{0,16}?classe\s*\d|\s*classe\s*\d|[^.\d]{0,4}?\d)?/ig);
+  if(ag&&ag.length) out.agreation=[...new Set(ag.map(s=>s.replace(/\s+/g,' ').trim()))].slice(0,6).join(' · ');
+  return out;
+}
+const BIBLIO_LABELS={pouvoir_adjudicateur:'Pouvoir adjudicateur', no_dossier:'N° de dossier', description:'Objet des travaux', montant_entreprise:'Montant', delai_achevement_jo:'Délai (J.O.)', agreation:'Agréation'};
+/* §4.4 — extraction structurée en 3 tiers (universel / discipline / projet) */
+function detectDisciplines(T){
+  const out=[]; const t=(re,n)=>{ if(new RegExp(re,'i').test(T)) out.push(n); };
+  t('HVAC|chauffage|ventilation|climatisation|\\bCVC\\b','HVAC');
+  t('sanitaire|plomberie|eau\\s+(?:chaude|froide)','Sanitaire');
+  t('[ée]lectric|RGIE|courant\\s+(?:fort|faible)','Électricité');
+  t('fluides?\\s+m[ée]dicaux|gaz\\s+m[ée]dicaux|oxyg[èe]ne','Fluides médicaux');
+  t('acoustique|d[ée]cibel|\\bdB\\b|NBN\\s*S01','Acoustique');
+  return [...new Set(out)];
+}
+/* §7 sessions 5 & 7 — extracteurs techniques par discipline (équipements & exigences) */
+const EQUIP_KEYWORDS={
+  HVAC:[['CTA\\b|centrale[s]?\\s+de\\s+traitement\\s+d.?air|double\\s+flux','Centrale de traitement d’air'],
+        ['groupe[s]?\\s+(?:de\\s+production\\s+d.?eau\\s+glac[ée]e|froid)|chiller','Groupe froid'],
+        ['pompe[s]?\\s+à\\s+chaleur|\\bPAC\\b','Pompe à chaleur'],
+        ['ventilo-?convecteur|fan\\s?coil','Ventilo-convecteur'],
+        ['pompe[s]?\\s+de\\s+circulation|circulateur','Pompe de circulation'],
+        ['caisson[s]?\\s+d.?(?:extraction|ventilation)|\\bventilateur','Ventilation / extraction'],
+        ['humidificateur','Humidificateur'],['[ée]changeur','Échangeur']],
+  Sanitaire:[['adoucisseur','Adoucisseur'],
+        ['ballon[s]?\\s+ECS|pr[ée]parateur[s]?\\s+ECS|eau\\s+chaude\\s+sanitaire','Production ECS'],
+        ['surpresseur','Surpresseur'],['s[ée]parateur[s]?\\s+(?:graisses?|hydrocarbures?)','Séparateur'],
+        ['pompe[s]?\\s+de\\s+relevage','Pompe de relevage']],
+  'Électricité':[['TGBT|tableau\\s+g[ée]n[ée]ral','Tableau général (TGBT)'],
+        ['tableau[x]?\\s+divisionnaire','Tableau divisionnaire'],['transformateur','Transformateur'],
+        ['onduleur|\\bUPS\\b','Onduleur'],['groupe\\s+[ée]lectrog[èe]ne','Groupe électrogène']],
+  'Fluides médicaux':[['oxyg[èe]ne|\\bO2\\b','Oxygène'],['vide\\s+m[ée]dical|aspiration','Vide médical'],['air\\s+m[ée]dical','Air médical']],
+  Acoustique:[['NBN\\s*S\\s*01','Exigence NBN S01-400'],['niveau\\s+(?:de\\s+)?bruit|dB\\s?\\(?A\\)?','Niveau sonore'],['indice\\s+d.?affaiblissement|\\bRw\\b','Affaiblissement acoustique']]
+};
+const CAP_RE=/(\d[\d .]*(?:,\d+)?\s*(?:m³\/h|m3\/h|kWh|kW|kVA|l\/h|l\/min|litres?|dB\s?\(?A\)?|mm²|mm2|bar|°C))/i;
+function extractEquipements(text, disciplines){
+  const segs=text.replace(/\u00a0/g,' ').split(/[\n\u2022]|(?:\.\s)|(?:;\s)/).map(s=>s.trim()).filter(s=>s.length>8 && s.length<280);
+  const items=[], seen=new Set();
+  (disciplines&&disciplines.length?disciplines:Object.keys(EQUIP_KEYWORDS)).forEach(disc=>{
+    const defs=EQUIP_KEYWORDS[disc]; if(!defs) return;
+    segs.forEach(seg=>{
+      for(const [re,label] of defs){
+        if(new RegExp(re,'i').test(seg)){
+          const cap=((seg.match(CAP_RE)||[])[1]||'').replace(/\s+/g,' ').trim();
+          const key=disc+'|'+label+'|'+cap; if(seen.has(key)) continue; seen.add(key);
+          items.push({discipline:disc, type:label, capacity:cap, snippet:seg.slice(0,140)});
+        }
+      }
+    });
+  });
+  return items;
+}
+function extractTiers(text){
+  const T=text.replace(/\u00a0/g,' ').replace(/\s+/g,' ');
+  const tier1=extractMarche(text);                          /* TIER 1 — universel (réutilisé) */
+  if(/proc[ée]dure\s+ouverte/i.test(T)) tier1.procedure='Ouverte avec publication';
+  const disciplines=detectDisciplines(T);
+  const tier2={ disciplines, items:extractEquipements(text, disciplines) };  /* TIER 2 — par discipline + catalogue */
+  const tier3={};                                           /* TIER 3 — spécifique projet */
+  if(/Uccle|Lotz/i.test(T)) tier3.adresse_chantier='37 Rue Général Lotz, 1180 Uccle';
+  if(/ASSAR/i.test(T)) tier3.maitre_oeuvre='ASSAR Architects';
+  if(/Sweco/i.test(T)) tier3.bureau_etude='Sweco Belgium';
+  return {tier1,tier2,tier3};
+}
+async function seedPatternsLib(){
+  try{ if(await dbGet(STORES.patterns_lib,'belgique-csc-v1')) return; }catch(_){}
+  try{ await dbPut(STORES.patterns_lib,{ id:'belgique-csc-v1', schema_version:1, label:'CSC marché public belge',
+    tier1:['pouvoir adjudicateur','n° dossier','objet','montant TVAC/HTVA','délai J.O.','agréation D16-18/P1 + classe','procédure'],
+    tier2:['HVAC','Sanitaire','Électricité','Fluides médicaux','Acoustique'], created_at:new Date().toISOString() }); }catch(_){}
+}
+async function updateBiblioMeta(pid, tiers){
+  let meta=null; try{ meta=await dbGet(STORES.biblio_projets_meta,pid); }catch(_){}
+  meta=meta||{ id:pid, tier1:{}, tier2:{disciplines:[]}, tier3:{} };
+  Object.assign(meta.tier1, tiers.tier1); Object.assign(meta.tier3, tiers.tier3);
+  meta.tier2.disciplines=[...new Set([...((meta.tier2&&meta.tier2.disciplines)||[]), ...(tiers.tier2.disciplines||[])])];
+  meta.updated_at=new Date().toISOString();
+  try{ await dbPut(STORES.biblio_projets_meta, meta); }catch(_){}
+}
+async function renderBiblioDocs(){
+  const ul=$('#biblio-docs'); if(!ul) return;
+  let docs=[]; try{ docs=(await dbAll(STORES.biblio_documents)).filter(d=>(d.projet_id||'main')===currentProjetId()); }catch(_){}
+  if(!docs.length){ ul.innerHTML='<li class="empty-state">Aucun document lu.</li>'; return; }
+  docs.sort((a,b)=>String(b.ingested_at||'').localeCompare(String(a.ingested_at||'')));
+  ul.innerHTML=docs.map(d=>`<li class="folio-item"><span class="folio-num">PDF</span>
+    <div class="folio-info"><div class="folio-date">${esc((d.name||'document').slice(0,40))}</div>
+      <div class="folio-summary">${d.read||0}/${d.pages||0} p. · ${esc((d.disciplines||[]).join(', ')||'—')}</div></div></li>`).join('');
+}
+async function renderBiblioCatalogue(){
+  const box=$('#biblio-catalogue'); if(!box) return;
+  let exs=[]; try{ exs=(await dbAll(STORES.biblio_extractions)).filter(x=>(x.projet_id||'main')===currentProjetId()); }catch(_){}
+  const items=[]; exs.forEach(x=>(((x.tier2&&x.tier2.items))||[]).forEach(it=>items.push(it)));
+  if(!items.length){ box.innerHTML='<p class="empty-state">Aucun équipement catalogué. Lis un CSC technique (HVAC, sanitaire, élec…) avec couche texte ; les PDF scannés nécessitent un OCR.</p>'; return; }
+  const groups={}; items.forEach(it=>{ (groups[it.discipline]=groups[it.discipline]||[]).push(it); });
+  box.innerHTML=Object.entries(groups).map(([disc,list])=>{
+    const seen=new Set(); const rows=list.filter(it=>{const k=it.type+'|'+it.capacity; if(seen.has(k))return false; seen.add(k); return true;});
+    return `<details class="fieldset"><summary><span class="case-tag">${esc(disc.slice(0,3).toUpperCase())}</span> ${esc(disc)} — ${rows.length}</summary><div style="padding:6px 2px;">`+
+      rows.map(it=>`<div class="cat-item"><b>${esc(it.type)}</b>${it.capacity?(' · <span class="mono">'+esc(it.capacity)+'</span>'):''}<div class="cat-snip">${esc(it.snippet)}</div></div>`).join('')+
+      `</div></details>`;
+  }).join('');
+}
+function curProjetVal(key){
+  const p=state.projet||{}; const ent=p.entrepreneur||{};
+  if(key==='agreation') return ent.agreation||p.agreation||'';
+  return p[key]||'';
+}
+function renderBiblio(){ const st=$('#biblio-status'); if(st) st.textContent=''; const rv=$('#biblio-review'); if(rv) rv.style.display='none'; const ff=$('#biblio-fields'); if(ff) ff.innerHTML=''; const aw=$('#biblio-ai-wrap'); if(aw) aw.style.display='none'; _biblioLastText=''; biblioFound=null; renderBiblioDocs(); renderBiblioCatalogue(); }
+$('#biblio-pick').addEventListener('click',()=>$('#biblio-input').click());
+let _biblioFile=null, _biblioLastText='';
+function renderBiblioReview(found){
+  biblioFound=found;
+  const keys=Object.keys(found).filter(k=>found[k] && (k in BIBLIO_LABELS));
+  if(!keys.length){ $('#biblio-review').style.display='none'; return 0; }
+  $('#biblio-fields').innerHTML=keys.map(k=>{
+    const cur=curProjetVal(k); const occ=!!cur;
+    return `<label class="biblio-field"><input type="checkbox" data-k="${k}" ${occ?'':'checked'}>
+      <span class="biblio-txt"><b class="biblio-field-l">${esc(BIBLIO_LABELS[k]||k)}</b>
+      <span class="biblio-field-v">${esc(String(found[k]).slice(0,120))}</span>
+      ${occ?`<span class="biblio-field-cur">déjà rempli : ${esc(String(cur).slice(0,40))}</span>`:''}</span></label>`;
+  }).join('');
+  $('#biblio-review').style.display='block';
+  return keys.length;
+}
+function showBiblioAi(){ const w=$('#biblio-ai-wrap'); if(w) w.style.display=((state.config.anthropic_key||'')&&_biblioLastText)?'block':'none'; }
+async function processBiblioText(text, pages, read, file, viaOcr){
+  _biblioLastText=text||'';
+  await seedPatternsLib();
+  const tiers=extractTiers(text);
+  const found=tiers.tier1; biblioFound=found;
+  const pid=currentProjetId(); const docId=uid();
+  try{
+    await dbPut(STORES.biblio_documents,{id:docId, projet_id:pid, name:(file&&file.name)||'document', pages, read, ocr:!!viaOcr, disciplines:tiers.tier2.disciplines, ingested_at:new Date().toISOString(), text_excerpt:text.slice(0,4000)});
+    await dbPut(STORES.biblio_extractions,{id:uid(), doc_id:docId, projet_id:pid, schema_version:1, tier1:tiers.tier1, tier2:tiers.tier2, tier3:tiers.tier3, created_at:new Date().toISOString()});
+    await updateBiblioMeta(pid, tiers);
+  }catch(_){}
+  renderBiblioDocs(); renderBiblioCatalogue();
+  const tag=viaOcr?' (OCR)':'';
+  const disc=tiers.tier2.disciplines.length?(' · disciplines : '+tiers.tier2.disciplines.join(', ')):'';
+  const n=renderBiblioReview(found); showBiblioAi();
+  if(!n){ $('#biblio-status').textContent=`Lu ${read}/${pages} page(s)${tag}${disc}, mais aucune donnée marché reconnue automatiquement.`+(state.config.anthropic_key?' Essaie « Compléter par IA ».':' Tu peux saisir à la main dans l’onglet Projet.'); return; }
+  $('#biblio-status').textContent=`Lu ${read}/${pages} page(s)${tag}${disc} — ${n} donnée(s) détectée(s).`;
+}
+function showOcrOffer(pages,read){
+  $('#biblio-status').innerHTML=`Ce PDF semble scanné (${read}/${pages} p., pas de couche texte). `
+    +`<button type="button" class="btn btn-ghost btn-compact" id="biblio-ocr">Lancer l’OCR</button>`
+    +`<span class="screen-sub" style="display:block;margin-top:5px;">L’OCR lit l’image page par page (~10-20 s/page, 8 pages max). Garde l’app au premier plan.</span>`;
+  const b=$('#biblio-ocr'); if(b) b.addEventListener('click',runBiblioOcr);
+}
+async function runBiblioOcr(){
+  if(!_biblioFile) return;
+  $('#biblio-status').textContent='Préparation de l’OCR…';
+  try{
+    const {text,pages,read}=await ocrPdf(_biblioFile,8,(i,n)=>{ $('#biblio-status').textContent=`OCR en cours… page ${i}/${n}`; });
+    if(text.replace(/\s+/g,'').length<60){ $('#biblio-status').textContent='OCR terminé, mais peu de texte lisible (scan de faible qualité ?). Tu peux saisir à la main.'; return; }
+    await processBiblioText(text,pages,read,_biblioFile,true);
+  }catch(err){ $('#biblio-status').textContent='OCR échoué : '+err.message; }
+}
+$('#biblio-input').addEventListener('change',async e=>{
+  const file=e.target.files[0]; e.target.value=''; if(!file) return;
+  _biblioFile=file;
+  $('#biblio-status').textContent='Lecture du PDF…'; $('#biblio-review').style.display='none';
+  try{
+    const {text,pages,read}=await extractPdfText(file);
+    if(text.replace(/\s+/g,'').length<200){ showOcrOffer(pages,read); return; }
+    await processBiblioText(text,pages,read,file,false);
+  }catch(err){ $('#biblio-status').textContent='Échec : '+err.message; }
+});
+async function aiExtractMarche(text){
+  const key=(state.config.anthropic_key||'').trim(); if(!key) throw new Error('clé API manquante (Réglages)');
+  const model=(state.config.anthropic_model||DEFAULT_CONFIG.anthropic_model).trim();
+  const prompt='Tu extrais les données d\'un cahier spécial des charges belge (CSC). Réponds UNIQUEMENT par un objet JSON valide, sans texte ni balises autour. Clés possibles (omets celles absentes) : pouvoir_adjudicateur, no_dossier, description, montant_entreprise, delai_achevement_jo, agreation. Texte :\n"""'+text.slice(0,12000)+'"""';
+  const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+    headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+    body:JSON.stringify({model,max_tokens:1024,messages:[{role:'user',content:prompt}]})});
+  if(!res.ok){ let m=''; try{ const j=await res.json(); m=(j.error&&j.error.message)||''; }catch(_){} throw new Error('API '+res.status+(m?' — '+m:'')); }
+  const data=await res.json();
+  const txt=(data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').replace(/```json|```/g,'').trim();
+  const mm=txt.match(/\{[\s\S]*\}/); return JSON.parse(mm?mm[0]:txt);
+}
+$('#biblio-ai').addEventListener('click',async()=>{
+  if(!_biblioLastText) return;
+  if(!state.config.anthropic_key){ toast('Ajoute ta clé API dans Réglages','error'); return; }
+  const btn=$('#biblio-ai'), old=btn.textContent; btn.disabled=true; btn.textContent='IA en cours…';
+  try{
+    const ai=await aiExtractMarche(_biblioLastText);
+    const merged={...(biblioFound||{})};
+    Object.keys(BIBLIO_LABELS).forEach(k=>{ if(ai[k]!=null && String(ai[k]).trim() && !merged[k]) merged[k]=String(ai[k]).trim(); });
+    const n=renderBiblioReview(merged);
+    $('#biblio-status').textContent=n?`IA : ${n} champ(s) prêt(s) à reporter.`:'IA : aucun champ exploitable renvoyé.';
+  }catch(err){ toast('IA : '+err.message,'error'); }
+  finally{ btn.disabled=false; btn.textContent=old; }
+});
+$('#biblio-apply').addEventListener('click',async()=>{
+  if(!biblioFound) return;
+  const checks=$$('#biblio-fields input[type="checkbox"]:checked');
+  if(!checks.length){ toast('Coche au moins une donnée','error'); return; }
+  const p={...(state.projet||{})}; if(!p.id) p.id=p.projet_id||currentProjetId()||'main';
+  if(p.entrepreneur && typeof p.entrepreneur!=='object') p.entrepreneur={};
+  checks.forEach(ch=>{ const k=ch.dataset.k, v=biblioFound[k];
+    if(k==='agreation'){ p.agreation=v; if(p.entrepreneur&&typeof p.entrepreneur==='object') p.entrepreneur.agreation=v; }
+    else if(k==='delai_achevement_jo'){ p.delai_achevement_jo=Number(String(v).replace(/\D/g,''))||v; }
+    else p[k]=v;
+  });
+  await saveProjet(p); renderProjet();
+  syncDot('dirty'); toast(checks.length+' donnée(s) reportée(s) ✓','success'); show('projet');
+});
+
+/* ═══════════ OUTILS — Planning (Gantt v1) & Métré v1 (stockés dans le projet) ═══════════ */
+let planTasks=[], metrePostes=[];
+function persistProjetField(field,value){
+  const p={...(state.projet||{})}; if(!p.id) p.id=p.projet_id||currentProjetId()||'main';
+  p[field]=value; return saveProjet(p);
+}
+function renderPlanning(){
+  $('#plan-title').textContent='Planning — '+projetNom();
+  planTasks=((state.projet&&state.projet.planning)||[]).map(t=>({...t}));
+  renderPlanRows(); renderGantt();
+}
+function renderPlanRows(){
+  const w=$('#plan-rows'); w.innerHTML='';
+  if(!planTasks.length){ w.innerHTML='<p class="empty-state">Aucune tâche. Touche « + Tâche ».</p>'; }
+  planTasks.forEach((t,i)=>{
+    const d=document.createElement('div'); d.className='plan-row';
+    d.innerHTML='<input class="p-nom" placeholder="Tâche" value="'+esc(t.nom||'')+'">'
+      +'<div class="plan-dates"><input class="p-deb" type="date" value="'+esc(t.debut||'')+'">'
+      +'<input class="p-fin" type="date" value="'+esc(t.fin||'')+'">'
+      +'<input class="p-pct" type="number" min="0" max="100" placeholder="%" value="'+(t.pct!=null?t.pct:'')+'" style="width:64px">'
+      +'<button type="button" class="row-del">×</button></div>';
+    w.appendChild(d);
+    d.querySelector('.row-del').addEventListener('click',()=>{ collectPlan(); planTasks.splice(i,1); renderPlanRows(); renderGantt(); });
+    d.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{ collectPlan(); renderGantt(); }));
+  });
+}
+function collectPlan(){
+  planTasks=$$('#plan-rows .plan-row').map(r=>({ nom:r.querySelector('.p-nom').value.trim(),
+    debut:r.querySelector('.p-deb').value, fin:r.querySelector('.p-fin').value,
+    pct:Number(r.querySelector('.p-pct').value)||0 }));
+}
+function renderGantt(){
+  const g=$('#plan-gantt'); const ts=planTasks.filter(t=>t.debut&&t.fin);
+  if(!ts.length){ g.innerHTML=''; return; }
+  const toN=d=>new Date(d+'T00:00:00').getTime();
+  const min=Math.min(...ts.map(t=>toN(t.debut))), max=Math.max(...ts.map(t=>toN(t.fin)));
+  const span=Math.max(1,max-min);
+  g.innerHTML=planTasks.map(t=>{
+    if(!t.debut||!t.fin) return '';
+    const a=toN(t.debut), b=toN(t.fin), left=(a-min)/span*100, width=Math.max(2,(b-a)/span*100);
+    return '<div class="gantt-row"><span class="gantt-name">'+esc(t.nom||'—')+'</span>'
+      +'<div class="gantt-track"><div class="gantt-bar" style="left:'+left+'%;width:'+width+'%"><span style="width:'+(Number(t.pct)||0)+'%"></span></div></div></div>';
+  }).join('');
+}
+$('#plan-add').addEventListener('click',()=>{ collectPlan(); planTasks.push({nom:'',debut:'',fin:'',pct:0}); renderPlanRows(); });
+$('#plan-back').addEventListener('click',()=>show('accueil'));
+$('#plan-save').addEventListener('click',async()=>{ collectPlan(); await persistProjetField('planning',planTasks.filter(t=>t.nom||t.debut||t.fin)); syncDot('dirty'); toast('Planning enregistré ✓','success'); });
+$('#btn-planning').addEventListener('click',()=>show('planning'));
+$('#plan-from-metre').addEventListener('click',()=>{
+  const postes=(state.projet&&state.projet.metre)||[];
+  if(!postes.length){ toast('Aucun poste de métré. Importe ou saisis un métré d’abord.','error'); return; }
+  const chap=new Map();
+  postes.forEach(p=>{ const c=(String(p.code||'').split('.')[0]||'').trim()||'—'; if(!chap.has(c)) chap.set(c, p.designation||('Chapitre '+c)); });
+  collectPlan();
+  const have=new Set(planTasks.map(t=>(t.nom||'').toLowerCase()));
+  let n=0;
+  chap.forEach((label,c)=>{ const nom='Lot '+c+' — '+String(label).slice(0,40); if(have.has(nom.toLowerCase())) return; planTasks.push({nom,debut:'',fin:'',pct:0}); n++; });
+  renderPlanRows(); renderGantt();
+  toast(n?`${n} tâche(s) générée(s) — complète les dates`:'Tâches déjà présentes', n?'success':'');
+});
+
+function fmtEur(n){ return (Number(n)||0).toLocaleString('fr-BE',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'; }
+function renderMetre(){
+  $('#metre-title').textContent='Métré — '+projetNom();
+  metrePostes=((state.projet&&state.projet.metre)||[]).map(p=>({...p}));
+  renderMetreRows();
+}
+function renderMetreRows(){
+  const w=$('#metre-rows'); w.innerHTML='';
+  if(!metrePostes.length){ w.innerHTML='<p class="empty-state">Aucun poste. Touche « + Poste ».</p>'; }
+  metrePostes.forEach((p,i)=>{
+    const d=document.createElement('div'); d.className='metre-row';
+    d.innerHTML='<div class="metre-line"><input class="m-code" placeholder="Code" value="'+esc(p.code||'')+'">'
+      +'<input class="m-des" placeholder="Désignation" value="'+esc(p.designation||'')+'"></div>'
+      +'<div class="metre-line2"><input class="m-unite" placeholder="Unité" value="'+esc(p.unite||'')+'">'
+      +'<input class="m-qte" type="number" step="0.01" placeholder="Qté" value="'+(p.qte!=null?p.qte:'')+'">'
+      +'<input class="m-pu" type="number" step="0.01" placeholder="P.U." value="'+(p.pu!=null?p.pu:'')+'">'
+      +'<button type="button" class="row-del">×</button></div>';
+    w.appendChild(d);
+    d.querySelector('.row-del').addEventListener('click',()=>{ collectMetre(); metrePostes.splice(i,1); renderMetreRows(); });
+    d.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{ collectMetre(); updMetreTotal(); }));
+  });
+  updMetreTotal();
+}
+function collectMetre(){
+  metrePostes=$$('#metre-rows .metre-row').map(r=>({
+    code:r.querySelector('.m-code').value.trim(), designation:r.querySelector('.m-des').value.trim(),
+    unite:r.querySelector('.m-unite').value.trim(), qte:Number(r.querySelector('.m-qte').value)||0,
+    pu:Number(r.querySelector('.m-pu').value)||0 }));
+}
+function updMetreTotal(){ const tot=metrePostes.reduce((a,p)=>a+(Number(p.qte)||0)*(Number(p.pu)||0),0); $('#metre-total').textContent=fmtEur(tot); }
+$('#metre-add').addEventListener('click',()=>{ collectMetre(); metrePostes.push({code:'',designation:'',unite:'',qte:0,pu:0}); renderMetreRows(); });
+$('#metre-back').addEventListener('click',()=>show('accueil'));
+$('#metre-save').addEventListener('click',async()=>{ collectMetre(); await persistProjetField('metre',metrePostes.filter(p=>p.code||p.designation||p.qte||p.pu)); syncDot('dirty'); toast('Métré enregistré ✓','success'); });
+$('#btn-metre').addEventListener('click',()=>show('metre'));
+/* §7 session 6 — parseur de métré PDF (première version heuristique ; format métré belge) */
+function parseBeNum(s){ if(s==null) return 0; const t=String(s).replace(/[ .\u00a0]/g,'').replace(',','.'); const n=parseFloat(t); return isNaN(n)?0:n; }
+function parseMetrePdf(text){
+  const UN='m³|m3|m²|m2|ml|mct|pce|pcs|p\\.|pi[èe]ce|u|kg|t|h|ff|forfait|l|%|jour|m';
+  const re=new RegExp('^\\s*([0-9][\\w.\\-]*)?\\s*(.{4,}?)\\s+('+UN+')\\s+([\\d .\u00a0]*\\d(?:,\\d+)?)\\s+([\\d .\u00a0]*\\d(?:,\\d+)?)','i');
+  const out=[];
+  text.replace(/\u00a0/g,' ').split(/\n+/).forEach(line=>{
+    const l=line.trim(); if(l.length<8) return;
+    const m=l.match(re); if(!m) return;
+    const qte=parseBeNum(m[4]), pu=parseBeNum(m[5]);
+    if(!qte && !pu) return;
+    const des=m[2].trim().replace(/\s{2,}/g,' ');
+    if(des.length<3) return;
+    out.push({ code:(m[1]||'').trim(), designation:des.slice(0,120), unite:m[3].toLowerCase(), qte, pu });
+  });
+  return out;
+}
+$('#metre-pdf-btn').addEventListener('click',()=>$('#metre-pdf').click());
+$('#metre-pdf').addEventListener('change',async e=>{
+  const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  toast('Lecture du métré…');
+  try{
+    let {text,pages,read}=await extractPdfText(f);
+    if(text.replace(/\s+/g,'').length<200){
+      toast('PDF scanné — OCR en cours…');
+      const r=await ocrPdf(f,8,(i,n)=>toast(`OCR métré… page ${i}/${n}`)); text=r.text; pages=r.pages; read=r.read;
+    }
+    if(text.replace(/\s+/g,'').length<60){ toast('Texte illisible (scan de faible qualité). Saisis à la main.','error'); return; }
+    collectMetre(); const found=parseMetrePdf(text);
+    if(!found.length){ toast(`Lu ${read}/${pages} p., aucun poste reconnu. Vérifie le format ou saisis à la main.`,'error'); return; }
+    found.forEach(p=>metrePostes.push({...p})); renderMetreRows();
+    toast(`${found.length} poste(s) importé(s) — pense à enregistrer`,'success');
+  }catch(err){ toast('Échec : '+err.message,'error'); }
+});
+
+/* ═══════════ PHASE 2 — RÉPERTOIRES (base transversale réutilisable §4.4) ═══════════ */
+const REP_DEFS={
+  ouvriers:{ store:STORES.rep_ouvriers, titre:'Ouvriers', cols:[['classe','Classe'],['metier','Métier'],['entreprise','Entreprise']] },
+  materiel:{ store:STORES.rep_materiel, titre:'Matériel', cols:[['designation','Désignation'],['marque','Marque / type'],['ref','N° interne']] },
+  materiaux:{ store:STORES.rep_materiaux, titre:'Matériaux', cols:[['designation','Désignation'],['unite','Unité'],['fournisseur','Fournisseur']] },
+  visiteurs:{ store:STORES.rep_visiteurs, titre:'Visiteurs', cols:[['nom','Nom'],['societe','Société'],['fonction','Fonction']] }
+};
+let REP={ouvriers:[],materiel:[],materiaux:[],visiteurs:[]};
+let repTab='ouvriers';
+async function loadReps(){ for(const k of Object.keys(REP_DEFS)){ try{ REP[k]=(await dbAll(REP_DEFS[k].store))||[]; }catch(_){ REP[k]=[]; } } }
+function renderReps(){
+  $$('#rep-tabs .rep-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===repTab));
+  $('#rep-title').textContent='Répertoire — '+REP_DEFS[repTab].titre;
+  renderRepRows();
+}
+function renderRepRows(){
+  const def=REP_DEFS[repTab], w=$('#rep-rows'); w.innerHTML='';
+  const list=REP[repTab]||[];
+  if(!list.length){ w.innerHTML='<p class="empty-state">Aucune entrée. Ajoute une ligne ou importe un CSV.</p>'; return; }
+  list.forEach((e,i)=>{
+    const div=document.createElement('div'); div.className='rep-row';
+    div.innerHTML=def.cols.map(([k,lbl])=>`<input class="rep-f" data-k="${k}" placeholder="${esc(lbl)}" value="${esc(e[k]||'')}">`).join('')
+      +'<button type="button" class="row-del">×</button>';
+    w.appendChild(div);
+    div.querySelector('.row-del').addEventListener('click',async()=>{ collectRep(); const ent=REP[repTab][i]; REP[repTab].splice(i,1); if(ent&&ent.id){ try{await dbDel(def.store,ent.id);}catch(_){} } renderRepRows(); });
+  });
+}
+function collectRep(){
+  REP[repTab]=$$('#rep-rows .rep-row').map((r,i)=>{ const prev=REP[repTab][i]; const o={id:(prev&&prev.id)||uid()}; r.querySelectorAll('.rep-f').forEach(f=>o[f.dataset.k]=f.value.trim()); return o; });
+}
+async function saveReps(){
+  collectRep(); const def=REP_DEFS[repTab];
+  let existing=[]; try{ existing=await dbAll(def.store); }catch(_){}
+  const keep=REP[repTab].filter(e=>def.cols.some(([k])=>e[k])); const ids=new Set(keep.map(e=>e.id));
+  for(const e of existing){ if(!ids.has(e.id)){ try{await dbDel(def.store,e.id);}catch(_){} } }
+  for(const e of keep){ try{await dbPut(def.store,e);}catch(_){} }
+  REP[repTab]=keep; buildOuvrierSuggestions(); buildCaseRepPickers(); syncDot('dirty'); toast('Répertoire enregistré ✓','success'); renderRepRows();
+}
+function csvParse(txt){
+  const lines=txt.replace(/\r/g,'').split('\n').filter(l=>l.trim()); if(!lines.length) return [];
+  const delim=(lines[0].split(';').length>=lines[0].split(',').length)?';':',';
+  return lines.map(l=>l.split(delim).map(c=>c.trim().replace(/^"|"$/g,'')));
+}
+function repImportCsv(text){
+  const def=REP_DEFS[repTab], rows=csvParse(text); if(!rows.length) return 0;
+  const hdr=rows[0].map(c=>c.toLowerCase());
+  const words=['classe','metier','métier','designation','désignation','nom','marque','unite','unité','fournisseur','societe','société','fonction','entreprise','type','ref'];
+  const body=hdr.some(h=>words.some(w=>h.includes(w)))?rows.slice(1):rows; let n=0;
+  body.forEach(cells=>{ const o={id:uid()}; def.cols.forEach(([k],idx)=>o[k]=(cells[idx]||'').trim()); if(def.cols.some(([k])=>o[k])){ REP[repTab].push(o); n++; } });
+  return n;
+}
+function repLabel(type,e){
+  if(type==='materiel') return [e.designation,e.marque?('('+e.marque+')'):''].filter(Boolean).join(' ');
+  if(type==='materiaux') return [e.designation,e.fournisseur?('– '+e.fournisseur):''].filter(Boolean).join(' ');
+  const extra=[e.societe,e.fonction].filter(Boolean).join(', ');
+  return [e.nom,extra?('('+extra+')'):''].filter(Boolean).join(' ');
+}
+function buildCaseRepPickers(){
+  const map={C:'materiel',E:'materiaux',K:'visiteurs'};
+  Object.entries(map).forEach(([letter,type])=>{
+    const sel=$('#caserep-'+letter); if(!sel) return;
+    const items=REP[type]||[];
+    sel.innerHTML='<option value="">— depuis '+REP_DEFS[type].titre+' —</option>'+items.map((e,i)=>`<option value="${i}">${esc(repLabel(type,e))}</option>`).join('');
+  });
+}
+async function harvestOuvriers(list){
+  const key=(c,m)=>((c||'')+'|'+(m||'')).toLowerCase().trim();
+  const have=new Set((REP.ouvriers||[]).map(e=>key(e.classe,e.metier)));
+  for(const o of (list||[])){
+    if(!o.classe && !o.metier) continue;
+    const k=key(o.classe,o.metier); if(have.has(k)) continue; have.add(k);
+    const e={id:uid(), classe:o.classe||'', metier:o.metier||'', entreprise:'EEG'};
+    REP.ouvriers.push(e); try{ await dbPut(STORES.rep_ouvriers,e); }catch(_){}
+  }
+  buildOuvrierSuggestions();
+}
+$('#btn-repertoires').addEventListener('click',()=>show('repertoires'));
+$('#rep-back').addEventListener('click',()=>show('accueil'));
+$('#rep-add').addEventListener('click',()=>{ collectRep(); REP[repTab].push({id:uid()}); renderRepRows(); });
+$('#rep-save').addEventListener('click',saveReps);
+$$('#rep-tabs .rep-tab').forEach(b=>b.addEventListener('click',()=>{ collectRep(); repTab=b.dataset.tab; renderReps(); }));
+$('#rep-csv-btn').addEventListener('click',()=>$('#rep-csv').click());
+$('#rep-csv').addEventListener('change',async e=>{ const f=e.target.files[0]; e.target.value=''; if(!f) return; try{ const txt=await f.text(); collectRep(); const n=repImportCsv(txt); renderRepRows(); toast(n?(n+' entrée(s) importée(s) — pense à enregistrer'):'Aucune ligne reconnue', n?'success':'error'); }catch(err){ toast('CSV illisible','error'); } });
+document.addEventListener('click',e=>{
+  const btn=e.target.closest&&e.target.closest('.case-rep-ins'); if(!btn) return;
+  const letter=btn.dataset.letter, type=btn.dataset.type, sel=$('#caserep-'+letter);
+  if(!sel||sel.value==='') return;
+  const it=(REP[type]||[])[Number(sel.value)]; if(!it) return;
+  const ta=document.querySelector('textarea[name="case_'+letter+'"]'); if(!ta) return;
+  const line=repLabel(type,it); ta.value=(ta.value.trim()?ta.value.replace(/\s*$/,'')+'\n':'')+line;
+  ta.dispatchEvent(new Event('input',{bubbles:true})); sel.value='';
+});
+
 /* ═══════════ RÉGLAGES ═══════════ */
 function renderReglages(){
   const c=state.config;
   $('#r-lat').value=c.meteo_lat; $('#r-lon').value=c.meteo_lon; $('#r-meteo-auto').value=c.meteo_auto||'oui';
+  $('#r-auteur').value=c.auteur||'';
   $('#r-owner').value=c.gh_owner||''; $('#r-repo').value=c.gh_repo||''; $('#r-branch').value=c.gh_branch||'main'; $('#r-token').value=c.gh_token||'';
+  $('#r-aikey').value=c.anthropic_key||''; $('#r-aimodel').value=c.anthropic_model||DEFAULT_CONFIG.anthropic_model;
   renderJournalsList();
 }
 function renderJournalsList(){
@@ -1100,10 +1980,13 @@ $('#save-reglages').addEventListener('click',async()=>{
   state.config.meteo_lat=Number($('#r-lat').value)||DEFAULT_CONFIG.meteo_lat;
   state.config.meteo_lon=Number($('#r-lon').value)||DEFAULT_CONFIG.meteo_lon;
   state.config.meteo_auto=$('#r-meteo-auto').value;
+  state.config.auteur=$('#r-auteur').value.trim();
   state.config.gh_owner=$('#r-owner').value.trim();
   state.config.gh_repo=$('#r-repo').value.trim();
   state.config.gh_branch=$('#r-branch').value.trim()||'main';
   state.config.gh_token=$('#r-token').value.trim();
+  state.config.anthropic_key=$('#r-aikey').value.trim();
+  state.config.anthropic_model=$('#r-aimodel').value.trim()||DEFAULT_CONFIG.anthropic_model;
   await saveConfig();
   toast('Réglages enregistrés ✓','success');   /* FIX #3 : message systématique */
 });
@@ -1234,18 +2117,15 @@ function publishFolio(f){
   return o;
 }
 function publishComplementsFor(folioNos, pid){
-  const out=[];
+  const out=[]; const seen=new Set();
+  const push=(c,k,t)=>{ t=(t||'').trim(); if(!t) return; const key=c.folio_no_ref+'|'+k; if(seen.has(key)) return; seen.add(key);
+    out.push({folio_compl_no:c.folio_no_ref, folio_no_ref:c.folio_no_ref, date_ref:c.date_ref, case:k, texte:t}); };  /* N° 1:1 = folio */
   state.complements.forEach(c=>{
     if((c.projet_id||'main')!==pid) return;                  /* filtre projet (corrige fuite multi-chantier) */
     if(!folioNos.has(c.folio_no_ref)) return;                /* uniquement les compléments du journal cible */
     const sec=(c.sections&&typeof c.sections==='object'&&Object.keys(c.sections).length)?c.sections:null;
-    if(sec){
-      Object.keys(sec).forEach(k=>{ const t=(sec[k]||'').trim(); if(!t) return;
-        out.push({folio_compl_no:c.folio_compl_no,folio_no_ref:c.folio_no_ref,date_ref:c.date_ref,case:k,texte:t}); });
-    }else{
-      const t=(c.texte||'').trim(); if(!t) return;
-      out.push({folio_compl_no:c.folio_compl_no,folio_no_ref:c.folio_no_ref,date_ref:c.date_ref,case:c.case||'',texte:t});
-    }
+    if(sec){ Object.keys(sec).forEach(k=>push(c,k,sec[k])); }
+    else { push(c,c.case||'',c.texte); }
   });
   return out;
 }
