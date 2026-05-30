@@ -226,7 +226,7 @@
     </svg>
     <div class="brand-txt">
       <h1>Folio</h1>
-      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.6</p>
+      <p class="header-sub" id="header-sub">Page après page, ton chantier · v5.7</p>
     </div>
   </div>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
@@ -664,7 +664,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='5.6';
+const APP_VERSION='5.7';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=5;
 const STORES={
@@ -870,6 +870,8 @@ const CAVELL_SEED={
   nom:'Édith Cavel',
   description:'Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire). Chantier : 37 rue Général Lotz, 1180 Uccle.',
   pouvoir_adjudicateur:'Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures',
+  administration:'Direction des infrastructures',
+  service:'Suivi technique des marchés publics — infrastructures hospitalières',
   no_dossier:'CHIREC-CAVELL-2026-LOT3', csc_no:'2026-CHIREC-CAVELL-L3',
   csc_ref:'Cahier spécial des charges CHIREC Cavell Lot 3',
   montant_entreprise:'1.250.000,00 EUR HTVA',
@@ -2318,6 +2320,8 @@ function publishProjet(){
   const entStr=(typeof p.entrepreneur==='string'&&p.entrepreneur)?p.entrepreneur:(ent.nom||'');
   return { ...p,
     entrepreneur:entStr,                              /* build_pdf.py veut un TEXTE, pas un objet */
+    administration:p.administration||'',
+    service:p.service||'',
     adresse:ent.adresse||p.adresse||'',
     telephone:ent.tel||p.telephone||'',
     agreation:ent.agreation||p.agreation||'',
@@ -2357,11 +2361,25 @@ function publishComplementsFor(folioNos, pid){
 function buildPublishPayload(journalNo){                     /* journalNo optionnel : défaut = courant */
   const targetJ=journalNo||currentJournalNo();
   const pid=currentProjetId();
-  /* On publie UNIQUEMENT les folios du projet courant ET du journal cible (multi-projet) */
   const folios=state.folios.filter(f=>(f.projet_id||'main')===pid && (f.journal_no||1)===targetJ);
   const folioNos=new Set(folios.map(f=>f.folio_no));
-  const projet=publishProjet(); projet.journal_no=targetJ;   /* force le N° dans le PDF */
+  const projet=publishProjet(); projet.journal_no=targetJ;
+  const g=v=>projet[v]||'';
+  /* Rétrocompatibilité V2.x : build_pdf.py lit les champs à plat AU NIVEAU RACINE du JSON.
+     On les expose aussi dans projet:{} pour les versions V3+ du générateur.          */
   return { version:APP_VERSION, published_at:new Date().toISOString(), journal_no:targetJ,
+    /* ── champs plats (lus par build_pdf.py V2.x) ─────────────────────────── */
+    pouvoir_adjudicateur:g('pouvoir_adjudicateur'), administration:g('administration'),
+    service:g('service'),                           no_dossier:g('no_dossier'),
+    description:g('description'),                   csc_no:g('csc_no'),
+    csc_ref:g('csc_ref'),                           entrepreneur:g('entrepreneur'),
+    adresse:g('adresse'),                            telephone:g('telephone'),
+    agreation:g('agreation'),                        onss:g('onss'),
+    no_entreprise:g('no_entreprise'),               lieu_contrat:g('lieu_contrat'),
+    date_contract_debut:g('date_contract_debut'),   date_contract_fin:g('date_contract_fin'),
+    delai_achevement_jo:g('delai_achevement_jo'),   cachet_label:g('cachet_label'),
+    cachet_ville:g('cachet_ville'),                 cachet_mail:g('cachet_mail'),
+    /* ── structure V3+ (projet imbriqué) ──────────────────────────────────── */
     projet:projet, folios:folios.map(publishFolio), complements:publishComplementsFor(folioNos, pid) };
 }
 
