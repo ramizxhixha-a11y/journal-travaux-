@@ -154,7 +154,7 @@
 
 <header class="app-header">
   <h1>Journal des Travaux</h1>
-  <p class="header-sub" id="header-sub">— · v3.2</p>
+  <p class="header-sub" id="header-sub">— · v3.4</p>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
 </header>
 
@@ -262,6 +262,37 @@
           <div class="field"><label>Fin prévue</label><input name="date_fin" type="date"></div>
         </div>
         <div class="field"><label>Notes</label><textarea name="notes" rows="3"></textarea></div>
+      </details>
+      <details class="fieldset">
+        <summary><span class="num">⑤</span> Synthèse contrat (page 2 du PDF)</summary>
+        <div class="field"><label>Montant de l'entreprise</label><input name="montant_entreprise" type="text" placeholder="Ex. 1.250.000,00 EUR HTVA"></div>
+        <div class="grid-2">
+          <div class="field"><label>Date d'adjudication</label><input name="date_adjudication" type="date"></div>
+          <div class="field"><label>Date d'approbation</label><input name="date_approbation" type="date"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Date contractuelle début</label><input name="date_contract_debut" type="date"></div>
+          <div class="field"><label>Date contractuelle fin</label><input name="date_contract_fin" type="date"></div>
+        </div>
+        <div class="grid-2">
+          <div class="field"><label>Lieu (à ___)</label><input name="lieu_contrat" type="text"></div>
+          <div class="field"><label>Délai d'achèvement (J.O.)</label><input name="delai_achevement_jo" type="number" min="0"></div>
+        </div>
+        <div class="field"><label>Interruptions autorisées</label><textarea name="interruptions_autorisees" rows="2"></textarea></div>
+        <div class="field"><label>Prolongations délai autorisées</label><textarea name="prolongations_delai" rows="2"></textarea></div>
+        <p class="subgroup-title">Nombre de jours (en J.O.)</p>
+        <div class="grid-4">
+          <div class="field"><label>Fériés</label><input name="jours_feries" type="number" min="0" value="0"></div>
+          <div class="field"><label>Congés légaux</label><input name="jours_conges_legaux" type="number" min="0" value="0"></div>
+          <div class="field"><label>Intempéries</label><input name="jours_intemperies" type="number" min="0" value="0"></div>
+          <div class="field"><label>Divers</label><input name="jours_divers" type="number" min="0" value="0"></div>
+        </div>
+        <p class="subgroup-title">Achèvement réel</p>
+        <div class="grid-2">
+          <div class="field"><label>Date réelle d'achèvement</label><input name="date_reelle_achevement" type="date"></div>
+          <div class="field"><label>Reportée au</label><input name="date_reportee" type="date"></div>
+        </div>
+        <div class="field"><label>Nombre de jours pleins de retard</label><input name="jours_retard" type="number" min="0" value="0"></div>
       </details>
       <div class="sticky-actions">
         <button type="button" class="btn btn-primary" id="save-projet">Sauvegarder le projet</button>
@@ -419,7 +450,7 @@
 
     <details class="fieldset">
       <summary>ℹ À propos</summary>
-      <p style="font-size:14px;">Journal des Travaux v3.2 — modèle Embuild 9545 F.</p>
+      <p style="font-size:14px;">Journal des Travaux v3.4 — modèle Embuild 9545 F.</p>
       <p class="screen-sub">100 % local (IndexedDB) + publication GitHub explicite. Fonctionne hors-ligne.</p>
     </details>
 
@@ -446,7 +477,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='3.2';
+const APP_VERSION='3.4';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=4;
 const STORES={
@@ -764,7 +795,17 @@ function projetToForm(p){
     ent_nom:ent.nom||p.entrepreneur_nom||'', ent_adresse:ent.adresse||p.adresse||'',
     ent_tel:ent.tel||p.telephone||'', ent_tva:ent.tva||p.no_entreprise||'', ent_agreation:ent.agreation||p.agreation||'',
     ent_cachet_label:ent.cachet_label||'', ent_ville:ent.ville||'', ent_mail:ent.mail||'',
-    date_debut:p.date_debut||'', date_fin:p.date_fin||'', notes:p.notes||''
+    date_debut:p.date_debut||'', date_fin:p.date_fin||'', notes:p.notes||'',
+    /* Page 2 — synthèse contrat */
+    montant_entreprise:p.montant_entreprise||'',
+    date_adjudication:p.date_adjudication||'', date_approbation:p.date_approbation||'',
+    date_contract_debut:p.date_contract_debut||'', date_contract_fin:p.date_contract_fin||'',
+    lieu_contrat:p.lieu_contrat||'', delai_achevement_jo:(p.delai_achevement_jo!=null?p.delai_achevement_jo:''),
+    interruptions_autorisees:p.interruptions_autorisees||'', prolongations_delai:p.prolongations_delai||'',
+    jours_feries:(p.jours_feries!=null?p.jours_feries:0), jours_conges_legaux:(p.jours_conges_legaux!=null?p.jours_conges_legaux:0),
+    jours_intemperies:(p.jours_intemperies!=null?p.jours_intemperies:0), jours_divers:(p.jours_divers!=null?p.jours_divers:0),
+    date_reelle_achevement:p.date_reelle_achevement||'', date_reportee:p.date_reportee||'',
+    jours_retard:(p.jours_retard!=null?p.jours_retard:0)
   };
 }
 function renderProjet(){ formFill($('#form-projet'), projetToForm(state.projet)); }
@@ -826,6 +867,14 @@ $('#save-projet').addEventListener('click',async()=>{
   base.statut=d.statut;
   base.pouvoir_adjudicateur=d.pouvoir_adjudicateur; base.no_dossier=d.no_dossier; base.csc_no=d.csc_no;
   base.csc_ref=d.csc_ref; base.journal_no=d.journal_no; base.date_debut=d.date_debut; base.date_fin=d.date_fin; base.notes=d.notes;
+  /* Page 2 — synthèse contrat */
+  base.montant_entreprise=d.montant_entreprise; base.date_adjudication=d.date_adjudication; base.date_approbation=d.date_approbation;
+  base.date_contract_debut=d.date_contract_debut; base.date_contract_fin=d.date_contract_fin;
+  base.lieu_contrat=d.lieu_contrat; base.delai_achevement_jo=d.delai_achevement_jo;
+  base.interruptions_autorisees=d.interruptions_autorisees; base.prolongations_delai=d.prolongations_delai;
+  base.jours_feries=d.jours_feries; base.jours_conges_legaux=d.jours_conges_legaux;
+  base.jours_intemperies=d.jours_intemperies; base.jours_divers=d.jours_divers;
+  base.date_reelle_achevement=d.date_reelle_achevement; base.date_reportee=d.date_reportee; base.jours_retard=d.jours_retard;
   base.entrepreneur={...(base.entrepreneur||{}),
     nom:d.ent_nom, adresse:d.ent_adresse, tel:d.ent_tel, tva:d.ent_tva, agreation:d.ent_agreation,
     cachet_label:d.ent_cachet_label, ville:d.ent_ville, mail:d.ent_mail};
