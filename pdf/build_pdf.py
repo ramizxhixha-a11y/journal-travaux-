@@ -1,497 +1,622 @@
-#!/usr/bin/env python3
-"""
-build_pdf.py — Générateur Journal des Travaux format Embuild 9545 F
-Lit les fichiers data/<pid>__J<n>.json publiés par l'app Folio
-Produit les PDFs dans pdfs/
+"""PDF Journal des Travaux v5 — lit un JSON exporté par la PWA.
 
-Usage (appelé par GitHub Action) :
-  python pdf/build_pdf.py                  # traite tous les data/*.json
-  python pdf/build_pdf.py data/main__J1.json pdfs/Journal_Travaux_main__J1.pdf
+Format JSON attendu :
+{
+  "projet": { ... champs ... },
+  "folios": [ { ..., "ouvriers": [...] }, ... ],
+  "complements": [ ... ]
+}
+
+Usage :
+    python build_pdf.py <chemin_json> [chemin_pdf_sortie]
 """
-import json, sys, glob, os, re
-from datetime import datetime
+import json
+import sys
+from pathlib import Path
+from datetime import date, datetime, time
+
 from reportlab.lib.pagesizes import A4
-from reportlab.lib.units import mm
-from reportlab.pdfgen import canvas
-from reportlab.lib import colors
+from reportlab.pdfgen import canvas as canvas_mod
+from reportlab.lib.colors import black, white
+from reportlab.platypus import Paragraph, Frame
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.enums import TA_LEFT
 
-W, H = A4   # 595.28 x 841.89 pt
 
-# ── helpers ──────────────────────────────────────────────────────────────
-def g(d, *keys, default=''):
-    """Lit une valeur dans un dict en essayant plusieurs clés."""
-    for k in keys:
-        if d.get(k) not in (None, ''):
-            return str(d[k])
-    return default
+def parse_date(s):
+    if not s: return None
+    try: return datetime.strptime(s[:10], '%Y-%m-%d').date()
+    except (ValueError, TypeError): return None
 
-def load_data(json_path):
-    with open(json_path, encoding='utf-8') as f:
-        raw = json.load(f)
-    proj = raw.get('projet', {}) if isinstance(raw.get('projet'), dict) else {}
-    exclude = {'projet','folios','complements','version','published_at','journal_no'}
-    root = {k: v for k, v in raw.items() if k not in exclude and v not in (None,'')}
-    data = {**proj, **root}
-    data['folios']      = raw.get('folios', [])
-    data['complements'] = raw.get('complements', [])
-    data['journal_no']  = raw.get('journal_no', data.get('journal_no', 1))
-    return data
+def parse_time(s):
+    if not s: return None
+    try: return datetime.strptime(s[:5], '%H:%M').time()
+    except (ValueError, TypeError): return None
 
-def dotline(c, x, y, w):
-    """Ligne en pointillés."""
-    c.setDash(1, 2)
-    c.setLineWidth(0.4)
-    c.line(x, y, x+w, y)
-    c.setDash()
+def to_int(v):
+    if v in (None, ''): return None
+    try: return int(v)
+    except (ValueError, TypeError): return None
 
-def field_line(c, label, value, x, y, label_w, total_w, font_sz=9):
-    """Label + valeur + ligne pointillée."""
-    c.setFont('Helvetica', font_sz)
-    c.drawString(x, y+1.5*mm, label)
-    vx = x + label_w
-    dotline(c, vx, y, total_w - label_w)
-    if value:
-        c.setFont('Helvetica', font_sz)
-        c.drawString(vx + 1*mm, y+1.5*mm, value[:90])
+def read_data_from_json(json_path):
+    with open(json_path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
 
-def strikethrough_text(c, x, y, text, font_sz=8):
-    """Texte barré."""
-    c.setFont('Helvetica', font_sz)
-    w = c.stringWidth(text, 'Helvetica', font_sz)
-    c.drawString(x, y, text)
-    c.setLineWidth(0.5)
-    c.line(x, y + font_sz*0.35, x + w, y + font_sz*0.35)
+    projet_raw = data.get('projet', {}) or {}
 
-def fmt_date(d):
-    if not d: return ''
-    try:
-        return datetime.fromisoformat(str(d)[:10]).strftime('%d/%m/%Y')
-    except:
-        return str(d)[:10]
+    journal_no = projet_raw.get('journal_no')
+    if isinstance(journal_no, (int, float)):
+        journal_no = str(int(journal_no))
+    elif journal_no is None:
+        journal_no = ''
+    else:
+        journal_no = str(journal_no)
 
-# ── CACHET ────────────────────────────────────────────────────────────────
-CACHET_PATHS = ['cachet.png', 'cachet_propre.png',
-                os.path.join(os.path.dirname(__file__), '..', 'cachet.png'),
-                os.path.join(os.path.dirname(__file__), '..', 'cachet_propre.png')]
+    projet = {
+        'pouvoir_adjudicateur': projet_raw.get('pouvoir_adjudicateur', ''),
+        'administration':       projet_raw.get('administration', ''),
+        'service':              projet_raw.get('service', ''),
+        'no_dossier':           projet_raw.get('no_dossier', ''),
+        'description':          projet_raw.get('description', ''),
+        'csc_no':               projet_raw.get('csc_no', ''),
+        'csc_ref':              projet_raw.get('csc_ref', ''),
+        'entrepreneur':         projet_raw.get('entrepreneur', ''),
+        'adresse':              projet_raw.get('adresse', ''),
+        'telephone':            projet_raw.get('telephone', ''),
+        'agreation':            projet_raw.get('agreation', ''),
+        'onss':                 projet_raw.get('onss', ''),
+        'no_entreprise':        projet_raw.get('no_entreprise', ''),
+        'journal_no':           journal_no,
+        'cachet_label':         projet_raw.get('cachet_label', ''),
+        'cachet_ville':         projet_raw.get('cachet_ville', ''),
+        'cachet_mail':          projet_raw.get('cachet_mail', ''),
+        'remis_a':              projet_raw.get('remis_a', ''),
+        'role':                 projet_raw.get('role', ''),
+        'lieu_remise':          projet_raw.get('lieu_remise', ''),
+        'date_remise':          parse_date(projet_raw.get('date_remise')),
+        'fonct_dirigeant':      projet_raw.get('fonct_dirigeant', ''),
+        'prepose':              projet_raw.get('prepose', ''),
+        'projet_id':            projet_raw.get('projet_id', 'PRJ-001'),
+        'nom':                  projet_raw.get('nom', ''),
+        'statut':               projet_raw.get('statut', ''),
+        'date_debut':           parse_date(projet_raw.get('date_debut')),
+        'date_fin':             parse_date(projet_raw.get('date_fin')),
+        'notes':                projet_raw.get('notes', ''),
+        'montant_entreprise':       projet_raw.get('montant_entreprise', ''),
+        'date_adjudication':        parse_date(projet_raw.get('date_adjudication')),
+        'date_approbation':         parse_date(projet_raw.get('date_approbation')),
+        'date_contract_debut':      parse_date(projet_raw.get('date_contract_debut')),
+        'date_contract_fin':        parse_date(projet_raw.get('date_contract_fin')),
+        'lieu_contrat':             projet_raw.get('lieu_contrat', ''),
+        'delai_achevement_jo':      to_int(projet_raw.get('delai_achevement_jo')),
+        'interruptions_autorisees': projet_raw.get('interruptions_autorisees', ''),
+        'prolongations_delai':      projet_raw.get('prolongations_delai', ''),
+        'jours_feries':             to_int(projet_raw.get('jours_feries')) or 0,
+        'jours_conges_legaux':      to_int(projet_raw.get('jours_conges_legaux')) or 0,
+        'jours_intemperies':        to_int(projet_raw.get('jours_intemperies')) or 0,
+        'jours_divers':             to_int(projet_raw.get('jours_divers')) or 0,
+        'date_reelle_achevement':   parse_date(projet_raw.get('date_reelle_achevement')),
+        'date_reportee':            parse_date(projet_raw.get('date_reportee')),
+        'jours_retard':             to_int(projet_raw.get('jours_retard')) or 0,
+        'maitre_oeuvre':            projet_raw.get('maitre_oeuvre', {}) or {},
+        'bureau_etude':             projet_raw.get('bureau_etude', {}) or {},
+        'adresse_chantier':         projet_raw.get('adresse_chantier', ''),
+        'contacts':                 projet_raw.get('contacts', []) or [],
+    }
 
-def draw_cachet(c, data, cx, cy, cw=45*mm, ch=24*mm):
-    """Dessine le cachet entrepreneur (image ou texte)."""
-    label  = data.get('cachet_label', '') or data.get('entrepreneur', '')[:20]
-    ville  = data.get('cachet_ville', '')
-    mail   = data.get('cachet_mail', '')
-    tel    = data.get('telephone', '')
-    adresse= data.get('adresse', '')
-    tva    = data.get('no_entreprise', '')
+    folios = []
+    for f_raw in data.get('folios', []):
+        date_val = parse_date(f_raw.get('date'))
+        folio_no = to_int(f_raw.get('folio_no'))
+        if not date_val or folio_no is None:
+            continue
+        ouvriers = []
+        for o_raw in f_raw.get('ouvriers', []):
+            classe = o_raw.get('classe', '').strip() if isinstance(o_raw.get('classe'), str) else ''
+            metier = o_raw.get('metier', '').strip() if isinstance(o_raw.get('metier'), str) else ''
+            nombre = to_int(o_raw.get('nombre')) or 0
+            if classe or metier or nombre:
+                ouvriers.append({'classe': classe, 'metier': metier, 'nombre': nombre, 'notes': o_raw.get('notes', '') or ''})
+        folios.append(({'folio_no': folio_no, 'date': date_val,
+            'h_debut': parse_time(f_raw.get('h_debut')), 'h_fin': parse_time(f_raw.get('h_fin')),
+            'meteo': f_raw.get('meteo', ''), 't_8h': f_raw.get('t_8h', ''), 't_16h': f_raw.get('t_16h', ''),
+            'b_travaux': f_raw.get('b_travaux', ''), 'c_materiel': f_raw.get('c_materiel', ''),
+            'd_hs': f_raw.get('d_hs', ''), 'e_materiaux': f_raw.get('e_materiaux', ''),
+            'f_essais': f_raw.get('f_essais', ''), 'g_echant': f_raw.get('g_echant', ''),
+            'h_imprevus': f_raw.get('h_imprevus', ''), 'j_decisions': f_raw.get('j_decisions', ''),
+            'k_visites': f_raw.get('k_visites', ''), 'statut': f_raw.get('statut', ''),
+            'signe_prep': f_raw.get('signe_prep', ''), 'signe_ent': f_raw.get('signe_ent', ''),
+        }, ouvriers))
+    folios.sort(key=lambda x: x[0]['folio_no'])
 
-    # Essayer d'utiliser l'image cachet si disponible
-    img_drawn = False
-    if label.upper().strip() in ('EEG', ''):
-        for p in CACHET_PATHS:
-            if os.path.isfile(p):
-                try:
-                    c.drawImage(p, cx, cy, width=cw, height=ch,
-                                preserveAspectRatio=True, mask='auto')
-                    img_drawn = True
-                    break
-                except:
-                    pass
+    complements = []
+    for c_raw in data.get('complements', []):
+        compl_no     = to_int(c_raw.get('folio_compl_no'))
+        folio_no_ref = to_int(c_raw.get('folio_no_ref'))
+        texte        = c_raw.get('texte', '')
+        if not compl_no or not folio_no_ref or not texte:
+            continue
+        complements.append({'folio_compl_no': compl_no, 'folio_no_ref': folio_no_ref,
+            'date_ref': parse_date(c_raw.get('date_ref')), 'case': c_raw.get('case', ''), 'texte': texte})
+    complements.sort(key=lambda c: c['folio_compl_no'])
 
-    if not img_drawn:
-        # Cachet texte
-        c.setLineWidth(0.7)
-        c.rect(cx, cy, cw, ch)
-        fy = cy + ch - 6*mm
-        c.setFont('Helvetica-Bold', 10)
-        c.drawCentredString(cx + cw/2, fy, label or '?')
-        fy -= 5*mm
-        for line in [ville, adresse, tel, mail, tva]:
-            if line:
-                c.setFont('Helvetica', 7)
-                c.drawCentredString(cx + cw/2, fy, str(line)[:35])
-                fy -= 3.5*mm
+    return projet, folios, complements
 
-# ── PAGE DE GARDE (page 1) ────────────────────────────────────────────────
-def draw_page_garde(c, data):
-    ML = 17*mm   # marge gauche
-    MR = 17*mm   # marge droite
-    PW = W - ML - MR  # largeur utile
 
-    # ── EN-TÊTE DROIT ──────────────────────────────────────────────
-    hx = ML + PW*0.45   # colonne droite
-    hw = PW*0.55        # largeur colonne droite
-    hy = H - 20*mm
+W, H = A4
+MARGIN_L = 25; MARGIN_R = 25; MARGIN_T = 25; MARGIN_B = 25
+EXEMPLAIRE_W = 14
+F_REG = 'Helvetica'; F_BOLD = 'Helvetica-Bold'; F_IT = 'Helvetica-Oblique'
+CACHET_IMG_PATH = None
 
-    for label, key in [
-        ('Pouvoir adjudicateur', 'pouvoir_adjudicateur'),
-        ('Administration',       'administration'),
-        ('Service',              'service'),
-        ("N\u00b0 du dossier",   'no_dossier'),
-    ]:
-        val = g(data, key)
-        c.setFont('Helvetica', 8)
-        c.drawString(hx, hy + 1.5*mm, label + '  ')
-        dotline(c, hx + c.stringWidth(label+'  ', 'Helvetica', 8), hy, hw - c.stringWidth(label+'  ', 'Helvetica', 8))
-        if val:
-            c.setFont('Helvetica', 7.5)
-            c.drawString(hx + c.stringWidth(label+'  ', 'Helvetica', 8) + 1*mm, hy + 1.5*mm, val[:55])
-        hy -= 8*mm
+def yt(y_top): return H - y_top
 
-    # Ligne de séparation
-    hy -= 3*mm
-    c.setLineWidth(0.7)
-    c.line(ML, hy, ML + PW, hy)
-    hy -= 12*mm
+def dotted(c, x1, x2, y, dash=(0.7, 1.4), width=0.4):
+    c.saveState(); c.setDash(dash); c.setLineWidth(width); c.setStrokeColor(black)
+    c.line(x1, y, x2, y); c.restoreState()
 
-    # ── TITRE ──────────────────────────────────────────────────────
-    c.setFont('Helvetica-Bold', 18)
-    title = 'JOURNAL DES TRAVAUX'
-    tw = c.stringWidth(title, 'Helvetica-Bold', 18)
-    tx = (W - tw) / 2
-    c.drawString(tx, hy, title)
-    c.setLineWidth(1.0)
-    c.line(tx, hy - 1.5*mm, tx + tw, hy - 1.5*mm)
-    hy -= 16*mm
+def field(c, x, y_top, label, value, total_w, label_size=9, val_size=9):
+    y = yt(y_top); c.setFont(F_REG, label_size); c.drawString(x, y, label)
+    lw = c.stringWidth(label, F_REG, label_size) + 4
+    dotted(c, x + lw, x + total_w, y - 2)
+    if value not in (None, ''):
+        c.setFont(F_REG, val_size); c.drawString(x + lw + 2, y, str(value))
 
-    # ── TRAVAUX DE ──────────────────────────────────────────────────
-    desc = g(data, 'description')
-    c.setFont('Helvetica', 9)
-    c.drawString(ML, hy + 1.5*mm, 'Travaux de  ')
-    vx = ML + c.stringWidth('Travaux de  ', 'Helvetica', 9)
-    dotline(c, vx, hy, ML + PW - vx)
-    if desc:
-        c.setFont('Helvetica', 8.5)
-        # Tronquer à ~80 chars par ligne
-        words = desc.split()
-        lines = []
-        cur = ''
-        for w in words:
-            if len(cur + ' ' + w) <= 85:
-                cur = (cur + ' ' + w).strip()
-            else:
-                lines.append(cur); cur = w
-        if cur: lines.append(cur)
-        for i, line in enumerate(lines[:3]):
-            yy = hy - i*7*mm
-            c.drawString(vx + 1*mm, yy + 1.5*mm, line)
-    for i in range(1, 3):
-        dotline(c, ML, hy - i*7*mm, PW)
-    hy -= 26*mm
-
-    # ── CSC ──────────────────────────────────────────────────────────
-    csc_no  = g(data, 'csc_no')
-    csc_ref = g(data, 'csc_ref')
-    c.setFont('Helvetica', 9)
-    c.drawString(ML, hy + 1.5*mm, "Cahier des charges n\u00b0  ")
-    lw = c.stringWidth("Cahier des charges n\u00b0  ", 'Helvetica', 9)
-    dotline(c, ML + lw, hy, PW*0.38)
-    if csc_no:
-        c.setFont('Helvetica', 8.5)
-        c.drawString(ML + lw + 1*mm, hy + 1.5*mm, csc_no[:35])
-    # "de"
-    de_x = ML + lw + PW*0.38 + 3*mm
-    c.setFont('Helvetica', 9)
-    c.drawString(de_x, hy + 1.5*mm, 'de  ')
-    dotline(c, de_x + c.stringWidth('de  ', 'Helvetica', 9), hy, ML + PW - de_x - c.stringWidth('de  ', 'Helvetica', 9))
-    if csc_ref:
-        c.setFont('Helvetica', 8.5)
-        c.drawString(de_x + c.stringWidth('de  ', 'Helvetica', 9) + 1*mm, hy + 1.5*mm, csc_ref[:40])
-    hy -= 14*mm
-
-    # ── ENTREPRENEUR ──────────────────────────────────────────────
-    rows = [
-        ('Entrepreneur\u00a0: ',  g(data, 'entrepreneur')),
-        ('Adresse\u00a0: ',        g(data, 'adresse')),
-        ('T\u00e9l\u00e9phone\u00a0: ', g(data, 'telephone')),
-        ("N\u00b0 du certificat d'agr\u00e9ation\u00a0: ", g(data, 'agreation')),
-        ("N\u00b0 d'immatriculation \u00e0 l'O.N.S.S.\u00a0: ", g(data, 'onss')),
-        ("N\u00b0 d'entreprise\u00a0: ", g(data, 'no_entreprise')),
-    ]
-    for label, val in rows:
-        lw2 = c.stringWidth(label, 'Helvetica', 9)
-        c.setFont('Helvetica', 9)
-        c.drawString(ML, hy + 1.5*mm, label)
-        dotline(c, ML + lw2, hy, PW - lw2)
-        if val:
-            c.setFont('Helvetica', 8.5)
-            c.drawString(ML + lw2 + 1*mm, hy + 1.5*mm, val[:70])
-        hy -= 8.5*mm
-
-    hy -= 8*mm
-
-    # ── TEXTE LÉGAL + REMISE ──────────────────────────────────────
-    jno = str(data.get('journal_no', ''))
-    texte_legal = (
-        "Le pr\u00e9sent journal des travaux contenant trente quadruples folios num\u00e9rot\u00e9s de 1 \u00e0 30 "
-        "et 10 quadruples folios compl\u00e9mentaires de 31 \u00e0 40 a \u00e9t\u00e9 remis comme journal n\u00b0"
-    )
-    c.setFont('Helvetica', 8)
-    # Texte sur 2 lignes
-    words2 = texte_legal.split()
-    lines2 = []; cur2 = ''
-    for w in words2:
-        if c.stringWidth(cur2+' '+w, 'Helvetica', 8) < PW*0.8:
-            cur2 = (cur2+' '+w).strip()
+def field_wrap(c, x, y_top, label, value, total_w, label_size=9, val_size=9, max_lines=2, line_h=14):
+    y = yt(y_top); c.setFont(F_REG, label_size); c.drawString(x, y, label)
+    lw = c.stringWidth(label, F_REG, label_size) + 4
+    dotted(c, x + lw, x + total_w, y - 2)
+    if value in (None, ''): return y_top
+    text = str(value); avail_w = total_w - lw - 4; c.setFont(F_REG, val_size)
+    words = text.split(' '); lines = []; cur = ''
+    for w in words:
+        test = (cur + ' ' + w).strip()
+        if c.stringWidth(test, F_REG, val_size) <= avail_w: cur = test
         else:
-            lines2.append(cur2); cur2 = w
-    if cur2: lines2.append(cur2)
-    for ln in lines2[:2]:
-        c.drawString(ML, hy, ln)
-        hy -= 5*mm
-    # N° du journal
-    c.setFont('Helvetica', 9)
-    c.drawString(W - MR - 25*mm, hy + 5*mm, jno)
-    dotline(c, W - MR - 28*mm, hy + 4*mm, 28*mm)
-    hy -= 4*mm
-
-    # à M
-    c.setFont('Helvetica', 9)
-    c.drawString(ML, hy + 1.5*mm, '\u00e0 M  ')
-    dotline(c, ML + c.stringWidth('\u00e0 M  ', 'Helvetica', 9), hy, PW - c.stringWidth('\u00e0 M  ', 'Helvetica', 9))
-    hy -= 12*mm
-
-    # Rôles avec barrés
-    roles = ['Conducteur,', 'Chef de district,', 'Contr\u00f4leur des travaux,', 'Surveillant des travaux\u00a0(1)']
-    cx_r = ML + PW*0.4
-    for role in roles:
-        strikethrough_text(c, cx_r, hy, role, 8)
-        hy -= 5.5*mm
-    hy -= 3*mm
-
-    # à [lieu] , le [date]
-    lieu = g(data, 'lieu_contrat')
-    date_v = fmt_date(g(data, 'date_contract_debut'))
-    c.setFont('Helvetica', 9)
-    c.drawString(ML + PW*0.35, hy + 1.5*mm, '\u00e0  ')
-    dotline(c, ML + PW*0.35 + c.stringWidth('\u00e0  ', 'Helvetica', 9), hy, PW*0.20)
-    if lieu:
-        c.setFont('Helvetica', 8.5); c.drawString(ML + PW*0.35 + c.stringWidth('\u00e0  ', 'Helvetica', 9)+1*mm, hy+1.5*mm, lieu)
-    c.setFont('Helvetica', 9)
-    c.drawString(ML + PW*0.60, hy + 1.5*mm, ', le  ')
-    dotline(c, ML + PW*0.60 + c.stringWidth(', le  ', 'Helvetica', 9), hy, ML + PW - ML - PW*0.60 - c.stringWidth(', le  ', 'Helvetica', 9))
-    if date_v:
-        c.setFont('Helvetica', 8.5); c.drawString(ML + PW*0.60 + c.stringWidth(', le  ', 'Helvetica', 9)+1*mm, hy+1.5*mm, date_v)
-    hy -= 5*mm
-    c.setFont('Helvetica-Oblique', 8); c.drawString(ML + PW*0.40, hy, 'Le Fonctionnaire dirigeant,')
-    hy -= 10*mm
-
-    # ── BAS DE PAGE ──────────────────────────────────────────────
-    # Bloc signature gauche
-    sig_x = ML; sig_y = 22*mm; sig_w = 55*mm; sig_h = 20*mm
-    c.setFont('Helvetica', 7.5)
-    c.drawString(sig_x, sig_y + sig_h + 3*mm, 'Re\u00e7u le pr\u00e9sent journal\u00a0:')
-    c.drawString(sig_x, sig_y + sig_h - 1*mm, 'Le pr\u00e9pos\u00e9 \u00e0 la surveillance')
-    c.drawString(sig_x, sig_y + sig_h - 5.5*mm, 'charg\u00e9 de la tenue du journal,')
-    c.setFont('Helvetica-Oblique', 7.5)
-    c.drawString(sig_x, sig_y + sig_h - 10*mm, '(Signature)')
-    c.setLineWidth(0.5); c.rect(sig_x, sig_y, sig_w, sig_h - 12*mm)
-
-    # Bloc cachet droit
-    cacht_x = W - MR - 55*mm; cacht_y = 22*mm
-    c.setFont('Helvetica', 7.5); c.drawString(cacht_x, 22*mm + 22*mm + 2*mm, 'Pour l\u2019entrepreneur,')
-    c.setFont('Helvetica-Oblique', 7.5); c.drawString(cacht_x, 22*mm + 22*mm - 2*mm, '(Cachet et signature)')
-    draw_cachet(c, data, cacht_x, cacht_y, 55*mm, 22*mm)
-
-    # Note bas
-    c.setFont('Helvetica', 7)
-    c.drawString(ML, 10*mm, '(1) Biffer les mentions inutiles')
-
-    # Pied de page "9545 F"
-    c.setFont('Helvetica-Bold', 8)
-    c.drawRightString(W - MR, 8*mm, '9545 F')
-
-# ── PAGE FOLIO (page 3+) ──────────────────────────────────────────────────
-CASES = [
-    ('B', 'Travaux ex\u00e9cut\u00e9s',     'b_travaux',   8),
-    ('C', 'Mat\u00e9riel en service',       'c_materiel',  4),
-    ('D', 'Mat\u00e9riel hors service',     'd_hs',         3),
-    ('E', 'Mat\u00e9riaux entr\u00e9s',     'e_materiaux',  4),
-    ('F', 'Essais sur chantier',            'f_essais',     3),
-    ('G', '\u00c9chantillons exp\u00e9di\u00e9s', 'g_echant', 3),
-    ('H', '\u00c9v\u00e9nements impr\u00e9vus', 'h_imprevus', 4),
-    ('J', 'D\u00e9cisions prises',          'j_decisions',  4),
-    ('K', 'Visites & divers',               'k_visites',    3),
-]
-
-def draw_folio(c, folio, data):
-    ML = 12*mm; MR = 12*mm; MT = 12*mm
-    PW = W - ML - MR
-
-    # En-tête folio
-    hy = H - MT
-    c.setFont('Helvetica-Bold', 9)
-    fno = str(folio.get('folio_no', ''))
-    fdate = fmt_date(folio.get('date', ''))
-    c.drawString(ML, hy - 5*mm, f"Folio N\u00b0  {fno}")
-    c.drawString(ML + PW*0.3, hy - 5*mm, f"Date\u00a0: {fdate}")
-
-    meteo = folio.get('meteo', '')
-    t8 = folio.get('t_8h', ''); t16 = folio.get('t_16h', '')
-    h_d = folio.get('h_debut', ''); h_f = folio.get('h_fin', '')
-    c.setFont('Helvetica', 8.5)
-    c.drawString(ML + PW*0.55, hy - 5*mm, f"M\u00e9t\u00e9o\u00a0: {meteo}")
-    c.drawString(ML + PW*0.80, hy - 5*mm, f"T\u00b0 8h\u00a0: {t8}\u00b0")
-    hy -= 10*mm
-    c.drawString(ML, hy, f"Heures\u00a0: {h_d} \u2192 {h_f}")
-    c.drawString(ML + PW*0.80, hy, f"T\u00b0 16h\u00a0: {t16}\u00b0")
-    hy -= 5*mm
-    c.setLineWidth(0.6); c.line(ML, hy, ML+PW, hy); hy -= 5*mm
-
-    # Case A — Ouvriers
-    c.setFont('Helvetica-Bold', 8.5)
-    c.drawString(ML, hy, 'A  Ouvriers sur chantier')
-    hy -= 5*mm
-    ouvriers = folio.get('ouvriers', [])
-    total = sum(int(o.get('nombre', 0)) for o in ouvriers)
-    # En-tête tableau
-    c.setFont('Helvetica-Bold', 7.5)
-    c.drawString(ML+2*mm, hy, 'Classe'); c.drawString(ML+45*mm, hy, 'M\u00e9tier'); c.drawString(ML+90*mm, hy, 'Nombre')
-    hy -= 4*mm
-    c.setLineWidth(0.3); c.line(ML, hy, ML+PW, hy); hy -= 1*mm
-    c.setFont('Helvetica', 7.5)
-    for o in ouvriers[:8]:
-        c.drawString(ML+2*mm, hy, str(o.get('classe',''))[:28])
-        c.drawString(ML+45*mm, hy, str(o.get('metier',''))[:28])
-        c.drawString(ML+90*mm, hy, str(o.get('nombre','')))
-        hy -= 4.5*mm
-    c.setFont('Helvetica-Bold', 7.5); c.drawString(ML+80*mm, hy, f'Total\u00a0: {total}'); hy -= 6*mm
-    c.setLineWidth(0.6); c.line(ML, hy, ML+PW, hy); hy -= 5*mm
-
-    # Cases B–K
-    for letter, title, key, rows in CASES:
-        val = folio.get(key, '')
-        c.setFont('Helvetica-Bold', 8.5)
-        c.drawString(ML, hy, f'{letter}  {title}')
-        hy -= 4.5*mm
-        c.setFont('Helvetica', 8)
-        if val:
-            # Wrap le texte
-            words = str(val).split()
-            lines = []; cur = ''
-            for w in words:
-                if c.stringWidth(cur+' '+w,'Helvetica',8) < PW:
-                    cur = (cur+' '+w).strip()
-                else:
-                    lines.append(cur); cur = w
             if cur: lines.append(cur)
-            for ln in lines[:rows]:
-                if hy < 40*mm: break
-                c.drawString(ML+5*mm, hy, ln)
-                hy -= 4.5*mm
-        else:
-            for _ in range(rows):
-                dotline(c, ML+5*mm, hy, PW-5*mm); hy -= 5*mm
-        if hy < 40*mm: break
-        c.setLineWidth(0.3); c.line(ML, hy, ML+PW, hy); hy -= 3*mm
+            cur = w
+            if len(lines) >= max_lines - 1: break
+    if cur: lines.append(cur)
+    if len(lines) > max_lines:
+        last = lines[max_lines - 1]
+        while c.stringWidth(last + '...', F_REG, val_size) > avail_w and len(last) > 1: last = last[:-1]
+        lines = lines[:max_lines - 1] + [last + '...']
+    c.drawString(x + lw + 2, y, lines[0])
+    for i, ln in enumerate(lines[1:], 1):
+        ny = yt(y_top + i * line_h); dotted(c, x, x + total_w, ny - 2); c.drawString(x + 2, ny, ln)
+    return y_top + (len(lines) - 1) * line_h
 
-    # Signatures bas de page
-    c.setLineWidth(0.6); c.line(ML, 38*mm, ML+PW, 38*mm)
-    c.setFont('Helvetica', 7.5)
-    c.drawString(ML, 34*mm, 'Le pr\u00e9pos\u00e9 \u00e0 la surveillance (signature)\u00a0:')
-    dotline(c, ML + c.stringWidth('Le pr\u00e9pos\u00e9 \u00e0 la surveillance (signature)\u00a0:', 'Helvetica', 7.5), 33*mm, PW*0.4)
-    c.drawString(ML + PW*0.55, 34*mm, 'L\u2019entrepreneur (signature)\u00a0:')
-    dotline(c, ML + PW*0.55 + c.stringWidth('L\u2019entrepreneur (signature)\u00a0:', 'Helvetica', 7.5), 33*mm, PW*0.4)
+def case_tag(c, x, y_top, letter, w=18, h=18):
+    y = yt(y_top); c.saveState(); c.setStrokeColor(black); c.setLineWidth(1)
+    c.rect(x, y - h, w, h, fill=0, stroke=1)
+    c.setFillColor(black); c.setFont(F_BOLD, h - 5)
+    c.drawCentredString(x + w/2, y - h + 5, letter); c.restoreState()
 
-    # Statut
-    statut = folio.get('statut', '')
-    if statut:
-        c.setFont('Helvetica-Bold', 8); c.drawRightString(W - MR, 38*mm + 2*mm, statut)
+def box(c, x, y_top, w, h, line_width=0.8):
+    c.saveState(); c.setLineWidth(line_width); c.setStrokeColor(black)
+    c.rect(x, yt(y_top) - h, w, h, fill=0, stroke=1); c.restoreState()
 
-    # Pied "9545 F"
-    c.setFont('Helvetica-Bold', 7); c.drawRightString(W - MR, 8*mm, '9545 F')
+def hline(c, x1, x2, y_top, line_width=0.5):
+    c.saveState(); c.setLineWidth(line_width); c.setStrokeColor(black)
+    c.line(x1, yt(y_top), x2, yt(y_top)); c.restoreState()
 
-# ── GÉNÉRATION PRINCIPALE ──────────────────────────────────────────────────
-def generate_pdf(json_path, pdf_path):
-    data = load_data(json_path)
-    pid  = data.get('projet_id', 'main')
-    jno  = data.get('journal_no', 1)
-    print(f"  → projet={pid} journal={jno} entrepreneur={data.get('entrepreneur','?')[:40]}")
+def vline(c, x, y_top, y_bot, line_width=0.5):
+    c.saveState(); c.setLineWidth(line_width); c.setStrokeColor(black)
+    c.line(x, yt(y_top), x, yt(y_bot)); c.restoreState()
 
-    os.makedirs(os.path.dirname(pdf_path) or '.', exist_ok=True)
-    c = canvas.Canvas(pdf_path, pagesize=A4)
-    c.setTitle(f"Journal des Travaux — J{jno}")
-    c.setAuthor(data.get('entrepreneur', 'EEG'))
+def para(c, text, x, y_top, w, h, font_size=8, font=F_REG, padding=2, leading=None):
+    text = str(text or '').strip()
+    if not text: return
+    def wrap_text(txt, fs):
+        avail_w = w - 2 * padding; raw_lines = txt.split('\n'); out = []
+        for raw in raw_lines:
+            raw = raw.rstrip()
+            if not raw: out.append(''); continue
+            words = raw.split(' '); cur = ''
+            for word in words:
+                test = (cur + ' ' + word).strip() if cur else word
+                if c.stringWidth(test, font, fs) <= avail_w: cur = test
+                else:
+                    if cur: out.append(cur)
+                    while word and c.stringWidth(word, font, fs) > avail_w:
+                        i = 1
+                        while i <= len(word) and c.stringWidth(word[:i], font, fs) <= avail_w: i += 1
+                        out.append(word[:max(1, i - 1)]); word = word[max(1, i - 1):]
+                    cur = word
+            if cur: out.append(cur)
+        return out
+    fs = font_size; fs_min = max(6, font_size - 2.5); lead = (leading or fs + 2); lines = []
+    while fs >= fs_min:
+        lead = fs + 2; max_lines = max(1, int((h - 2 * padding) / lead))
+        lines = wrap_text(text, fs)
+        if len(lines) <= max_lines: break
+        fs -= 0.5
+    max_lines = max(1, int((h - 2 * padding) / lead)); avail_w = w - 2 * padding
+    if len(lines) > max_lines:
+        last = lines[max_lines - 1]
+        while c.stringWidth(last + ' …', font, fs) > avail_w and len(last) > 1: last = last[:-1]
+        lines = lines[:max_lines - 1] + [last + ' …']
+    c.setFont(font, fs); y = y_top + padding + fs
+    for line in lines: c.drawString(x + padding, yt(y), line); y += lead
 
-    # Page 1 : page de garde
-    draw_page_garde(c, data)
-    c.showPage()
+def text_at(c, text, x, y_top, font=F_REG, size=9):
+    c.setFont(font, size); c.drawString(x, yt(y_top), str(text))
 
-    # Page 2 : identification (idem page de garde dans certaines versions)
-    # On saute directement aux folios si l'ancienne version avait une page 2 identique
-    # (ici on fait juste la page 2 = blank avec entête pour respecter le format 9545 F)
-    c.setFont('Helvetica', 8)
-    c.drawString(17*mm, H - 20*mm, f"Journal N\u00b0 {jno}  —  {data.get('entrepreneur', '')}")
-    c.setFont('Helvetica-Bold', 11)
-    c.drawCentredString(W/2, H/2, 'Page d\u2019identification')
-    c.setFont('Helvetica', 8)
-    c.drawCentredString(W/2, H/2 - 10*mm, '(page r\u00e9serv\u00e9e)')
-    c.showPage()
+def fmt_date(d): return d.strftime('%d/%m/%Y') if d else ''
+def fmt_time(t): return t.strftime('%H:%M') if t else ''
+def fmt_folio_no(n): return f"{n:04d}" if n is not None else ''
 
-    # Pages folios
-    for folio in data.get('folios', []):
-        draw_folio(c, folio, data)
-        c.showPage()
 
-    # Compléments
-    compls = data.get('complements', [])
-    if compls:
-        # Grouper par folio_no_ref
-        from collections import defaultdict
-        groups = defaultdict(list)
-        for comp in compls:
-            groups[comp.get('folio_no_ref', 0)].append(comp)
-        for ref_no, rows in sorted(groups.items()):
-            c.setFont('Helvetica-Bold', 10)
-            c.drawString(17*mm, H - 20*mm, f"Compl\u00e9ment Folio N\u00b0 {ref_no}")
-            y = H - 35*mm
-            for row in rows:
-                case = row.get('case',''); texte = row.get('texte','')
-                c.setFont('Helvetica-Bold', 8.5)
-                c.drawString(17*mm, y, f"Suite case {case}\u00a0:")
-                y -= 6*mm
-                c.setFont('Helvetica', 8)
-                words = str(texte).split()
-                lines = []; cur = ''
-                for w in words:
-                    if c.stringWidth(cur+' '+w,'Helvetica',8) < W-34*mm:
-                        cur = (cur+' '+w).strip()
-                    else:
-                        lines.append(cur); cur = w
-                if cur: lines.append(cur)
-                for ln in lines:
-                    c.drawString(22*mm, y, ln); y -= 5*mm
-                y -= 3*mm
-            c.showPage()
+def draw_cachet(c, cx, cy, projet, scale=1.0):
+    p = projet if isinstance(projet, dict) else {}
+    label = (p.get('cachet_label') or '').strip() or 'EEG'
+    if label == 'EEG' and CACHET_IMG_PATH and Path(CACHET_IMG_PATH).exists():
+        w = 200 * scale; h = 100 * scale
+        x = cx - w / 2; y_bottom = yt(cy + h)
+        c.drawImage(CACHET_IMG_PATH, x, y_bottom, width=w, height=h, preserveAspectRatio=True, mask='auto')
+        return
+    _draw_cachet_fallback(c, cx, cy, p, scale)
+
+def _draw_cachet_fallback(c, cx, cy, projet, scale=1.0):
+    p = projet if isinstance(projet, dict) else {}
+    label   = (p.get('cachet_label')  or '').strip() or 'EEG'
+    ville   = (p.get('cachet_ville')  or '').strip() or 'Namur'
+    adresse = (p.get('adresse')       or '').strip() or 'Z.I., 6 rue des Gerboises - 5100 Naninne'
+    tel     = (p.get('telephone')     or '').strip() or '081/21 27 02'
+    mail    = (p.get('cachet_mail')   or '').strip() or 'naninne@eeg.be'
+    tva     = (p.get('no_entreprise') or '').strip() or 'BE 0442.891.013'
+    w = 200 * scale; h = 100 * scale; x = cx - w / 2; y0 = cy
+    c.saveState(); c.setStrokeColor(black); c.setFillColor(black)
+    cube_size = 16 * scale; cube_x = x + w/2 - cube_size/2; cube_y = y0 + 4 * scale
+    c.setLineWidth(0.7 * scale)
+    c.line(x + 25*scale, yt(cube_y + cube_size/2 + 1*scale), cube_x - 6*scale, yt(cube_y + cube_size/2 + 1*scale))
+    c.line(cube_x + cube_size + 6*scale, yt(cube_y + cube_size/2 + 1*scale), x + w - 25*scale, yt(cube_y + cube_size/2 + 1*scale))
+    c.setLineWidth(1.0 * scale)
+    c.rect(cube_x, yt(cube_y + cube_size), cube_size, cube_size, fill=0, stroke=1)
+    off = 3.5 * scale
+    c.line(cube_x, yt(cube_y), cube_x + off, yt(cube_y - off))
+    c.line(cube_x + cube_size, yt(cube_y), cube_x + cube_size + off, yt(cube_y - off))
+    c.line(cube_x + off, yt(cube_y - off), cube_x + cube_size + off, yt(cube_y - off))
+    c.line(cube_x + cube_size + off, yt(cube_y - off), cube_x + cube_size + off, yt(cube_y + cube_size - off))
+    label_y = y0 + 38 * scale
+    label_size = 30 * scale if len(label) <= 4 else max(14 * scale, 30 * scale * 4 / len(label))
+    c.setFont(F_BOLD, label_size); c.drawCentredString(x + w/2, yt(label_y), label)
+    c.setLineWidth(0.9 * scale)
+    c.line(x + 18*scale, yt(label_y + 4*scale), x + w/2 - 28*scale, yt(label_y + 4*scale))
+    c.line(x + w/2 + 28*scale, yt(label_y + 4*scale), x + w - 18*scale, yt(label_y + 4*scale))
+    c.setLineWidth(1.3 * scale); c.line(x + 22*scale, yt(y0 + 56*scale), x + w - 22*scale, yt(y0 + 56*scale))
+    c.setFont(F_BOLD, 11 * scale); c.drawCentredString(x + w/2, yt(y0 + 68*scale), ville)
+    c.setFont(F_BOLD, 8 * scale)
+    c.drawCentredString(x + w/2, yt(y0 + 79*scale), adresse)
+    c.drawCentredString(x + w/2, yt(y0 + 88*scale), f'Tél. : {tel}')
+    c.drawCentredString(x + w/2, yt(y0 + 97*scale), f'Mail : {mail} - TVA : {tva}')
+    c.restoreState()
+
+
+def draw_page_de_garde(c, p):
+    admin_x = 230; admin_w = W - admin_x - MARGIN_R
+    y = 55
+    field(c, admin_x, y, 'Pouvoir adjudicateur', p['pouvoir_adjudicateur'], admin_w); y += 18
+    field(c, admin_x, y, 'Administration',       p['administration'],       admin_w); y += 18
+    consumed = field_wrap(c, admin_x, y, 'Service', p['service'], admin_w, max_lines=2, line_h=12)
+    y = consumed + 18
+    field(c, admin_x, y, 'N° du dossier', p['no_dossier'], admin_w); y += 18
+    c.setLineWidth(0.8); c.line(admin_x + 200, yt(y - 4), admin_x + 280, yt(y - 4))
+
+    title_y = 175
+    c.setFont(F_BOLD, 22); c.drawCentredString(W/2, yt(title_y), 'JOURNAL DES TRAVAUX')
+    tw = c.stringWidth('JOURNAL DES TRAVAUX', F_BOLD, 22)
+    c.setLineWidth(1.5); c.line(W/2 - tw/2, yt(title_y + 4), W/2 + tw/2, yt(title_y + 4))
+
+    form_x = MARGIN_L + 40; form_w = W - form_x - MARGIN_R
+    y = 220
+    c.setFont(F_REG, 9); c.drawString(form_x, yt(y), 'Travaux de')
+    lbl_w = c.stringWidth('Travaux de', F_REG, 9) + 4
+    dotted(c, form_x + lbl_w, form_x + form_w, yt(y) - 2)
+    dotted(c, form_x, form_x + form_w, yt(y + 14) - 2)
+    dotted(c, form_x, form_x + form_w, yt(y + 28) - 2)
+    para(c, p['description'], form_x + lbl_w + 2, y - 9, form_w - lbl_w - 2, 42, font_size=9, padding=0, leading=14)
+
+    y = 285
+    c.setFont(F_REG, 9); c.drawString(form_x, yt(y), 'Cahier des charges n°')
+    lbl_w = c.stringWidth('Cahier des charges n°', F_REG, 9) + 4
+    mid = form_x + form_w * 0.55
+    dotted(c, form_x + lbl_w, mid - 25, yt(y) - 2)
+    c.drawString(form_x + lbl_w + 2, yt(y), str(p['csc_no']))
+    c.drawString(mid - 15, yt(y), 'de')
+    de_w = c.stringWidth('de', F_REG, 9) + 4
+    dotted(c, mid - 15 + de_w, form_x + form_w, yt(y) - 2)
+    c.drawString(mid - 15 + de_w + 2, yt(y), str(p['csc_ref'])[:60])
+
+    y = 325
+    for lbl, val in [
+        ('Entrepreneur :',                   p['entrepreneur']),
+        ('Adresse :',                        p['adresse']),
+        ('',                                 ''),
+        ('Téléphone :',                      p['telephone']),
+        ("N° du certificat d'agréation :",   p['agreation']),
+        ("N° d'immatriculation à l'O.N.S.S. :", p['onss']),
+        ("N° d'entreprise :",                p['no_entreprise']),
+    ]:
+        if lbl: field(c, form_x, y, lbl, val, form_w)
+        y += 16
+
+    y = 485
+    text_p = ("Le présent journal des travaux contenant trente quadruples folios "
+              "numérotés de 1 à 30 et 10 quadruples folios complémentaires de 31 à "
+              "40 a été remis comme journal n°")
+    para(c, text_p, form_x, y, form_w - 50, 32, font_size=9, padding=0, leading=12)
+    dotted(c, form_x + form_w - 45, form_x + form_w, yt(y + 14) - 2)
+    c.setFont(F_REG, 9); c.drawString(form_x + form_w - 40, yt(y + 14), p['journal_no'])
+
+    y = 530
+    c.setFont(F_REG, 9); c.drawString(form_x, yt(y), 'à M')
+    am_w = c.stringWidth('à M', F_REG, 9) + 4
+    dotted(c, form_x + am_w, form_x + form_w, yt(y) - 2)
+
+    role_x = form_x + 200; y = 565
+    roles = ['Conducteur,', 'Chef de district,', 'Contrôleur des travaux,', 'Surveillant des travaux (1)']
+    role_active = p['role']
+    for i, role in enumerate(roles):
+        c.setFont(F_REG, 9); ry = y + i * 14; c.drawString(role_x, yt(ry), role)
+        role_clean = role.rstrip(',').replace(' (1)', '').strip()
+        if role_clean != role_active:
+            tw_r = c.stringWidth(role, F_REG, 9)
+            c.setLineWidth(0.8); c.line(role_x, yt(ry) + 3, role_x + tw_r, yt(ry) + 3)
+
+    y = 645
+    c.setFont(F_REG, 9); c.drawString(role_x, yt(y), 'à')
+    a_w = c.stringWidth('à', F_REG, 9) + 4
+    dotted(c, role_x + a_w, role_x + 250, yt(y) - 2)
+    c.drawString(role_x + a_w + 4, yt(y), p['lieu_remise'])
+
+    y = 668
+    le_x = role_x + 140; c.setFont(F_REG, 9); c.drawString(le_x, yt(y), ', le')
+    le_w = c.stringWidth(', le', F_REG, 9) + 4
+    dotted(c, le_x + le_w, role_x + 260, yt(y) - 2)
+    if p['date_remise']: c.drawString(le_x + le_w + 4, yt(y), fmt_date(p['date_remise']))
+
+    y = 685
+    c.setFont(F_REG, 9); c.drawString(role_x + 30, yt(y), 'Le Fonctionnaire dirigeant,')
+    c.setFont(F_IT, 9); c.drawString(role_x + 30, yt(y + 16), p['fonct_dirigeant'])
+
+    y = 720
+    c.setFont(F_REG, 9); c.drawString(MARGIN_L, yt(y), 'Reçu le présent journal :')
+    c.drawString(MARGIN_L, yt(y + 12), 'Le préposé à la surveillance')
+    c.drawString(MARGIN_L, yt(y + 24), 'chargé de la tenue du journal,')
+    c.setFont(F_IT, 8); c.drawString(MARGIN_L + 55, yt(y + 36), '(Signature)')
+    box(c, MARGIN_L, y + 46, 160, 35, line_width=0.4)
+    c.setFont(F_IT, 9); c.drawString(MARGIN_L + 5, yt(y + 70), p['prepose'])
+
+    c.setFont(F_REG, 9); c.drawString(W - MARGIN_R - 165, yt(y), "Pour l'entrepreneur,")
+    c.setFont(F_IT, 8); c.drawString(W - MARGIN_R - 130, yt(y + 12), '(Cachet et signature)')
+    draw_cachet(c, W - MARGIN_R - 90, y + 25, p, scale=0.7)
+
+    c.setFont(F_REG, 8); c.drawString(MARGIN_L, yt(820), '(1) Biffer les mentions inutiles')
+    c.setFont(F_BOLD, 9); c.drawString(W - MARGIN_R - 35, yt(820), '9545 F')
+
+
+def draw_folio_page(c, p, f, ouvriers, complements_du_folio=None):
+    complements_du_folio = complements_du_folio or []
+    cpls_by_case = {}
+    for cpl in complements_du_folio:
+        case = (cpl.get('case') or '').strip().upper()[:1]
+        if case: cpls_by_case.setdefault(case, []).append(cpl)
+
+    def mark_case(case_letter, x, y_top, w, font_size=7):
+        cpls = cpls_by_case.get(case_letter, [])
+        if not cpls: return
+        nums = ', '.join('N°' + str(c.get('folio_compl_no', '')) for c in cpls)
+        msg = '→ Voir complément ' + nums
+        c.saveState(); c.setFont(F_IT, font_size); c.setFillColor(black)
+        c.drawString(x + 4, yt(y_top - 2), msg); c.restoreState()
+
+    hdr_y = MARGIN_T; hdr_h = 110
+    c.setFont(F_IT, 7)
+    c.drawString(MARGIN_L + 5, yt(hdr_y - 4), "Cachet de la Firme avec indications d'ordre général")
+    cachet_w = (W - MARGIN_L - MARGIN_R) * 0.38
+    cachet_x = MARGIN_L; info_x = cachet_x + cachet_w; info_w = W - info_x - MARGIN_R
+    box(c, cachet_x, hdr_y, cachet_w, hdr_h, line_width=0.8)
+    draw_cachet(c, cachet_x + cachet_w/2, hdr_y + 5, p, scale=0.78)
+    box(c, info_x, hdr_y, info_w, hdr_h, line_width=0.8)
+
+    y1 = hdr_y + 18
+    c.setFont(F_REG, 9); c.drawString(info_x + 6, yt(y1), 'JOURNAL N°')
+    jn_w = c.stringWidth('JOURNAL N°', F_REG, 9) + 4
+    dotted(c, info_x + 6 + jn_w, info_x + info_w * 0.40, yt(y1) - 2)
+    c.drawString(info_x + 6 + jn_w + 4, yt(y1), p['journal_no'])
+    folio_label_x = info_x + info_w * 0.42
+    c.setFont(F_REG, 9); c.drawString(folio_label_x, yt(y1), 'Folio')
+    fl_w = c.stringWidth('Folio', F_REG, 9) + 4
+    c.setFont(F_BOLD, 16); c.drawString(folio_label_x + fl_w, yt(y1 + 3), f"N°{fmt_folio_no(f['folio_no'])}")
+    date_x = info_x + info_w * 0.75
+    c.setFont(F_REG, 9); c.drawString(date_x, yt(y1), 'Date')
+    dt_w = c.stringWidth('Date', F_REG, 9) + 4
+    dotted(c, date_x + dt_w, info_x + info_w - 6, yt(y1) - 2)
+    c.drawString(date_x + dt_w + 4, yt(y1), fmt_date(f['date']))
+
+    y2 = y1 + 18
+    c.setFont(F_REG, 9); c.drawString(info_x + 6, yt(y2), 'Heures de travail : de')
+    ht_w = c.stringWidth('Heures de travail : de', F_REG, 9) + 4
+    dotted(c, info_x + 6 + ht_w, info_x + info_w * 0.50, yt(y2) - 2)
+    c.drawString(info_x + 6 + ht_w + 4, yt(y2), fmt_time(f['h_debut']))
+    a_x = info_x + info_w * 0.55; c.drawString(a_x, yt(y2), 'à')
+    a_w_lbl = c.stringWidth('à', F_REG, 9) + 4
+    dotted(c, a_x + a_w_lbl, info_x + info_w - 6, yt(y2) - 2)
+    c.drawString(a_x + a_w_lbl + 4, yt(y2), fmt_time(f['h_fin']))
+
+    y3 = y2 + 18
+    c.setFont(F_REG, 9); c.drawString(info_x + 6, yt(y3), 'Etat atmosphérique :')
+    et_w = c.stringWidth('Etat atmosphérique :', F_REG, 9) + 4
+    dotted(c, info_x + 6 + et_w, info_x + info_w - 6, yt(y3) - 2)
+    c.drawString(info_x + 6 + et_w + 4, yt(y3), f['meteo'])
+    dotted(c, info_x + 6, info_x + info_w - 6, yt(y3 + 14) - 2)
+    dotted(c, info_x + 6, info_x + info_w - 6, yt(y3 + 28) - 2)
+
+    y4 = y3 + 44
+    c.setFont(F_REG, 9); c.drawString(info_x + 6, yt(y4), 'Température à 8 h.')
+    t8_w = c.stringWidth('Température à 8 h.', F_REG, 9) + 4
+    dotted(c, info_x + 6 + t8_w, info_x + info_w * 0.50, yt(y4) - 2)
+    t8 = f['t_8h']; c.drawString(info_x + 6 + t8_w + 4, yt(y4), f"{t8}°" if t8 not in (None, '') else '')
+    a16_x = info_x + info_w * 0.55; c.drawString(a16_x, yt(y4), 'à 16 h.')
+    a16_w = c.stringWidth('à 16 h.', F_REG, 9) + 4
+    dotted(c, a16_x + a16_w, info_x + info_w - 6, yt(y4) - 2)
+    t16 = f['t_16h']; c.drawString(a16_x + a16_w + 4, yt(y4), f"{t16}°" if t16 not in (None, '') else '')
+
+    exempl_y_top = hdr_y + hdr_h + 6; exempl_y_bot = H - MARGIN_B - 30
+    c.saveState(); c.translate(MARGIN_L + 7, yt((exempl_y_top + exempl_y_bot) / 2))
+    c.rotate(90); c.setFont(F_BOLD, 7); c.drawCentredString(0, 0, 'Exemplaire à conserver sur le chantier')
+    c.restoreState()
+
+    grid_x = MARGIN_L + EXEMPLAIRE_W; grid_w = W - grid_x - MARGIN_R
+    grid_y = hdr_y + hdr_h + 6; grid_bot_y = H - MARGIN_B - 30
+    grid_h = grid_bot_y - grid_y
+    h_ab = grid_h * 0.34; h_cd = grid_h * 0.13; h_fg = grid_h * 0.13
+    h_h  = grid_h * 0.16; h_jk = grid_h * 0.24
+    a_w_cell = grid_w * 0.42; b_w_cell = grid_w - a_w_cell
+
+    box(c, grid_x, grid_y, a_w_cell, h_ab)
+    case_tag(c, grid_x + 4, grid_y + 4, 'A', w=18, h=18)
+    text_at(c, 'OUVRIERS', grid_x + 28, grid_y + 16, font=F_BOLD, size=9)
+    sub_y_hdr = grid_y + 28
+    text_at(c, 'Classes', grid_x + 6, sub_y_hdr + 9, font=F_REG, size=7.5)
+    text_at(c, 'Métiers', grid_x + a_w_cell * 0.30 + 4, sub_y_hdr + 9, font=F_REG, size=7.5)
+    text_at(c, 'Nombre', grid_x + a_w_cell * 0.78 + 4, sub_y_hdr + 9, font=F_REG, size=7.5)
+    sub_y_data = sub_y_hdr + 12; hline(c, grid_x, grid_x + a_w_cell, sub_y_data)
+    sub_x_v1 = grid_x + a_w_cell * 0.30; sub_x_v2 = grid_x + a_w_cell * 0.78
+    vline(c, sub_x_v1, sub_y_hdr, grid_y + h_ab); vline(c, sub_x_v2, sub_y_hdr, grid_y + h_ab)
+    rows_a = 11; total_strip_h = 14; data_zone_h = (grid_y + h_ab) - sub_y_data - total_strip_h
+    row_h = data_zone_h / rows_a; c.setFont(F_REG, 8)
+    for i, o in enumerate(ouvriers[:rows_a]):
+        y_base = sub_y_data + (i + 1) * row_h - 3
+        cls_txt = str(o['classe']); cls_max_w = a_w_cell * 0.30 - 8; cls_font_size = 8
+        if c.stringWidth(cls_txt, F_REG, cls_font_size) > cls_max_w: cls_font_size = 6.5
+        c.setFont(F_REG, cls_font_size); c.drawString(grid_x + 6, yt(y_base), cls_txt); c.setFont(F_REG, 8)
+        met_txt = str(o['metier']); met_max_w = a_w_cell * 0.48 - 8
+        while c.stringWidth(met_txt, F_REG, 8) > met_max_w and len(met_txt) > 3: met_txt = met_txt[:-1]
+        if met_txt != str(o['metier']): met_txt = met_txt[:-1] + '…'
+        c.drawString(sub_x_v1 + 4, yt(y_base), met_txt)
+        c.drawCentredString((sub_x_v2 + grid_x + a_w_cell) / 2, yt(y_base), str(o['nombre']))
+    for i in range(rows_a):
+        dotted(c, grid_x + 4, grid_x + a_w_cell - 4, yt(sub_y_data + (i + 1) * row_h), dash=(0.4, 1.2), width=0.3)
+    total_y_line = grid_y + h_ab - total_strip_h; hline(c, grid_x, grid_x + a_w_cell, total_y_line)
+    total = sum(o['nombre'] for o in ouvriers)
+    c.setFont(F_BOLD, 8); c.drawString(sub_x_v1 + 4, yt(grid_y + h_ab - 4), 'Total')
+    c.drawCentredString((sub_x_v2 + grid_x + a_w_cell) / 2, yt(grid_y + h_ab - 4), str(total))
+
+    box(c, grid_x + a_w_cell, grid_y, b_w_cell, h_ab)
+    case_tag(c, grid_x + a_w_cell + 4, grid_y + 4, 'B', w=18, h=18)
+    text_at(c, 'TRAVAUX EXÉCUTÉS', grid_x + a_w_cell + 28, grid_y + 16, font=F_BOLD, size=9)
+    para(c, f['b_travaux'], grid_x + a_w_cell + 4, grid_y + 30,
+         b_w_cell - 8, h_ab - 32 - (10 if cpls_by_case.get('B') else 0), font_size=8.5, padding=2, leading=11)
+    mark_case('B', grid_x + a_w_cell, grid_y + h_ab, b_w_cell)
+
+    cd_y = grid_y + h_ab
+    c_w_cell = grid_w * 0.21; d_w_cell = grid_w * 0.21; e_w_cell = grid_w - c_w_cell - d_w_cell
+    e_h_total = h_cd + h_fg
+    box(c, grid_x, cd_y, c_w_cell, h_cd)
+    case_tag(c, grid_x + 4, cd_y + 4, 'C', w=14, h=14)
+    text_at(c, 'MATÉRIEL EN SERVICE', grid_x + 22, cd_y + 14, font=F_BOLD, size=7)
+    para(c, f['c_materiel'], grid_x + 4, cd_y + 22, c_w_cell - 8, h_cd - 24 - (9 if cpls_by_case.get('C') else 0), font_size=7.5, padding=1, leading=9)
+    mark_case('C', grid_x, cd_y + h_cd, c_w_cell)
+
+    box(c, grid_x + c_w_cell, cd_y, d_w_cell, h_cd)
+    case_tag(c, grid_x + c_w_cell + 4, cd_y + 4, 'D', w=14, h=14)
+    text_at(c, 'MATÉRIEL HORS SERVICE', grid_x + c_w_cell + 22, cd_y + 12, font=F_BOLD, size=7)
+    text_at(c, 'CAUSES', grid_x + c_w_cell + 22, cd_y + 20, font=F_BOLD, size=7)
+    para(c, f['d_hs'], grid_x + c_w_cell + 4, cd_y + 26, d_w_cell - 8, h_cd - 28 - (9 if cpls_by_case.get('D') else 0), font_size=7.5, padding=1, leading=9)
+    mark_case('D', grid_x + c_w_cell, cd_y + h_cd, d_w_cell)
+
+    box(c, grid_x + c_w_cell + d_w_cell, cd_y, e_w_cell, e_h_total)
+    case_tag(c, grid_x + c_w_cell + d_w_cell + 4, cd_y + 4, 'E', w=14, h=14)
+    text_at(c, 'MATÉRIAUX ENTRÉS CE JOUR', grid_x + c_w_cell + d_w_cell + 22, cd_y + 12, font=F_BOLD, size=7)
+    para(c, f['e_materiaux'], grid_x + c_w_cell + d_w_cell + 4, cd_y + 28, e_w_cell - 8, e_h_total - 30 - (10 if cpls_by_case.get('E') else 0), font_size=8, padding=2, leading=10)
+    mark_case('E', grid_x + c_w_cell + d_w_cell, cd_y + e_h_total, e_w_cell)
+
+    fg_y = cd_y + h_cd
+    box(c, grid_x, fg_y, c_w_cell, h_fg)
+    case_tag(c, grid_x + 4, fg_y + 4, 'F', w=14, h=14)
+    text_at(c, 'ESSAIS SUR CHANTIER', grid_x + 22, fg_y + 14, font=F_BOLD, size=7)
+    para(c, f['f_essais'], grid_x + 4, fg_y + 22, c_w_cell - 8, h_fg - 24 - (9 if cpls_by_case.get('F') else 0), font_size=7.5, padding=1, leading=9)
+    mark_case('F', grid_x, fg_y + h_fg, c_w_cell)
+
+    box(c, grid_x + c_w_cell, fg_y, d_w_cell, h_fg)
+    case_tag(c, grid_x + c_w_cell + 4, fg_y + 4, 'G', w=14, h=14)
+    text_at(c, 'ÉCHANTILLONS EXPÉDIÉS', grid_x + c_w_cell + 22, fg_y + 14, font=F_BOLD, size=7)
+    para(c, f['g_echant'], grid_x + c_w_cell + 4, fg_y + 22, d_w_cell - 8, h_fg - 24 - (9 if cpls_by_case.get('G') else 0), font_size=7.5, padding=1, leading=9)
+    mark_case('G', grid_x + c_w_cell, fg_y + h_fg, d_w_cell)
+
+    h_y = fg_y + h_fg
+    box(c, grid_x, h_y, grid_w, h_h)
+    case_tag(c, grid_x + 4, h_y + 4, 'H', w=14, h=14)
+    text_at(c, 'ÉVÉNEMENTS IMPRÉVUS', grid_x + 22, h_y + 14, font=F_BOLD, size=7)
+    para(c, f['h_imprevus'], grid_x + 4, h_y + 22, grid_w - 8, h_h - 24 - (10 if cpls_by_case.get('H') else 0), font_size=8, padding=2, leading=10)
+    mark_case('H', grid_x, h_y + h_h, grid_w)
+
+    jk_y = h_y + h_h; j_w_cell = grid_w * 0.50; k_w_cell = grid_w - j_w_cell
+    box(c, grid_x, jk_y, j_w_cell, h_jk)
+    case_tag(c, grid_x + 4, jk_y + 4, 'J', w=14, h=14)
+    text_at(c, 'DÉCISIONS PRISES', grid_x + 22, jk_y + 14, font=F_BOLD, size=7)
+    para(c, f['j_decisions'], grid_x + 4, jk_y + 22, j_w_cell - 8, h_jk - 24 - (10 if cpls_by_case.get('J') else 0), font_size=8, padding=2, leading=10)
+    mark_case('J', grid_x, jk_y + h_jk, j_w_cell)
+
+    box(c, grid_x + j_w_cell, jk_y, k_w_cell, h_jk)
+    case_tag(c, grid_x + j_w_cell + 4, jk_y + 4, 'K', w=14, h=14)
+    text_at(c, 'VISITES - DIVERS', grid_x + j_w_cell + 22, jk_y + 14, font=F_BOLD, size=7)
+    para(c, f['k_visites'], grid_x + j_w_cell + 4, jk_y + 22, k_w_cell - 8, h_jk - 24 - (10 if cpls_by_case.get('K') else 0), font_size=8, padding=2, leading=10)
+    mark_case('K', grid_x + j_w_cell, jk_y + h_jk, k_w_cell)
+
+    sig_y = grid_bot_y + 10
+    c.setFont(F_IT, 8); c.drawString(grid_x + 4, yt(sig_y), 'Le préposé à la surveillance :')
+    c.setFont(F_REG, 8); c.drawString(grid_x + 4, yt(sig_y + 12), p['prepose'])
+    c.setFont(F_IT, 8); c.drawString(grid_x + grid_w * 0.55, yt(sig_y), "L'entrepreneur ou son délégué :")
+    c.setFont(F_REG, 8); c.drawString(grid_x + grid_w * 0.55, yt(sig_y + 12), p['entrepreneur'])
+
+
+def build_pdf(json_path, output_path=None):
+    global CACHET_IMG_PATH
+    json_dir = Path(json_path).parent.parent
+    for ext in ['png', 'jpg', 'jpeg']:
+        candidate = json_dir / f'cachet.{ext}'
+        if candidate.exists():
+            CACHET_IMG_PATH = str(candidate)
+            print(f'  Cachet image : {CACHET_IMG_PATH}')
+            break
+    else:
+        CACHET_IMG_PATH = None
+
+    projet, folios, complements = read_data_from_json(json_path)
+
+    if output_path is None:
+        pid = projet.get('projet_id', 'PROJET')
+        output_path = str(Path(json_path).parent / f"Journal_Travaux_{pid}.pdf")
+
+    c = canvas_mod.Canvas(output_path, pagesize=A4)
+    c.setTitle(f"Journal des Travaux — {projet.get('nom') or projet.get('projet_id', '')}")
+    c.setAuthor(projet.get('entrepreneur') or '')
+
+    draw_page_de_garde(c, projet); c.showPage()
+
+    folio_by_no = {f['folio_no']: f for f, _ in folios}
+    cpl_by_folio = {}
+    for cpl in complements:
+        ref = cpl.get('folio_no_ref')
+        if ref is None: continue
+        cpl_by_folio.setdefault(ref, []).append(cpl)
+    rendered_cpl = set()
+    for f, ouvriers in folios:
+        cpls_for_folio = cpl_by_folio.get(f['folio_no'], [])
+        draw_folio_page(c, projet, f, ouvriers, cpls_for_folio); c.showPage()
+        for cpl in sorted(cpls_for_folio, key=lambda x: x['folio_compl_no']):
+            if not cpl.get('date_ref'): cpl['date_ref'] = f['date']
+            rendered_cpl.add(id(cpl))
 
     c.save()
-    print(f"  ✓ PDF généré : {pdf_path}")
+    print(f'OK → {output_path}')
+    return output_path
 
-def main():
-    if len(sys.argv) >= 3:
-        # Usage direct : python build_pdf.py data.json output.pdf
-        generate_pdf(sys.argv[1], sys.argv[2])
-    elif len(sys.argv) == 2:
-        # Un seul argument = fichier JSON
-        jf = sys.argv[1]
-        pid = re.search(r'data/(.+?)__J(\d+)', jf)
-        if pid:
-            out = f"pdfs/Journal_Travaux_{pid.group(1)}__J{pid.group(2)}.pdf"
-        else:
-            out = jf.replace('data/', 'pdfs/').replace('.json', '.pdf')
-        generate_pdf(jf, out)
-    else:
-        # Mode automatique : traiter tous les data/*.json
-        jsons = glob.glob('data/*.json')
-        if not jsons:
-            print("Aucun fichier data/*.json trouvé.")
-            sys.exit(0)
-        for jf in jsons:
-            m = re.search(r'data/(.+?)__J(\d+)', jf)
-            if m:
-                out = f"pdfs/Journal_Travaux_{m.group(1)}__J{m.group(2)}.pdf"
-            else:
-                out = jf.replace('data/', 'pdfs/').replace('.json', '.pdf')
-            print(f"Traitement : {jf}")
-            generate_pdf(jf, out)
 
 if __name__ == '__main__':
-    main()
+    json_path = sys.argv[1] if len(sys.argv) > 1 else 'data/PRJ-001.json'
+    output    = sys.argv[2] if len(sys.argv) > 2 else None
+    build_pdf(json_path, output)
