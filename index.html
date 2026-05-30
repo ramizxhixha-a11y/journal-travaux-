@@ -160,7 +160,7 @@
 
 <header class="app-header">
   <h1>Journal des Travaux</h1>
-  <p class="header-sub" id="header-sub">— · v4.1</p>
+  <p class="header-sub" id="header-sub">— · v4.2</p>
   <span class="sync-dot" id="sync-dot" title="Statut"></span>
 </header>
 
@@ -453,7 +453,7 @@
 
     <details class="fieldset">
       <summary>ℹ À propos</summary>
-      <p style="font-size:14px;">Journal des Travaux v4.1 — modèle Embuild 9545 F.</p>
+      <p style="font-size:14px;">Journal des Travaux v4.2 — modèle Embuild 9545 F.</p>
       <p class="screen-sub">100 % local (IndexedDB) + publication GitHub explicite. Fonctionne hors-ligne.</p>
     </details>
 
@@ -480,7 +480,7 @@
 'use strict';
 
 /* ═══════════ CONSTANTES & ÉTAT ═══════════ */
-const APP_VERSION='4.1';
+const APP_VERSION='4.2';
 const DB_NAME='journal-travaux-db';
 const DB_VERSION=4;
 const STORES={
@@ -686,12 +686,18 @@ const CAVELL_SEED={
     adresse:'Z.I., 6 rue des Gerboises - 5100 Naninne', tel:'081/21 27 02',
     mail:'naninne@eeg.be', tva:'BE 0442.891.013', cachet_label:'EEG', agreation:'' }
 };
+const CAVELL_SEED_V=2;   /* incrémenter pour re-pousser les données pré-remplies corrigées */
 async function seedCavellIfEmpty(){
   const p=state.projet; if(!p) return;
   const ent=p.entrepreneur||{};
-  if((p.pouvoir_adjudicateur||'').trim() || (ent.nom||'').trim()) return;   /* déjà rempli → on ne touche pas */
-  const merged={...CAVELL_SEED, ...p};
-  merged.entrepreneur={...CAVELL_SEED.entrepreneur, ...(p.entrepreneur||{})};
+  const vide=!((p.pouvoir_adjudicateur||'').trim() || (ent.nom||'').trim());
+  if(!vide && (p._cavell_seed||0)>=CAVELL_SEED_V) return;   /* déjà à jour → on ne touche pas */
+  /* Données Cavell de référence : on (re)pose le seed en préservant nom, n° de journal et l'historique. */
+  const merged={...p, ...CAVELL_SEED};
+  merged.entrepreneur={...(p.entrepreneur||{}), ...CAVELL_SEED.entrepreneur};
+  merged.nom=p.nom||CAVELL_SEED.nom;
+  merged.journal_no=p.journal_no||CAVELL_SEED.journal_no||1;
+  merged._cavell_seed=CAVELL_SEED_V;
   merged.id=p.id; merged.projet_id=p.projet_id||p.id;
   await saveProjet(merged);
 }
@@ -1264,11 +1270,20 @@ async function publishGitHub(journalNo){
   syncDot('dirty'); toast('Publication en cours…');
   try{
     const base=`https://api.github.com/repos/${c.owner}/${c.repo}/contents/${path}`;
-    let sha=null;
-    const g=await fetch(`${base}?ref=${encodeURIComponent(c.branch)}`,{headers:ghHeaders(c.token)});
-    if(g.ok){ sha=(await g.json()).sha; }
-    const body={ message:`Journal ${pid} N°${j} — ${todayISO()}`, content, branch:c.branch, ...(sha&&{sha}) };
-    const p=await fetch(base,{method:'PUT',headers:{...ghHeaders(c.token),'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const getSha=async()=>{
+      const g=await fetch(`${base}?ref=${encodeURIComponent(c.branch)}&_=${Date.now()}`,{headers:ghHeaders(c.token),cache:'no-store'});
+      if(g.status===404) return null;
+      if(g.ok){ try{ return (await g.json()).sha||null; }catch(_){ return null; } }
+      return null;
+    };
+    const doPut=(sha)=>fetch(base,{method:'PUT',headers:{...ghHeaders(c.token),'Content-Type':'application/json'},
+      body:JSON.stringify({ message:`Journal ${pid} N°${j} — ${todayISO()}`, content, branch:c.branch, ...(sha&&{sha}) })});
+    let sha=await getSha();
+    let p=await doPut(sha);
+    if(p.status===409||p.status===422){          /* conflit de référence GitHub → on relit la référence fraîche et on réessaie */
+      sha=await getSha();
+      p=await doPut(sha);
+    }
     if(!p.ok){
       let m='HTTP '+p.status; try{ m=(await p.json()).message||m; }catch(_){}
       if(p.status===401) m='Token invalide (401)';
