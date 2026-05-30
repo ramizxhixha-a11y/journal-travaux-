@@ -294,13 +294,30 @@ def _draw_cachet_fallback(c, cx, cy, projet, scale=1.0):
 
 
 def draw_page_de_garde(c, p):
-    admin_x = 230; admin_w = W - admin_x - MARGIN_R
+    admin_x = 230; admin_w = W - admin_x - MARGIN_R - 5
+
+    def field_auto(label, value, y_top, lsize=9, vsize=8.5):
+        """Champ avec réduction automatique de police si la valeur déborde."""
+        y = yt(y_top)
+        c.setFont(F_REG, lsize); c.drawString(admin_x, y, label)
+        lw = c.stringWidth(label, F_REG, lsize) + 4
+        dotted(c, admin_x + lw, admin_x + admin_w, y - 2)
+        if value not in (None, ''):
+            avail = admin_w - lw - 4
+            s = vsize
+            while s >= 6.5 and c.stringWidth(str(value), F_REG, s) > avail:
+                s -= 0.3
+            txt = str(value)
+            while c.stringWidth(txt, F_REG, s) > avail and len(txt) > 4:
+                txt = txt[:-1]
+            if txt != str(value): txt = txt.rstrip() + '…'
+            c.setFont(F_REG, s); c.drawString(admin_x + lw + 2, y, txt)
+
     y = 55
-    field(c, admin_x, y, 'Pouvoir adjudicateur', p['pouvoir_adjudicateur'], admin_w); y += 18
-    field(c, admin_x, y, 'Administration',       p['administration'],       admin_w); y += 18
-    consumed = field_wrap(c, admin_x, y, 'Service', p['service'], admin_w, max_lines=2, line_h=12)
-    y = consumed + 18
-    field(c, admin_x, y, 'N° du dossier', p['no_dossier'], admin_w); y += 18
+    field_auto('Pouvoir adjudicateur', p['pouvoir_adjudicateur'], y); y += 18
+    field_auto('Administration',       p['administration'],       y); y += 18
+    field_auto('Service',              p['service'],              y); y += 18
+    field_auto('N° du dossier',        p['no_dossier'],           y); y += 18
     c.setLineWidth(0.8); c.line(admin_x + 200, yt(y - 4), admin_x + 280, yt(y - 4))
 
     title_y = 175
