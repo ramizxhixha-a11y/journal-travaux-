@@ -1,6 +1,6 @@
 {
   "version": "6.3",
-  "published_at": "2026-05-30T21:49:50.394Z",
+  "published_at": "2026-06-01T06:30:17.511Z",
   "journal_no": 1,
   "pouvoir_adjudicateur": "Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures",
   "administration": "Direction des infrastructures",
@@ -23,27 +23,27 @@
   "cachet_ville": "Namur",
   "cachet_mail": "naninne@eeg.be",
   "projet": {
-    "nom": "Édith Cavel",
+    "id": "main",
+    "nom": "Projet par défaut",
+    "projet_id": "main",
+    "journal_no": 1,
+    "entrepreneur": "EEG Techniques Spéciales SA",
+    "created_at": "2026-06-01T06:27:52.625Z",
+    "updated_at": "2026-06-01T06:27:52.712Z",
     "description": "Extension hôpital de jour chirurgical — Lot 3 (HVAC + Sanitaire)",
     "pouvoir_adjudicateur": "Centre Hospitalier Interrégional Edith Cavell (CHIREC) — Direction des infrastructures",
+    "administration": "Direction des infrastructures",
+    "service": "Suivi technique des marchés publics — infrastructures hospitalières",
     "no_dossier": "CHIREC-CAVELL-2026-LOT3",
     "csc_no": "2026-CHIREC-CAVELL-L3",
     "csc_ref": "Cahier spécial des charges CHIREC Cavell Lot 3",
-    "entrepreneur": "EEG Techniques Spéciales SA",
-    "id": "main",
-    "projet_id": "main",
-    "journal_no": 1,
-    "created_at": "2026-05-29T11:04:43.443Z",
-    "updated_at": "2026-05-30T19:04:59.013Z",
-    "statut": "Actif",
-    "date_debut": "2026-05-14",
-    "date_fin": "2026-12-31",
-    "notes": "Chantier en milieu hospitalier — protocoles d'hygiène stricts. Coordination quotidienne avec services médicaux.",
     "montant_entreprise": "1.250.000,00 EUR HTVA",
     "date_adjudication": "2026-04-15",
     "date_approbation": "2026-04-30",
     "date_contract_debut": "2026-05-14",
     "date_contract_fin": "2026-12-31",
+    "date_debut": "2026-05-14",
+    "date_fin": "2026-12-31",
     "lieu_contrat": "Uccle",
     "delai_achevement_jo": 165,
     "interruptions_autorisees": "",
@@ -52,9 +52,8 @@
     "jours_conges_legaux": 0,
     "jours_intemperies": 0,
     "jours_divers": 0,
-    "date_reelle_achevement": "",
-    "date_reportee": "",
     "jours_retard": 0,
+    "notes": "Chantier en milieu hospitalier — protocoles d'hygiène stricts. Coordination quotidienne avec services médicaux.",
     "_cavell_seed": 3,
     "planning": [
       {
@@ -363,8 +362,6 @@
     ],
     "_cavell_data_v": 1,
     "_cavell_biblio_v": 1,
-    "administration": "Direction des infrastructures",
-    "service": "Suivi technique des marchés publics — infrastructures hospitalières",
     "adresse": "Z.I., 6 rue des Gerboises - 5100 Naninne",
     "telephone": "081/21 27 02",
     "agreation": "D16 — D18 — P1 classe 4",
@@ -383,290 +380,6 @@
       "nom": "Sweco Belgium"
     }
   },
-  "folios": [
-    {
-      "folio_no": 1,
-      "date": "2026-05-19",
-      "statut": "Validé",
-      "signe_prep": "",
-      "signe_ent": "",
-      "ouvriers": [
-        {
-          "classe": "CONTREMAITRE",
-          "metier": "HVAC",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "HVAC",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "HVAC",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "AERAULYQUE",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "AERAULYQUE",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "Electricité",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "Electricite",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "Electricite",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "SOUDEUR",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "SOUDEUR",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "SOUDEUR",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "REGULATION",
-          "nombre": 1
-        }
-      ],
-      "h_debut": "06:30",
-      "h_fin": "15:00",
-      "meteo": "Nuageux",
-      "t_8h": "",
-      "t_16h": "",
-      "b_travaux": "Reunion de coordinations interne EEG\nDécharges condensat baterie QOP\nDemontages 2 lavabo COMPLET Endo, pour remplacement des ecochoc par WYCOR. Reinstallation des lavabo complet apres Wycor.\nRéglages des debits Hydraulique Endo.\nCommande QOP\nListe de metrée decompte QOP\nLevée des remarque Aproplan\nTest de pressions HVAC E5\nSoudages Acier LT+1\nInstallation Aeraulyques QOP\nRégulation Aeraulyque CCF reperages rez",
-      "c_materiel": "Machine geberit PEHD\nForeuses\nViseuses\nEchafaudages\nPermis feux\nPompe de surpresion\nOutillages ELE\nOutillages Soudure\nOutillages Regulation",
-      "d_hs": "Monte charges defaut",
-      "e_materiaux": "",
-      "f_essais": "Test de pression E5 EG ECH",
-      "g_echant": "",
-      "h_imprevus": "Incident Beny TAS Bltherme coupure à l'index, continuité du travail",
-      "j_decisions": "Deviation circuit EG du GP7 a travers la tremie dite arrondie aile C du +5 au -1.\nPiccages a realiser au plus favorable pour EEG. En DN 75.\nFiches technique mannesmann a sertir Acier.\nIntroduire NDC trainantes existant avec l'ajout du groupe GP7 et GP4.\nVanne Existante DN 50 a conserver pour future GP4.\nEtat des lieu du calorifuge des trainantes a introduire reparation necessaires a faire decompte a introduire.\nIntroduire un devis pour intercaler 2 vanne sur reseau existant devis a introduire 2 vanne DN 100 travail a realiser en weekend. A coordoner avant mi juin services techniques pas disponible sinon.\nPrendre en compte location clim potable pour gamma et data en services.\nUne fois intercaller les vanne suplementaire seulement apres on peut intercaller les vanne pour GP7.\nA voir si pas possible de le faire d'un coup.",
-      "k_visites": ""
-    },
-    {
-      "folio_no": 2,
-      "date": "2026-05-26",
-      "statut": "Validé",
-      "signe_prep": "",
-      "signe_ent": "",
-      "ouvriers": [
-        {
-          "classe": "cont",
-          "metier": "hvac Ramiz",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "Sanitariste Oscars",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "Soudeur souhaitant EEG",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "Soudeur souhaitant EEG",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "soudeur souhaitant EEG",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "Soudeur souhaitant EEG",
-          "nombre": 1
-        },
-        {
-          "classe": "??",
-          "metier": "Régulièrement Assistant de Anna",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "Aeraulyque",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "Aerauyque",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "Isolation Aeraulyque",
-          "nombre": 2
-        }
-      ],
-      "h_debut": "06:30",
-      "h_fin": "15:00",
-      "meteo": "Ciel dégagé",
-      "t_8h": 22.7,
-      "t_16h": 32.1,
-      "b_travaux": "Rapport de tests de pression Endo, Box+4, ph1 en cours\nRéglages des débits  eau DECH-RECH \nREGLAGES DE DEBITS DEG-RECH\nCommande ACCESSOIRES FLOW-FIT\nCOMMA’DE ACCESOIRE MANESMANN COLONE CHAUFFAGE\nRaccordement des batterie QOP suite en cours\nCoupure chauffage vc côté rue pour deviation acier collecteur Lt+1 suite en cours\nRéinstallation des servos moteur Ch , Froid  Endo.\nSuite Gaine Qop et LT+2",
-      "c_materiel": "Sertisseuse \nForeuse \nCorculateur froid départ/retour Lt+1pour Endo \n",
-      "d_hs": "",
-      "e_materiaux": "",
-      "f_essais": "",
-      "g_echant": "",
-      "h_imprevus": "Bac de récupération condensation des batteries endo fuite beltherme les embarquer le mercredi passé pour réparations,  à ce jour devait arriver retard de non prévu de beltherme. \nLocal IT trop chaud régulièrement pas raccorder le circulateur départ collecteur froid, faite d’urgence par assistant de Anna. ",
-      "j_decisions": "José Roméo et B0gdan  Ciufiu commencent à MRS OLIVIER DECISION DE DIRECTIONS.\nAppeler Euro-ISO pour suite calorifugeages QOP",
-      "k_visites": "Réunion hebdomadaire Mo et Entrepreneur EEG Bram, Anna, "
-    },
-    {
-      "folio_no": 3,
-      "date": "2026-05-27",
-      "statut": "Validé",
-      "signe_prep": "",
-      "signe_ent": "",
-      "ouvriers": [
-        {
-          "classe": "Cont",
-          "metier": "HVAC",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "Sanitariste",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "Soudeur",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "Soudeurs",
-          "nombre": 3
-        }
-      ],
-      "h_debut": "07:00",
-      "h_fin": "16:00",
-      "meteo": "Ciel dégagé",
-      "t_8h": 20.5,
-      "t_16h": 28.9,
-      "b_travaux": "Raccordement Bateries Qop\nInstallation bac de rétention condensation \nOuverture des vannes froids après raccordement définitif dans chaque local endo\nEnvoi des test de pressions \nEnvoi des réglages des débits \nVérification du fonctionnement circuit froid pour local IT comancer à refroidir débit trop faible indiqué sur circulateur, purgeage total du LT+1 au fin de circuit petit amélioration à surveiller.\nSuite circuit GP7 toiture \n\n",
-      "c_materiel": "K7 IT endo ",
-      "d_hs": "",
-      "e_materiaux": "Bac de rétention condensation des batteries après réparation par beltherme. 4 pcs",
-      "f_essais": "",
-      "g_echant": "",
-      "h_imprevus": "Servomoteur 3 vois collecteur LT +1 manquante pour mise e. Route du local IT bloquer provisoirement le temps d’ARRIVER .\n",
-      "j_decisions": "Par E mail, Stockages parking ?. \nDemander à Remi pour en discuter evec BE du nouveau  tracé fonds toiture en attente de proposition \nBart fais une proposition détailler à Rémi.",
-      "k_visites": "Bart pour nouveau tracé du circuit froid toiture "
-    },
-    {
-      "folio_no": 4,
-      "date": "2026-05-28",
-      "statut": "Signé",
-      "signe_prep": "",
-      "signe_ent": "",
-      "ouvriers": [
-        {
-          "classe": "Cont",
-          "metier": "HVAC",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "Sanitariste",
-          "nombre": 1
-        },
-        {
-          "classe": "IIIA",
-          "metier": "Aéraulique",
-          "nombre": 1
-        },
-        {
-          "classe": "IIA",
-          "metier": "Aéraulique",
-          "nombre": 1
-        }
-      ],
-      "h_debut": "06:30",
-      "h_fin": "15:00",
-      "meteo": "Ciel dégagé",
-      "t_8h": 17.2,
-      "t_16h": 28.6,
-      "b_travaux": "Installation sanitaire QOP premix  plafond scrubs\nSuite Installation raccordement des batteries QOP\n",
-      "c_materiel": "",
-      "d_hs": "",
-      "e_materiaux": "",
-      "f_essais": "",
-      "g_echant": "",
-      "h_imprevus": "",
-      "j_decisions": "",
-      "k_visites": ""
-    },
-    {
-      "folio_no": 5,
-      "date": "2026-05-29",
-      "statut": "Signé",
-      "signe_prep": "",
-      "signe_ent": "",
-      "ouvriers": [
-        {
-          "classe": "Cont",
-          "metier": "Hvac",
-          "nombre": 1
-        },
-        {
-          "classe": "III",
-          "metier": "Sanitarist",
-          "nombre": 1
-        }
-      ],
-      "h_debut": "06:30",
-      "h_fin": "15:00",
-      "meteo": "",
-      "t_8h": 23.6,
-      "t_16h": 31.4,
-      "b_travaux": "Adduction Sanitaire plafond QOP \nRégulation  mise en route par Gille \nRéglages débits circulateur EG Ando QOP\nRéglages débit Froid Endo\nRéglages dedits K7 secrétariat \nRéglages débits Chef de bloc K7\nCommande après  offres reçus pour la Colonne déviation GP7 EG\nRéinstallation des servomoteur vanne modulator Radiateur endo et salle de réveille \n\n\n\n",
-      "c_materiel": "K7 Froid  local IT \nCirculateur Départ EG LT+1\nK7 IT\nK7 secrétariat ENDO\nK7 BUREAU CHEF DE BLOC\nVanne de reglages à pression différentiel régler ndc 28kpa ouverture de la stand 25 2\n\n\n",
-      "d_hs": "Batteries froid et chaud ventilation à l’arrêt des 2 endo salle de réveille \nCirculateur debarcher électriquement  départ chauffage LT+1 pas au courant qui je l’ai lesser comme ça.\n\n",
-      "e_materiaux": "",
-      "f_essais": "Test des débits EG IT\nTest des débits EG Endo \nTest de débits K7 EG Secrétariat \nTest de débits K7 EG CHDB",
-      "g_echant": "",
-      "h_imprevus": "Régulation pas fonctionnelle ",
-      "j_decisions": "Par Anna régulation fonctionne on mets en route les batteries et K7\n",
-      "k_visites": ""
-    }
-  ],
-  "complements": [
-    {
-      "folio_compl_no": 1,
-      "folio_no_ref": 1,
-      "date_ref": "2026-05-19",
-      "case": "H",
-      "texte": "Incident, Benny Tas coupure a l'index droit avec gaine tranchant, desinfecté et protégé.\nVisite => decompte pour deux vanne supplémentaire DN 100 sur reseau existant EG."
-    }
-  ]
+  "folios": [],
+  "complements": []
 }
